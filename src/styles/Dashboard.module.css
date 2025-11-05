@@ -1,0 +1,55 @@
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  font-family: "Inter", sans-serif;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  margin-bottom: 2rem;
+  color: #555;
+}
+
+.cardContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.studyCard {
+  width: 250px;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 16px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.studyCard:hover {
+  transform: translateY(-8px);
+  background-color: #77bef0 !important;
+  color: white;
+}

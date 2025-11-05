@@ -1,0 +1,179 @@
+.home {
+  font-family: "Inter", sans-serif;
+  color: #222;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 60px 80px;
+  background: #f5f5f5;
+}
+
+.heroContent {
+  flex: 1;
+}
+
+.heroContent h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.heroContent p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 25px;
+}
+
+.heroButtons {
+  display: flex;
+  gap: 20px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  background: #77bef0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.secondaryBtn {
+  background: #a0d4f5;
+}
+
+.primaryBtn:hover,
+.secondaryBtn:hover {
+  background: #5daee0;
+}
+
+.heroImage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.heroImage img {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+}
+
+.features {
+  text-align: center;
+  padding: 60px 40px;
+}
+
+.features h2 {
+  font-size: 1.8rem;
+  margin-bottom: 40px;
+}
+
+.sliderWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.slider {
+  overflow: hidden;
+  width: 80%;
+  max-width: 1100px;
+}
+
+.sliderInner {
+  display: flex;
+  transition: transform 0.6s ease-in-out;
+  overflow: visible;
+}
+
+.featureCard {
+  flex: 0 0 25%;
+  margin: 0 10px;
+  padding: 20px;
+  border-radius: 12px;
+  height: 340px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.featureCard:hover {
+  transform: translateY(-12px) scale(1.07);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+}
+
+.sliderInner:hover .featureCard {
+  opacity: 0.6;
+}
+.sliderInner:hover .featureCard:hover {
+  opacity: 1;
+}
+
+.featureCard img {
+  width: 130px;
+  height: 130px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+.featureCard h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.arrowBtn {
+  background: none;
+  border: 2px solid #77BEF0;
+  color: #77BEF0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 18px;
+  margin: 0 10px;
+  transition: 0.2s;
+}
+
+.arrowBtn:hover {
+  background: #77BEF0;
+  color: #fff;
+}
+
+.footer {
+  background: #f5f5f5;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.footer p {
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.signUpBtn {
+  background: #77bef0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.signUpBtn:hover {
+  background: #5daee0;
+}

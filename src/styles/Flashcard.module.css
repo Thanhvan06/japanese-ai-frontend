@@ -1,0 +1,377 @@
+.pageWrapper {
+  display: flex;
+  font-family: "Poppins", sans-serif;
+  background-color: #fff;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.libraryContainer {
+  padding: 40px 80px;
+  margin-left: 80px;
+  background-color: #fff;
+  min-height: calc(100vh - 70px);
+  box-sizing: border-box;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.libraryTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #222;
+}
+
+.addSection {
+  position: relative;
+}
+
+.addBtn {
+  background-color: #77bef0;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addBtn:hover {
+  background-color: #77bef0;
+  transform: scale(1.05);
+}
+
+.libraryBtn {
+  background-color: #77bef0;
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.libraryBtn:hover {
+  background-color: #77bef0;
+}
+
+.dropdown {
+  position: absolute;
+  top: 58px;
+  right: 0;
+  background-color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  width: 160px;
+  padding: 8px 0;
+  animation: fadeDown 0.2s ease;
+  z-index: 20;
+}
+
+.dropdown div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #333;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.dropdown div:hover {
+  background-color: #f5f6fa;
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabsWrap {
+  margin-top: 18px;
+}
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.tabButton {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #333;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.tabButton:hover {
+  background: #f3f9fd;
+}
+.tabButton.active,
+.tabButton:focus,
+.tabButton[aria-selected="true"] {
+  background: #77bef0;
+  color: #fff;
+}
+
+.tabPanel {
+  /* container for content */
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 6px;
+}
+.card {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  overflow: hidden;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+.cardThumb {
+  height: 92px;
+  background: linear-gradient(90deg,#a0e1fb,#77bef0);
+}
+.cardBody {
+  padding: 12px 14px 16px 14px;
+}
+.cardTitle {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.cardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #666;
+  font-size: 13px;
+}
+.folderBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #77bef0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(119,190,240,0.32);
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.listItem {
+  background: #f2f2f2;
+  padding: 18px 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.listIcon {
+  width: 44px;
+  height: 44px;
+  background: #77bef0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.listText {
+  flex: 1;
+}
+.listTitle {
+  margin: 0 0 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+}
+.listSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+  font-weight: 600;
+}
+
+.card {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionCard {
+  background-color: #eee;
+  padding: 18px 24px;
+  border-radius: 8px;
+  transition: 0.2s;
+}
+
+.sectionCard:hover {
+  background-color: #e6e6e6;
+}
+
+.sectionInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 22px;
+  height: 22px;
+  background-color: #ccc;
+  border-radius: 50%;
+}
+
+.sectionTitle {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.levelContainer {
+  display: flex;
+  justify-content: flex-start;
+  gap: 30px;
+  margin-top: 50px;
+  flex-wrap: wrap;
+}
+
+.levelBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.levelThumb {
+  width: 120px;
+  height: 150px;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: #f0f0f0;
+  padding: 30px 40px;
+  border-radius: 12px;
+  text-align: center;
+  width: 320px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modal h3 {
+  margin-bottom: 20px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  margin-bottom: 25px;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.createBtn {
+  background-color: #77bef0;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.createBtn:hover {
+  background-color: #77bef0;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: none;
+  color: #77bef0;
+  cursor: pointer;
+}

@@ -1,0 +1,328 @@
+.pageWrapper {
+  display: flex;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+  background-color: #ffffff;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #2e3856;
+  --muted: #586380;
+  --divider: #eef1f6;
+  --accent: #a5d3f3;
+}
+
+.pageWrapper{
+  display:flex;
+  min-height:100vh;
+  font-family:"Poppins",sans-serif;
+  background:var(--card);
+}
+
+.mainContent{flex:1;display:flex;flex-direction:column;overflow-y:auto}
+
+.practiceContainer{
+  width:100%;max-width:1200px;margin:0 auto;padding:32px 40px;display:flex;flex-direction:column;align-items:center;box-sizing:border-box;min-height:calc(100vh - 70px);
+}
+
+/* ------------------ Flashcard area ------------------ */
+.flashcardArea{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:50px;width:100%;position:relative}
+
+.flashcardBox{width:100%;max-width:640px;height:360px;perspective:1000px;cursor:pointer;border-radius:8px;margin:20px 0 30px;display:flex;justify-content:center;align-items:center;position:relative;background:#77BEF0;box-shadow:0 0.25rem 1rem rgba(0,0,0,0.12)}
+
+.flashInner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.4,.2,.2,1);border-radius:14px}
+.flipped .flashInner{transform:rotateY(180deg)}
+
+.flashFront,.flashBack{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:8px;background:#77BEF0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;box-sizing:border-box;text-align:center}
+.flashBack{transform:rotateY(180deg);gap:12px}
+.flashFront{transform:rotateY(0deg)}
+
+/* flashcard-specific text (higher specificity to avoid being overridden) */
+.flashFront .flashText,
+.flashBack .flashText {
+  color:#ffffff;
+  font-size:32px;
+  font-weight:600;
+  line-height:1.6;
+  margin:0;
+}
+.flashBack .romaji {
+  color:#ffffff;
+  font-size:24px;
+  margin:0 0 12px;
+  font-weight:500;
+  opacity:1;
+}
+.flashBack .mean {
+  color:#ffffff;
+  font-size:20px;
+  margin:8px 0 0;
+  font-weight:500;
+}
+
+/* ------------------ Controls under card ------------------ */
+.cardControlsContainer{width:100%;max-width:640px;display:flex;justify-content:center;align-items:center;margin-top:20px;gap:40px;position:relative;padding:0 12px}
+
+.navigation{display:flex;align-items:center;gap:16px}
+.navLeft,.navCenter,.navRight{display:flex;align-items:center}
+.navCenter{font-weight:600;color:var(--text)}
+.navBtn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:8px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.navBtn:hover{background:#f1f1f1;color:var(--text)}
+
+.cardControls{position:absolute;right:8px;display:flex;gap:12px;align-items:center}
+.controlBtn{background:transparent;color:var(--text);border:none;border-radius:6px;padding:8px 12px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s}
+.controlBtn svg{color:var(--text);font-size:18px}
+.controlBtn:hover{background:#f1f1f1;transform:translateY(-1px)}
+
+/* ------------------ Creator/meta ------------------ */
+.meta{width:100%;max-width:640px;margin-top:18px;padding:0 12px}
+.creator{display:flex;align-items:center;gap:12px;color:var(--text)}
+.avatar{width:48px;height:48px;border-radius:50%;background:#e9e9e9}
+
+/* ------------------ Vocab list (single column) ------------------ */
+.vocabList{width:100%;max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:12px;padding:0 20px 40px}
+.vocabList h3{font-size:20px;color:var(--text);font-weight:700;margin:8px 0 12px;padding-left:4px}
+
+.vocabItem{display:grid;grid-template-columns:180px 1fr;align-items:center;background:var(--card);border-radius:8px;padding:18px;color:var(--text);font-size:16px;box-shadow:0 0 0 1px rgba(0,0,0,0.03);position:relative}
+.vocabDivider{width:1px;height:80%;background:var(--divider);position:absolute;left:180px;top:10%}
+.word{font-size:22px;font-weight:700;color:var(--text);text-align:center}
+.vocabRightBlock{display:flex;flex-direction:column;align-items:flex-start;padding-left:24px}
+.hira{font-size:17px;color:var(--text);margin-bottom:4px;font-weight:500}
+.mean{font-size:15px;color:var(--muted);font-weight:400}
+
+/* ------------------ Utilities / inputs / small helpers ------------------ */
+.iconBtn{background:var(--accent);border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;transition:all .15s}
+.iconBtn:hover{background:#7ec2eb;transform:scale(1.03)}
+
+.saveBtn,.cancelBtn{padding:8px 24px;border-radius:20px;font-size:16px}
+.saveBtn{background:#4CAF50}
+.cancelBtn{background:#f44336}
+
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ------------------ Responsive tweaks ------------------ */
+@media (max-width: 900px) {
+  .flashcardBox {
+    max-width: 540px;
+  }
+  .vocabItem {
+    grid-template-columns: 140px 1fr;
+  }
+  .vocabDivider {
+    left: 140px;
+  }
+}
+
+@media (max-width: 560px) {
+  .flashcardBox {
+    height: 300px;
+  }
+  .cardControls {
+    right: 6px;
+  }
+  .vocabItem {
+    grid-template-columns: 1fr;
+  }
+  .vocabDivider {
+    display: none;
+  }
+  .word {
+    text-align: left;
+  }
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.switch input:checked + .slider {
+  background-color: #77bef0;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(24px);
+}
+
+.navigation {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 8px 0 18px;
+  position: relative;
+}
+
+.navLeft, .navRight {
+  flex: 0 0 auto;
+}
+
+.navCenter {
+  flex: 0 0 auto;
+}
+
+.navBtn {
+  background: #77bef0;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navBtn:hover { transform: translateY(-2px); }
+
+.navCounter {
+  font-weight: 700;
+}
+
+.navExtras {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.iconBtn:hover { background: rgba(0,0,0,0.04); border-radius: 6px; }
+
+.meta {
+  width: 100%;
+  max-width: 700px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.creator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  background-color: #ddd;
+  border-radius: 50%;
+}
+
+.vocabList {
+  width: 100%;
+  max-width: 900px;
+  text-align: left;
+  margin-top: 40px;
+  padding: 0 20px;
+}
+
+.vocabList h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: #2e3856;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocabList h3 span {
+  color: #2e3856;
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+.vocabItem {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px 24px;
+  color: #2e3856;
+  font-size: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 0 1px #e5e5e5;
+  transition: all 0.2s ease;
+}
+
+.word {
+  font-weight: 600;
+  font-size: 20px;
+  color: #2e3856;
+  padding: 0;
+}
+
+.rightBlock {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.romaji {
+  font-size: 15px;
+  color: #2e3856;
+  text-align: left;
+  font-weight: normal;
+}
+
+.mean {
+  font-size: 15px;
+  color: #2e3856;
+  font-weight: normal;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.vocabItem:hover .actionButtons {
+  opacity: 1;
+}
+
+.actionButton {
+  padding: 6px;
+  border: none;
+  background: transparent;
+  color: #586380;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton:hover {
+  background: #f6f7fb;
+  color: #4255ff;
+}
