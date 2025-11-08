@@ -1,57 +1,115 @@
-import React, { useState } from "react";
-import { Search } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
+import styles from "../styles/Header.module.css";
 
 const Header = () => {
-  const [language, setLanguage] = useState("vi");
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [language, setLanguage] = useState("jp");
 
-  const toggleLanguage = () => {
-    setLanguage((prev) =>
-      prev === "vi" ? "en" : prev === "en" ? "jp" : "vi"
-    );
+  const langRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  const handleSelectLanguage = (lang) => {
+    setLanguage(lang);
+    setLangOpen(false);
   };
 
-  const flagSrc =
-    language === "vi"
-      ? "/src/assets/vn.png"
-      : language === "en"
-      ? "/src/assets/eng.png"
-      : "/src/assets/jp.png";
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        langRef.current &&
+        !langRef.current.contains(e.target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target)
+      ) {
+        setLangOpen(false);
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-      {/* Logo */}
-      <div className="flex items-center gap-2">
-        <img
-          src="/src/assets/home.png"
-          alt="Logo"
-          className="w-8 h-8 object-contain"
-        />
-        <h1 className="text-xl font-semibold text-gray-800">Japanese AI</h1>
+    <header className={styles.header}>
+      {/* Left: logo */}
+      <div className={styles.leftSection}>
+        <div className={styles.logoWrapper} onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
+          <img src="/logo.png" alt="ManaVi" className={styles.logoImg} />
+        </div>
       </div>
 
       {/* Thanh tìm kiếm */}
-      <div className="relative w-1/3">
-        <input
-          type="text"
-          placeholder="Tìm kiếm..."
-          className="w-full rounded-full border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-[#77BEF0]"
-        />
-        <Search className="absolute left-3 top-2.5 text-gray-500 w-5 h-5" />
+      <div className={styles.searchContainer}>
+        <input type="text" placeholder="Search..." className={styles.search} />
       </div>
 
-      {/* Ngôn ngữ */}
-      <div
-        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition"
-        onClick={toggleLanguage}
-      >
-        <img
-          src={flagSrc}
-          alt="Flag"
-          className="w-10 h-10 rounded-sm "
-        />
-        <span className="text-sm font-medium text-gray-700 uppercase">
-          {language}
-        </span>
+      {/* Phần bên phải */}
+      <div className={styles.rightSection}>
+        {/* Chọn ngôn ngữ */}
+        <div className={styles.languageWrapper} ref={langRef}>
+          <button
+            className={styles.flagBtn}
+            onClick={() => setLangOpen(!langOpen)}
+          >
+            <img
+              src={
+                language === "jp"
+                  ? "/flags/japan.png"
+                  : language === "en"
+                  ? "/flags/uk.png"
+                  : "/flags/vietnam.png"
+              }
+              alt={language}
+              className={styles.flagIcon}
+            />
+          </button>
+
+          {langOpen && (
+            <div className={styles.langDropdown}>
+              <button
+                className={styles.langOption}
+                onClick={() => handleSelectLanguage("jp")}
+              >
+                <img src="/flags/japan.png" alt="jp" />
+                <span>日本語</span>
+              </button>
+              <button
+                className={styles.langOption}
+                onClick={() => handleSelectLanguage("en")}
+              >
+                <img src="/flags/uk.png" alt="en" />
+                <span>English</span>
+              </button>
+              <button
+                className={styles.langOption}
+                onClick={() => handleSelectLanguage("vn")}
+              >
+                <img src="/flags/vietnam.png" alt="vn" />
+                <span>Tiếng Việt</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Avatar dropdown */}
+        <div className={styles.avatarWrapper} ref={dropdownRef}>
+          <FaUserCircle
+            size={28}
+            className={styles.avatar}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          />
+          {dropdownOpen && (
+            <div className={styles.dropdown}>
+              <p onClick={() => navigate('/edit-profile')} style={{ cursor: 'pointer' }}>Edit Profile</p>
+              <p>Sign Out</p>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
