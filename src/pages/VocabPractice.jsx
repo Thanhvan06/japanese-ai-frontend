@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import styles from "../styles/VocabPractice.module.css";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
@@ -7,6 +8,7 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { IoShuffle } from "react-icons/io5";
 
 const FlashcardPractice = () => {
+  const { id } = useParams();
   const data = [
     { id: 1, vocab: "勉強", romaji: "べんきょう", meaning: "học tập" },
     { id: 2, vocab: "勉強", romaji: "べんきょう", meaning: "học tập" },

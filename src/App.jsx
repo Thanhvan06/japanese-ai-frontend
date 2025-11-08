@@ -6,19 +6,46 @@ import Chatbot from "./pages/Chatbot";
 import CreateFlashcard from "./pages/CreateFlashcard";
 import VocabPractice from "./pages/VocabPractice";
 import Flashcard from "./pages/Flashcard";
+import SignIn from "./pages/SignIn";
+import Vocab from "./pages/Vocab";
+import VocabLevel from "./pages/VocabLevel";
+import Grammar from "./pages/Grammar";
+import GrammarLevel from "./pages/GrammarLevel";
+import GrammarDetail from "./pages/GrammarDetail";
+import Diary from "./pages/Diary";
+import DiaryDetail from "./pages/DiaryDetail";
+
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/home" element={<Dashboard />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/newflashcard" element={<CreateFlashcard />} />
-        <Route path="/vocab-practice" element={<VocabPractice />} />
+
+        {/* --- Flashcard Routes --- */}
         <Route path="/flashcard" element={<Flashcard />} />
+        <Route path="/flashcard/newflashcard" element={<CreateFlashcard />} />
+        <Route path="/flashcard/folders/:folderName" element={<Flashcard />} />
+        <Route path="/flashcard/vocab-practice/:id" element={<VocabPractice />} />
+
         <Route path="*" element={<Navigate to="/" />} />
+        
+        <Route path="/signin" element={<SignIn />} />
+        {/* --- Vocab Routes --- */}
+        <Route path="/vocab" element={<Vocab />} />
+        <Route path="/vocab/:level" element={<VocabLevel />} />
+
+        {/* --- Grammar Routes --- */}
+        <Route path="/grammar" element={<Grammar />} />
+        <Route path="/grammar/:level" element={<GrammarLevel />} />
+        <Route path="/grammar/:level/:grammarId" element={<GrammarDetail />} />
+
+        {/* --- Diary Routes --- */}
+        <Route path="/diary" element={<Diary />} />
+        <Route path="/diary/:title" element={<DiaryDetail />} />
       </Routes>
     </Router>
   );

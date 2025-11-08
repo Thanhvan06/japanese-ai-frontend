@@ -1,13 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/Home.module.css";
 
 import flashcards from "../assets/flashcards.png";
-import vocab from "../assets/vocab.png";
-import diary from "../assets/diary.png";
+import vocab from "../assets/vocab2.png";
+import diary from "../assets/diary2.png";
 import ai from "../assets/ai.png";
-import grammar from "../assets/grammar.png"; 
+import grammar from "../assets/grammar2.png"; 
 
 const Home = () => {
+  const navigate = useNavigate();
   const features = [
     { title: "Study flashcards", image: flashcards, color: "#E3F2FD" },
     { title: "Vocabulary practice", image: vocab, color: "#FFF3E0" },
@@ -36,8 +38,8 @@ const Home = () => {
             nắm vững từ vựng, ngữ pháp và cải thiện kỹ năng giao tiếp.
           </p>
           <div className={styles.heroButtons}>
-            <button className={styles.primaryBtn}>Bắt đầu học ngay</button>
-            <button className={styles.secondaryBtn}>Đăng nhập</button>
+            <button className={styles.primaryBtn} onClick={() => navigate('/signin')}>Bắt đầu học ngay</button>
+            <button className={styles.secondaryBtn} onClick={() => navigate('/signin')}>Đăng nhập</button>
           </div>
         </div>
         <div className={styles.heroImage}>
@@ -78,7 +80,7 @@ const Home = () => {
 
       <footer className={styles.footer}>
         <p>Sẵn sàng bắt đầu hành trình học tiếng Nhật của bạn?</p>
-        <button className={styles.signUpBtn}>Đăng ký miễn phí</button>
+        <button className={styles.signUpBtn} onClick={() => navigate('/signin')}>Đăng ký miễn phí</button>
       </footer>
     </div>
   );

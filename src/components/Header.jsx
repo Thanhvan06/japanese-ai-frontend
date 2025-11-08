@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import styles from "../styles/Header.module.css";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [language, setLanguage] = useState("jp");
@@ -36,7 +38,7 @@ const Header = () => {
     <header className={styles.header}>
       {/* Left: logo */}
       <div className={styles.leftSection}>
-        <div className={styles.logoWrapper}>
+        <div className={styles.logoWrapper} onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
           <img src="/logo.png" alt="ManaVi" className={styles.logoImg} />
         </div>
       </div>
@@ -103,7 +105,7 @@ const Header = () => {
           />
           {dropdownOpen && (
             <div className={styles.dropdown}>
-              <p>Edit Profile</p>
+              <p onClick={() => navigate('/edit-profile')} style={{ cursor: 'pointer' }}>Edit Profile</p>
               <p>Sign Out</p>
             </div>
           )}

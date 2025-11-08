@@ -1,4 +1,45 @@
-body {
-  margin: 0;
-  background-color: #fff;
+@import "tailwindcss";
+
+/* --- Cloud animation --- */
+@keyframes moveClouds {
+  0% {
+    transform: translateX(-200px);
+  }
+  100% {
+    transform: translateX(120vw);
+  }
+}
+
+.clouds {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.8;
+}
+
+.cloud1 {
+  top: 15%;
+  left: -200px;
+  width: 250px;
+  height: 120px;
+  background-image: url("https://cdn.creazilla.com/cliparts/3165364/clouds-clipart-lg.png");
+  animation: moveClouds 60s linear infinite;
+}
+
+.cloud2 {
+  top: 40%;
+  left: -300px;
+  width: 300px;
+  height: 150px;
+  background-image: url("https://cdn.creazilla.com/cliparts/3165364/clouds-clipart-lg.png");
+  animation: moveClouds 80s linear infinite;
+}
+
+.cloud3 {
+  top: 70%;
+  left: -400px;
+  width: 200px;
+  height: 100px;
+  background-image: url("https://cdn.creazilla.com/cliparts/3165364/clouds-clipart-lg.png");
+  animation: moveClouds 70s linear infinite;
 }

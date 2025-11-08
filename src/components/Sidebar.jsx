@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaHome,
   FaBook,
@@ -13,16 +14,26 @@ import { useSidebar } from "../context/SidebarContext";
 
 const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
-  const [active, setActive] = useState("Home");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [active, setActive] = useState("");
 
   const menuItems = [
-    { icon: <FaHome />, label: "Trang chủ" },
-    { icon: <FaBook />, label: "Từ vựng" },
-    { icon: <FaPenNib />, label: "Ngữ pháp" },
-    { icon: <FaEdit />, label: "Viết nhật ký" },
-    { icon: <FaClone />, label: "Tạo thẻ flashcard" },
-    { icon: <FaRobot />, label: "Chatbot AI" },
+    { icon: <FaHome />, label: "Trang chủ", path: "/home" },
+    { icon: <FaBook />, label: "Từ vựng", path: "/vocab" },
+    { icon: <FaPenNib />, label: "Ngữ pháp", path: "/grammar" },
+    { icon: <FaEdit />, label: "Viết nhật ký", path: "/diary" },
+    { icon: <FaClone />, label: "Flashcard", path: "/flashcard" },
+    { icon: <FaRobot />, label: "Chatbot AI", path: "/chatbot" },
   ];
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const currentItem = menuItems.find(item => item.path === currentPath);
+    if (currentItem) {
+      setActive(currentItem.path);
+    }
+  }, [location.pathname]);
 
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}>
@@ -35,9 +46,12 @@ const Sidebar = () => {
           <li
             key={i}
             className={`${styles.menuItem} ${
-              active === item.label ? styles.active : ""
+              active === item.path ? styles.active : ""
             }`}
-            onClick={() => setActive(item.label)}
+            onClick={() => {
+              navigate(item.path);
+              setActive(item.path);
+            }}
           >
             {item.icon}
             {isOpen && <span>{item.label}</span>}
