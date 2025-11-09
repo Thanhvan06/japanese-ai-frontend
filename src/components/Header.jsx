@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import styles from "../styles/Header.module.css";
+// import { logout } from "../lib/auth";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -17,7 +18,12 @@ const Header = () => {
     setLangOpen(false);
   };
 
-  // Đóng menu khi click ra ngoài
+  const handleSignOut = () => {
+    localStorage.removeItem("token");          
+    setDropdownOpen(false);                    
+    navigate("/signin", { replace: true });    
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -43,14 +49,14 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Thanh tìm kiếm */}
+      {/* Search */}
       <div className={styles.searchContainer}>
         <input type="text" placeholder="Search..." className={styles.search} />
       </div>
 
-      {/* Phần bên phải */}
+      {/* Right */}
       <div className={styles.rightSection}>
-        {/* Chọn ngôn ngữ */}
+        {/* Language */}
         <div className={styles.languageWrapper} ref={langRef}>
           <button
             className={styles.flagBtn}
@@ -71,24 +77,15 @@ const Header = () => {
 
           {langOpen && (
             <div className={styles.langDropdown}>
-              <button
-                className={styles.langOption}
-                onClick={() => handleSelectLanguage("jp")}
-              >
+              <button className={styles.langOption} onClick={() => handleSelectLanguage("jp")}>
                 <img src="/flags/japan.png" alt="jp" />
                 <span>日本語</span>
               </button>
-              <button
-                className={styles.langOption}
-                onClick={() => handleSelectLanguage("en")}
-              >
+              <button className={styles.langOption} onClick={() => handleSelectLanguage("en")}>
                 <img src="/flags/uk.png" alt="en" />
                 <span>English</span>
               </button>
-              <button
-                className={styles.langOption}
-                onClick={() => handleSelectLanguage("vn")}
-              >
+              <button className={styles.langOption} onClick={() => handleSelectLanguage("vn")}>
                 <img src="/flags/vietnam.png" alt="vn" />
                 <span>Tiếng Việt</span>
               </button>
@@ -105,8 +102,12 @@ const Header = () => {
           />
           {dropdownOpen && (
             <div className={styles.dropdown}>
-              <p onClick={() => navigate('/edit-profile')} style={{ cursor: 'pointer' }}>Edit Profile</p>
-              <p>Sign Out</p>
+              <button onClick={() => { setDropdownOpen(false); navigate('/edit-profile'); }} className={styles.dropdownItem}>
+                Edit Profile
+              </button>
+              <button onClick={handleSignOut} className={styles.dropdownItem}>
+                Sign Out
+              </button>
             </div>
           )}
         </div>
