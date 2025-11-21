@@ -1,29 +1,35 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import VocabCard from "../components/VocabCard";
-import { useParams } from "react-router-dom";
+import { api } from "../lib/api";
 
 export default function VocabLevel() {
   const { level } = useParams();
+  const [vocabList, setVocabList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Dữ liệu demo (sau này sẽ lấy từ backend)
-  const vocabList = [
-    {
-      word: "猫 (ねこ)",
-      meaning: "Con mèo",
-      image: "https://thichtrangtri.com/wp-content/uploads/2025/05/hinh-anh-con-meo-cute-1.jpg",
-    },
-    {
-      word: "犬 (いぬ)",
-      meaning: "Con chó",
-      image: "/images/dogpic.png",
-    },
-    {
-      word: "学校 (がっこう)",
-      meaning: "Trường học",
-      image: "/images/schoolpic.png",
-    },
-  ];
+  useEffect(() => {
+    async function fetchVocab() {
+      try {
+        setLoading(true);
+        setError("");
+        console.log(level);
+        console.log(`/api/vocab?level=${level}`);
+        const data = await api(`/api/vocab?level=${level}`);
+        // BE trả: { items: [...] }
+        console.log(data);
+        setVocabList(data.items || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchVocab();
+  }, [level]);
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -36,16 +42,25 @@ export default function VocabLevel() {
             Từ vựng JLPT {level}
           </h1>
 
-          <div className="grid grid-cols-3 gap-6">
-            {vocabList.map((item, index) => (
-              <VocabCard
-                key={index}
-                word={item.word}
-                meaning={item.meaning}
-                image={item.image}
-              />
-            ))}
-          </div>
+          {loading && <p>Đang tải từ vựng...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+
+          {!loading && !error && (
+            <div className="grid grid-cols-3 gap-6">
+              {vocabList.map((item) => (
+                <VocabCard
+                  key={item.vocab_id}
+                  word={
+                    item.furigana
+                      ? `${item.word} (${item.furigana})`
+                      : item.word
+                  }
+                  meaning={item.meaning}
+                  image={item.image_url}
+                />
+              ))}
+            </div>
+          )}
         </main>
       </div>
     </div>
