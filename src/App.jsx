@@ -28,7 +28,8 @@ function App() {
         {/* --- Flashcard Routes --- */}
         <Route path="/flashcard" element={<Flashcard />} />
         <Route path="/flashcard/newflashcard" element={<CreateFlashcard />} />
-        <Route path="/flashcard/folders/:folderName" element={<Flashcard />} />
+        <Route path="/flashcard/folders/:folderId" element={<Flashcard />} />
+        <Route path="/flashcard/edit/:setId" element={<CreateFlashcard />} />
         <Route path="/flashcard/vocab-practice/:id" element={<VocabPractice />} />
 
         <Route path="*" element={<Navigate to="/" />} />
