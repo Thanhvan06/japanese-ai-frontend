@@ -45,7 +45,7 @@ function App() {
 
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
-        <Route path="/diary/:title" element={<DiaryDetail />} />
+        <Route path="/diary/:id" element={<DiaryDetail />} />
       </Routes>
     </Router>
   );
