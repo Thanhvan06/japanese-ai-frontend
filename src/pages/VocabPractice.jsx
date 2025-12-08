@@ -5,9 +5,9 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { IoShuffle, IoFolderOpenOutline } from "react-icons/io5";
+import { FiEdit2 } from "react-icons/fi";
 import {
   getSet,
-  createCard,
   startStudy,
   getCardAnswer,
   submitStudyAnswer
@@ -27,7 +27,6 @@ const FlashcardPractice = () => {
   const [status, setStatus] = useState("");
   const [loadingStudy, setLoadingStudy] = useState(true);
   const [loadingSet, setLoadingSet] = useState(true);
-  const [newCard, setNewCard] = useState({ sideJp: "", sideViet: "" });
 
   const currentCard = studyCards[current] || null;
 
@@ -76,6 +75,10 @@ const FlashcardPractice = () => {
     setFlipped(false);
     setCurrent((prev) => (prev + 1) % studyCards.length);
   }, [studyCards.length]);
+
+  useEffect(() => {
+    setFlipped(false);
+  }, [current]);
 
   const handleRandom = useCallback(() => {
     if (studyCards.length <= 1) return;
@@ -149,25 +152,6 @@ const FlashcardPractice = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleNotRemembered, handleRemembered, handleFlip]);
 
-  const handleAddCard = useCallback(async () => {
-    if (!newCard.sideJp.trim() || !newCard.sideViet.trim()) {
-      setStatus("Hãy nhập đầy đủ hai mặt của thẻ");
-      return;
-    }
-    try {
-      await createCard(setId, {
-        sideJp: newCard.sideJp.trim(),
-        sideViet: newCard.sideViet.trim(),
-        imageUrl: ""
-      });
-      setNewCard({ sideJp: "", sideViet: "" });
-      await fetchSetDetail();
-      await fetchStudyCards(mode);
-      setStatus("Đã thêm thẻ mới");
-    } catch (err) {
-      setStatus(err.message || "Lỗi khi thêm thẻ");
-    }
-  }, [newCard, setNewCard, setId, fetchSetDetail, fetchStudyCards, mode]);
 
 
   const vocabulary = useMemo(() => setInfo?.fccards || [], [setInfo]);
@@ -231,23 +215,35 @@ const FlashcardPractice = () => {
                   <p className={styles.flashText}>
                     {loadingStudy ? "Đang tải..." : currentCard ? currentCard.front : "Chưa có thẻ nào"}
                   </p>
-                  {currentCard?.image_url && (
-                    <img src={currentCard.image_url} alt="Flashcard" className={styles.flashImage} />
-                  )}
                 </div>
                 <div className={styles.flashBack}>
                   {currentCard && answers[currentCard.card_id] ? (
-                    <>
-                      <p className={styles.romaji}>{answers[currentCard.card_id].front}</p>
-                      <p className={styles.mean}>{answers[currentCard.card_id].back}</p>
-                      {(answers[currentCard.card_id].image_url || currentCard.image_url) && (
-                        <img
-                          src={answers[currentCard.card_id].image_url || currentCard.image_url}
-                          alt="Flashcard answer"
-                          className={styles.flashImage}
-                        />
-                      )}
-                    </>
+                    <div style={{ display: "flex", width: "100%", height: "100%", gap: "20px", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "12px" }}>
+                        <p className={styles.romaji}>{answers[currentCard.card_id].front}</p>
+                        <p className={styles.mean}>{answers[currentCard.card_id].back}</p>
+                      </div>
+                      {(answers[currentCard.card_id].image_url || currentCard.image_url) && (() => {
+                        const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+                        const imageSrc = answers[currentCard.card_id].image_url || currentCard.image_url;
+                        const fullImageUrl = imageSrc && imageSrc.startsWith("/uploads/") 
+                          ? `${BASE_URL}${imageSrc}` 
+                          : imageSrc;
+                        return (
+                          <div style={{ flex: "0 0 auto", maxWidth: "40%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <img
+                              src={fullImageUrl}
+                              alt="Flashcard answer"
+                              className={styles.flashImage}
+                              style={{ maxWidth: "100%", maxHeight: "280px", objectFit: "contain", borderRadius: "8px" }}
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        );
+                      })()}
+                    </div>
                   ) : (
                     <p className={styles.mean}>
                       {currentCard ? "Nhấp để xem đáp án" : "Thêm thẻ để bắt đầu học"}
@@ -305,43 +301,59 @@ const FlashcardPractice = () => {
           </div>
 
           <div className={styles.vocabList}>
-            <h3>
-              Thuật ngữ trong học phần này <span>({vocabulary.length})</span>
-            </h3>
-
-            <div className={styles.newCardForm}>
-              <input
-                type="text"
-                placeholder="Tiếng Nhật"
-                value={newCard.sideJp}
-                onChange={(e) => setNewCard((prev) => ({ ...prev, sideJp: e.target.value }))}
-              />
-              <input
-                type="text"
-                placeholder="Tiếng Việt"
-                value={newCard.sideViet}
-                onChange={(e) => setNewCard((prev) => ({ ...prev, sideViet: e.target.value }))}
-              />
-              <button onClick={handleAddCard}>Thêm thẻ</button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3>
+                Thuật ngữ trong học phần này <span>({vocabulary.length})</span>
+              </h3>
+              <button
+                onClick={() => navigate(`/flashcard/edit/${setId}`)}
+                className={styles.editButton}
+                title="Chỉnh sửa học phần"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <FiEdit2 size={20} color="#77bef0" />
+              </button>
             </div>
 
             {loadingSet && <p>Đang tải danh sách thẻ...</p>}
             {!loadingSet &&
-              vocabulary.map((card) => (
-                <div key={card.card_id} className={styles.vocabItem}>
-                  <span className={styles.word}>{card.side_jp}</span>
-                  <div className={styles.vocabDivider} />
-                  <div className={styles.vocabRightBlock}>
-                    <div className={styles.mean}>{card.side_viet}</div>
-                    {card.image_url && (
-                      <img src={card.image_url} alt="Thuật ngữ" className={styles.vocabImage} />
-                    )}
+              vocabulary.map((card) => {
+                const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+                const imageUrl = card.image_url && card.image_url.startsWith("/uploads/") 
+                  ? `${BASE_URL}${card.image_url}` 
+                  : card.image_url;
+                return (
+                  <div key={card.card_id} className={styles.vocabItem}>
+                    <span className={styles.word}>{card.side_jp}</span>
+                    <div className={styles.vocabDivider} />
+                    <div className={styles.vocabRightBlock} style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px", width: "100%" }}>
+                      <div className={styles.mean} style={{ flex: 1 }}>{card.side_viet}</div>
+                      {imageUrl && (
+                        <img 
+                          src={imageUrl} 
+                          alt="Thuật ngữ" 
+                          className={styles.vocabImage}
+                          style={{ maxWidth: "120px", maxHeight: "120px", objectFit: "contain", borderRadius: "8px", flexShrink: 0 }}
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className={styles.actionButtons}>
+                      {/* Edit/Delete buttons intentionally hidden in study view */}
+                    </div>
                   </div>
-                  <div className={styles.actionButtons}>
-                    {/* Edit/Delete buttons intentionally hidden in study view */}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         </div>
       </div>

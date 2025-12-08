@@ -20,7 +20,10 @@ const createEmptyCard = (overrides = {}) => ({
   vocab: "",
   mean: "",
   imagePreview: "",
-  imageData: "",
+  imageUrl: "",
+  imageFile: null,
+  showImageOptions: false,
+  tempImageUrl: "",
   ...overrides
 });
 
@@ -60,15 +63,22 @@ const CreateFlashcard = () => {
         setSelectedFolder(
           res.set.folder_id ? String(res.set.folder_id) : ""
         );
-        const mappedCards = (res.set.fccards || []).map(card =>
-          createEmptyCard({
+        const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+        const mappedCards = (res.set.fccards || []).map(card => {
+          let imageUrl = card.image_url || "";
+          if (imageUrl && imageUrl.startsWith("/uploads/")) {
+            imageUrl = `${BASE_URL}${imageUrl}`;
+          }
+          return createEmptyCard({
             cardId: card.card_id,
             vocab: card.side_jp,
             mean: card.side_viet,
-            imagePreview: card.image_url || "",
-            imageData: card.image_url || ""
-          })
-        );
+            imagePreview: imageUrl,
+            imageUrl: card.image_url || "",
+            imageFile: null,
+            showImageOptions: false
+          });
+        });
         setFlashcards(mappedCards.length ? mappedCards : [createEmptyCard()]);
         setInitialCards(res.set.fccards || []);
       } catch (err) {
@@ -92,7 +102,7 @@ const CreateFlashcard = () => {
     setFlashcards(flashcards.filter((_, i) => i !== index));
   };
 
-  const handleImageChange = async (index, e) => {
+  const handleImageFileChange = (index, e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -101,11 +111,31 @@ const CreateFlashcard = () => {
       updated[index] = {
         ...updated[index],
         imagePreview: reader.result,
-        imageData: reader.result
+        imageFile: file,
+        imageUrl: "",
+        showImageOptions: false
       };
       setFlashcards(updated);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageUrlChange = (index, url) => {
+    const updated = [...flashcards];
+    updated[index] = {
+      ...updated[index],
+      imageUrl: url.trim(),
+      imagePreview: url.trim() || "",
+      imageFile: null,
+      showImageOptions: false
+    };
+    setFlashcards(updated);
+  };
+
+  const toggleImageOptions = (index) => {
+    const updated = [...flashcards];
+    updated[index].showImageOptions = !updated[index].showImageOptions;
+    setFlashcards(updated);
   };
 
   const cardPayloads = useMemo(
@@ -120,7 +150,8 @@ const CreateFlashcard = () => {
             payload: {
               sideJp,
               sideViet,
-              imageUrl: card.imageData || ""
+              imageFile: card.imageFile || null,
+              imageUrl: card.imageUrl || ""
             }
           };
         })
@@ -232,25 +263,144 @@ const CreateFlashcard = () => {
                   onChange={(e) => handleChange(index, "mean", e.target.value)}
                   className={styles.input}
                 />
-                <input
-                  id={`file-${index}`}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={(e) => handleImageChange(index, e)}
-                />
-                <FiImage
-                  className={styles.icon}
-                  onClick={() => document.getElementById(`file-${index}`).click()}
-                  style={{ cursor: "pointer" }}
-                />
-                {card.imagePreview && (
-                  <img
-                    src={card.imagePreview}
-                    alt="preview"
-                    className={styles.preview}
-                  />
-                )}
+                <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                  {card.imagePreview ? (
+                    <div style={{ position: "relative", marginBottom: "8px" }}>
+                      <img
+                        src={card.imagePreview}
+                        alt="preview"
+                        className={styles.preview}
+                        onClick={() => toggleImageOptions(index)}
+                        style={{ cursor: "pointer" }}
+                      />
+                      {card.showImageOptions && (
+                        <div style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          zIndex: 1000,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          marginTop: "8px",
+                          padding: "12px",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                          backgroundColor: "#ffffff",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          minWidth: "280px"
+                        }}>
+                          <input
+                            type="text"
+                            placeholder="Dán URL ảnh"
+                            value={card.tempImageUrl || ""}
+                            onChange={(e) => {
+                              const updated = [...flashcards];
+                              updated[index].tempImageUrl = e.target.value;
+                              setFlashcards(updated);
+                            }}
+                            className={styles.input}
+                            style={{ width: "100%", margin: 0 }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && flashcards[index].tempImageUrl) {
+                                handleImageUrlChange(index, flashcards[index].tempImageUrl);
+                              }
+                            }}
+                          />
+                          <input
+                            id={`file-${index}`}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={(e) => handleImageFileChange(index, e)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById(`file-${index}`).click()}
+                            style={{
+                              padding: "8px 16px",
+                              background: "#77bef0",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              width: "100%"
+                            }}
+                          >
+                            Tải lên ghi chú
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ position: "relative" }}>
+                      <FiImage
+                        className={styles.icon}
+                        onClick={() => toggleImageOptions(index)}
+                        style={{ cursor: "pointer" }}
+                        title="Thêm ảnh"
+                      />
+                      {card.showImageOptions && (
+                        <div style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          zIndex: 1000,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          marginTop: "8px",
+                          padding: "12px",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                          backgroundColor: "#ffffff",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          minWidth: "280px"
+                        }}>
+                          <input
+                            type="text"
+                            placeholder="Dán URL ảnh"
+                            value={card.tempImageUrl || ""}
+                            onChange={(e) => {
+                              const updated = [...flashcards];
+                              updated[index].tempImageUrl = e.target.value;
+                              setFlashcards(updated);
+                            }}
+                            className={styles.input}
+                            style={{ width: "100%", margin: 0 }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && flashcards[index].tempImageUrl) {
+                                handleImageUrlChange(index, flashcards[index].tempImageUrl);
+                              }
+                            }}
+                          />
+                          <input
+                            id={`file-${index}`}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={(e) => handleImageFileChange(index, e)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById(`file-${index}`).click()}
+                            style={{
+                              padding: "8px 16px",
+                              background: "#77bef0",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              width: "100%"
+                            }}
+                          >
+                            Tải lên ghi chú
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <FaTrashAlt className={styles.trash} onClick={() => deleteFlashcard(index)} />
               </div>
             </div>

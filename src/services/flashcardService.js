@@ -57,18 +57,53 @@ export async function listCards(setId) {
   return api(`${BASE}/sets/${setId}/cards`);
 }
 
-export async function createCard(setId, payload) {
-  return api(`${BASE}/sets/${setId}/cards`, {
-    method: "POST",
-    body: JSON.stringify(payload)
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+async function apiWithFile(path, method, formData) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
   });
+  if (!res.ok) {
+    const errorText = await res.text();
+    let errorMsg;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMsg = errorJson.message || errorJson.error || `Request failed: ${res.status}`;
+    } catch {
+      errorMsg = errorText || `Request failed: ${res.status}`;
+    }
+    throw new Error(errorMsg);
+  }
+  return res.json();
+}
+
+export async function createCard(setId, payload) {
+  const formData = new FormData();
+  formData.append("sideJp", payload.sideJp);
+  formData.append("sideViet", payload.sideViet);
+  if (payload.imageFile) {
+    formData.append("image", payload.imageFile);
+  } else if (payload.imageUrl !== undefined) {
+    formData.append("imageUrl", payload.imageUrl || "");
+  }
+  return apiWithFile(`${BASE}/sets/${setId}/cards`, "POST", formData);
 }
 
 export async function updateCard(setId, cardId, payload) {
-  return api(`${BASE}/sets/${setId}/cards/${cardId}`, {
-    method: "PUT",
-    body: JSON.stringify(payload)
-  });
+  const formData = new FormData();
+  if (payload.sideJp !== undefined) formData.append("sideJp", payload.sideJp);
+  if (payload.sideViet !== undefined) formData.append("sideViet", payload.sideViet);
+  if (payload.imageFile) {
+    formData.append("image", payload.imageFile);
+  } else if (payload.imageUrl !== undefined) {
+    formData.append("imageUrl", payload.imageUrl || "");
+  }
+  return apiWithFile(`${BASE}/sets/${setId}/cards/${cardId}`, "PUT", formData);
 }
 
 export async function removeCard(setId, cardId) {

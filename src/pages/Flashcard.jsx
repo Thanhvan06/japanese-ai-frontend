@@ -149,7 +149,6 @@ const FlashcardLibrary = () => {
       const newSet = {
         ...res.set,
         card_count: 0,
-        times_practiced: 0,
         fcfolders: numericFolderId
           ? folders.find(f => f.folder_id === numericFolderId) || null
           : null
@@ -221,7 +220,6 @@ const FlashcardLibrary = () => {
           <h3 className={styles.cardTitle}>{set.set_name}</h3>
           <div className={styles.cardMeta}>
             <span>{set.card_count || 0} thuật ngữ</span>
-            <span>{set.times_practiced || 0} lần học</span>
           </div>
         </div>
         {attachable ? (
