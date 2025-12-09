@@ -1,14 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import styles from "../styles/Header.module.css";
-// import { logout } from "../lib/auth";
+import { api } from "../lib/api";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [language, setLanguage] = useState("jp");
+  const [userAvatar, setUserAvatar] = useState(null);
 
   const langRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -23,6 +27,47 @@ const Header = () => {
     setDropdownOpen(false);                    
     navigate("/signin", { replace: true });    
   };
+
+  // Fetch user data to display avatar
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        
+        const data = await api("/api/auth/me");
+        if (data.user.avatar_url) {
+          setUserAvatar(`${BASE_URL}/${data.user.avatar_url}`);
+        } else {
+          setUserAvatar(null);
+        }
+      } catch {
+        // Silently fail if not authenticated
+        setUserAvatar(null);
+      }
+    };
+
+    fetchUserData();
+    
+    // Refresh avatar when profile is updated
+    const handleProfileUpdate = () => {
+      fetchUserData();
+    };
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    
+    // Refresh avatar when navigating back from edit-profile
+    const handleFocus = () => {
+      if (location.pathname !== "/edit-profile") {
+        fetchUserData();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -95,11 +140,27 @@ const Header = () => {
 
         {/* Avatar dropdown */}
         <div className={styles.avatarWrapper} ref={dropdownRef}>
-          <FaUserCircle
-            size={28}
-            className={styles.avatar}
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          />
+          {userAvatar ? (
+            <img
+              src={userAvatar}
+              alt="Avatar"
+              className={styles.avatar}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                cursor: "pointer",
+              }}
+            />
+          ) : (
+            <FaUserCircle
+              size={28}
+              className={styles.avatar}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            />
+          )}
           {dropdownOpen && (
             <div className={styles.dropdown}>
               <button onClick={() => { setDropdownOpen(false); navigate('/edit-profile'); }} className={styles.dropdownItem}>
