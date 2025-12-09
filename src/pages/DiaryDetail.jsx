@@ -214,7 +214,6 @@ export default function DiaryDetail() {
                   className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition flex items-center gap-2"
                   title="Xóa nhật ký"
                 >
-                  <span>🗑️</span>
                   <span>Xóa</span>
                 </button>
               )}
