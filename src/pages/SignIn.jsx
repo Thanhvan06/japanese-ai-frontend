@@ -126,8 +126,19 @@ export default function SignIn() {
           </p>
         )}
 
+        {!isSignUp && (
+          <p className="mt-2 text-sm">
+            <button
+              onClick={() => navigate("/forgot-password")}
+              className="text-[#77BEF0] hover:underline"
+            >
+              Quên mật khẩu?
+            </button>
+          </p>
+        )}
+
         <p className="mt-4 text-sm">
-          {isSignUp ? "Already have an account?" : "Don’t have an account?"}{" "}
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-[#77BEF0] hover:underline"
