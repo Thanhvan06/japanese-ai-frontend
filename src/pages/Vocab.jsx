@@ -13,7 +13,6 @@ const API_BASE = "http://localhost:4000";
 export default function Vocab() {
   const levels = ["N5", "N4", "N3", "N2", "N1"];
   const [topics, setTopics] = useState([]);
-  const [selectedLevel, setSelectedLevel] = useState("N5");
   const [loadingTopics, setLoadingTopics] = useState(false);
 
   const navigate = useNavigate();
@@ -23,9 +22,7 @@ export default function Vocab() {
     const fetchTopics = async () => {
       try {
         setLoadingTopics(true);
-        const res = await axios.get(`${API_BASE}/api/topics`, {
-          params: { level: selectedLevel },
-        });
+        const res = await axios.get(`${API_BASE}/api/topics`);
         setTopics(res.data);
       } catch (err) {
         console.error("Fetch topics error:", err.response?.data || err.message);
@@ -34,7 +31,7 @@ export default function Vocab() {
       }
     };
     fetchTopics();
-  }, [selectedLevel]);
+  }, []);
 
   const handleOpenTopic = (topicId) => {
     navigate(`/vocab/topic/${topicId}`);
@@ -64,21 +61,6 @@ export default function Vocab() {
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
               Từ vựng theo chủ đề
             </h1>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">Cấp độ:</span>
-              <select
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#77BEF0]"
-              >
-                {levels.map((lv) => (
-                  <option key={lv} value={lv}>
-                    {lv}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 min-h-[220px]">
@@ -88,13 +70,15 @@ export default function Vocab() {
               <p className="text-sm text-slate-500">Chưa có chủ đề.</p>
             ) : (
               <div className="grid grid-cols-3 gap-4">
-                {topics.map((topic) => (
-                  <TopicCard
-                    key={topic.topic_id}
-                    topic={topic}
-                    onClick={() => handleOpenTopic(topic.topic_id)}
-                  />
-                ))}
+                {topics
+                  .filter((topic) => topic._count?.vocabitems > 0)
+                  .map((topic) => (
+                    <TopicCard
+                      key={topic.topic_id}
+                      topic={topic}
+                      onClick={() => handleOpenTopic(topic.topic_id)}
+                    />
+                  ))}
               </div>
             )}
           </div>

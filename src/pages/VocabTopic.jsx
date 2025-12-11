@@ -16,12 +16,16 @@ export default function VocabTopic() {
   const [topic, setTopic] = useState(null);
   const [vocab, setVocab] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState("N5");
+  const levels = ["N5", "N4", "N3", "N2", "N1"];
 
   useEffect(() => {
     const fetchTopicData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_BASE}/api/topics/${topicId}/vocab`);
+        const res = await axios.get(`${API_BASE}/api/topics/${topicId}/vocab`, {
+          params: { level: selectedLevel }
+        });
         setTopic(res.data.topic);
         setVocab(res.data.vocab || []);
       } catch (err) {
@@ -32,7 +36,7 @@ export default function VocabTopic() {
     };
 
     fetchTopicData();
-  }, [topicId]);
+  }, [topicId, selectedLevel]);
 
   const handleFlashcard = () => {
     navigate(`/flashcard?topicId=${topicId}`);
@@ -57,9 +61,9 @@ export default function VocabTopic() {
                 {topic ? topic.topic_name : "Chủ đề từ vựng"}
               </h1>
 
-              {topic && (
+              {topic && topic.topic_description && (
                 <p className="mt-1 text-sm text-slate-500">
-                  Cấp độ: {topic.jlpt_level}
+                  {topic.topic_description}
                 </p>
               )}
             </div>
@@ -70,6 +74,26 @@ export default function VocabTopic() {
             >
               Học với Flashcard
             </button>
+          </div>
+
+          <div className="flex items-center gap-4 mb-6">
+            <span className="text-sm text-slate-500">Cấp độ:</span>
+            <select
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#77BEF0]"
+            >
+              {levels.map((lv) => (
+                <option
+                  data-level={lv}
+                  className={"hover:ring-[#77BEF0] option-level-" + lv}
+                  key={lv}
+                  value={lv}
+                >
+                  {lv}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="p-6 bg-white border rounded-2xl border-slate-200">
