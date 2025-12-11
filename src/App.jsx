@@ -14,6 +14,7 @@ import GrammarLevel from "./pages/GrammarLevel";
 import GrammarDetail from "./pages/GrammarDetail";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
+import VocabTopic from "./pages/VocabTopic.jsx";
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         {/* --- Vocab Routes --- */}
         <Route path="/vocab" element={<Vocab />} />
         <Route path="/vocab/:level" element={<VocabLevel />} />
+        <Route path="/vocab/topic/:topicId" element={<VocabTopic />} />
 
         {/* --- Grammar Routes --- */}
         <Route path="/grammar" element={<Grammar />} />

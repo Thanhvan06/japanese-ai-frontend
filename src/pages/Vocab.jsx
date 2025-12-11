@@ -1,29 +1,86 @@
+// src/pages/Vocab.jsx
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import LevelCard from "../components/LevelCard";
+import TopicCard from "../components/TopicCard";
+
+const API_BASE = "http://localhost:4000";
 
 export default function Vocab() {
   const levels = ["N5", "N4", "N3", "N2", "N1"];
+  const [topics, setTopics] = useState([]);
+  const [loadingTopics, setLoadingTopics] = useState(false);
+
+  const navigate = useNavigate();
+
+  // load topics theo cấp độ
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        setLoadingTopics(true);
+        const res = await axios.get(`${API_BASE}/api/topics`);
+        setTopics(res.data);
+      } catch (err) {
+        console.error("Fetch topics error:", err.response?.data || err.message);
+      } finally {
+        setLoadingTopics(false);
+      }
+    };
+    fetchTopics();
+  }, []);
+
+  const handleOpenTopic = (topicId) => {
+    navigate(`/vocab/topic/${topicId}`);
+  };
 
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1 ml-14">
+      <div className="flex-1">
         <Header />
         <main className="p-6">
+          {/* ===== TỪ VỰNG THEO CẤP ĐỘ ===== */}
           <div className="flex items-center gap-4 mb-8">
-            <button className="flex items-center justify-center w-10 h-10 bg-[#77BEF0] hover:bg-[#4aa6e0] text-white text-2xl rounded-full">
-              +
-            </button>
-            <button className="bg-[#77BEF0] hover:bg-[#4aa6e0] text-white px-5 py-2 rounded-full font-medium">
-              Your Flashcard
-            </button>
+            <h1 className="text-2xl font-bold text-[#4aa6e0]">
+              Từ vựng theo cấp độ
+            </h1>
           </div>
 
-          <div className="grid grid-cols-5 gap-6">
+          <div className="grid grid-cols-5 gap-6 mb-10">
             {levels.map((level) => (
               <LevelCard key={level} level={level} type="vocab" />
             ))}
+          </div>
+
+          {/* =====  TỪ VỰNG THEO CHỦ ĐỀ ===== */}
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-[#4aa6e0]">
+              Từ vựng theo chủ đề
+            </h1>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 min-h-[220px]">
+            {loadingTopics ? (
+              <p className="text-sm text-slate-500">Đang tải chủ đề...</p>
+            ) : topics.length === 0 ? (
+              <p className="text-sm text-slate-500">Chưa có chủ đề.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-4">
+                {topics
+                  .filter((topic) => topic._count?.vocabitems > 0)
+                  .map((topic) => (
+                    <TopicCard
+                      key={topic.topic_id}
+                      topic={topic}
+                      onClick={() => handleOpenTopic(topic.topic_id)}
+                    />
+                  ))}
+              </div>
+            )}
           </div>
         </main>
       </div>
