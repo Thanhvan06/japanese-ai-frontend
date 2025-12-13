@@ -15,8 +15,7 @@ import GrammarDetail from "./pages/GrammarDetail";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
-
-
+import SearchPage from "./pages/SearchPage.jsx";
 function App() {
   return (
     <Router>
@@ -48,6 +47,8 @@ function App() {
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
         <Route path="/diary/:title" element={<DiaryDetail />} />
+        {/* --- Search Routes --- */}
+        <Route path="/search" element={<SearchPage />} />
       </Routes>
     </Router>
   );
