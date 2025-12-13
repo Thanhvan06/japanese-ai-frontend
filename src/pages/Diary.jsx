@@ -7,14 +7,20 @@ import { api } from "../lib/api";
 
 export default function Diary() {
   const navigate = useNavigate();
+
   const [diaries, setDiaries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // 🔔 message hiển thị inline (thay cho alert)
+  const [message, setMessage] = useState(null);
 
   const fetchDiaries = async () => {
     try {
@@ -22,7 +28,7 @@ export default function Diary() {
       const params = new URLSearchParams();
       if (month) params.append("month", month);
       if (year) params.append("year", year);
-      
+
       const queryString = params.toString();
       const url = queryString ? `/api/diaries?${queryString}` : "/api/diaries";
       const data = await api(url);
@@ -39,16 +45,18 @@ export default function Diary() {
     fetchDiaries();
   }, [month, year]);
 
+  // 🔔 auto hide message
+  useEffect(() => {
+    if (!message) return;
+    const t = setTimeout(() => setMessage(null), 3000);
+    return () => clearTimeout(t);
+  }, [message]);
+
   const handleOpenDiary = (id) => {
     if (selectionMode) {
-      // Toggle selection instead of opening
       setSelectedIds((prev) => {
         const newSet = new Set(prev);
-        if (newSet.has(id)) {
-          newSet.delete(id);
-        } else {
-          newSet.add(id);
-        }
+        newSet.has(id) ? newSet.delete(id) : newSet.add(id);
         return newSet;
       });
     } else {
@@ -59,24 +67,22 @@ export default function Diary() {
   const handleToggleSelection = (id) => {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
       return newSet;
     });
   };
 
+  // ================= DELETE LOGIC (FIXED) =================
   const handleDeleteSelected = async () => {
     if (selectedIds.size === 0) return;
 
+    setDeleting(true);
+    setShowDeleteConfirm(false); // 🔴 đóng modal trước
+
     try {
-      setDeleting(true);
       const token = localStorage.getItem("token");
       const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-      // Delete all selected diaries
       const deletePromises = Array.from(selectedIds).map((id) =>
         fetch(`${BASE_URL}/api/diaries/${id}`, {
           method: "DELETE",
@@ -87,26 +93,38 @@ export default function Diary() {
       );
 
       const results = await Promise.allSettled(deletePromises);
-      const failed = results.filter((r) => r.status === "rejected" || !r.value.ok);
+      const failed = results.filter(
+        (r) => r.status === "rejected" || !r.value.ok
+      );
 
       if (failed.length > 0) {
-        alert(`Đã xóa ${selectedIds.size - failed.length}/${selectedIds.size} nhật ký. Một số nhật ký không thể xóa.`);
+        setMessage({
+          type: "warning",
+          text: `Đã xóa ${
+            selectedIds.size - failed.length
+          }/${selectedIds.size} nhật ký.`,
+        });
       } else {
-        // Refresh the list
-        await fetchDiaries();
+        setMessage({
+          type: "success",
+          text: "Xóa nhật ký thành công.",
+        });
       }
 
-      // Reset selection
+      await fetchDiaries();
       setSelectedIds(new Set());
       setSelectionMode(false);
     } catch (error) {
       console.error("Error deleting diaries:", error);
-      alert("Có lỗi xảy ra khi xóa nhật ký");
+      setMessage({
+        type: "error",
+        text: "Có lỗi xảy ra khi xóa nhật ký.",
+      });
     } finally {
       setDeleting(false);
-      setShowDeleteConfirm(false);
     }
   };
+  // =======================================================
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -118,14 +136,36 @@ export default function Diary() {
         <Header />
 
         <main className="p-6">
-          {/* Top bar with filters and create button */}
+          {/* 🔔 MESSAGE INLINE */}
+          {message && (
+            <div
+              className={`mb-6 rounded-lg px-4 py-3 text-sm border
+                ${
+                  message.type === "success" &&
+                  "bg-green-50 text-green-700 border-green-200"
+                }
+                ${
+                  message.type === "warning" &&
+                  "bg-yellow-50 text-yellow-700 border-yellow-200"
+                }
+                ${
+                  message.type === "error" &&
+                  "bg-red-50 text-red-700 border-red-200"
+                }
+              `}
+            >
+              {message.text}
+            </div>
+          )}
+
+          {/* Top bar */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
                 disabled={selectionMode}
-                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white focus:outline-none cursor-pointer hover:bg-[#4aa6e0] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white"
               >
                 <option value="">Tất cả tháng</option>
                 {[...Array(12)].map((_, i) => (
@@ -139,7 +179,7 @@ export default function Diary() {
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
                 disabled={selectionMode}
-                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white focus:outline-none cursor-pointer hover:bg-[#4aa6e0] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white"
               >
                 <option value="">Tất cả năm</option>
                 {years.map((y) => (
@@ -162,16 +202,16 @@ export default function Diary() {
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
                     disabled={selectedIds.size === 0 || deleting}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2"
-                  >                   
-                    <span>Xóa ({selectedIds.size})</span>
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg"
+                  >
+                    Xóa ({selectedIds.size})
                   </button>
                   <button
                     onClick={() => {
                       setSelectionMode(false);
                       setSelectedIds(new Set());
                     }}
-                    className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition"
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg"
                   >
                     Hủy
                   </button>
@@ -180,15 +220,13 @@ export default function Diary() {
                 <>
                   <button
                     onClick={() => setSelectionMode(true)}
-                    className="flex items-center justify-center w-12 h-12 bg-gray-500 hover:bg-gray-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all"
-                    title="Chọn để xóa"
+                    className="w-12 h-12 bg-red-500 text-white rounded-full"
                   >
                     Xóa
                   </button>
                   <button
                     onClick={() => navigate("/diary/new")}
-                    className="flex items-center justify-center w-12 h-12 bg-[#77BEF0] hover:bg-[#4aa6e0] text-white rounded-full text-2xl shadow-lg hover:shadow-xl transition-all"
-                    title="Viết nhật ký mới"
+                    className="w-12 h-12 bg-[#77BEF0] text-white rounded-full text-2xl"
                   >
                     +
                   </button>
@@ -197,15 +235,12 @@ export default function Diary() {
             </div>
           </div>
 
-          {/* Grid of diary cards */}
+          {/* Diary list */}
           {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="text-gray-400">Đang tải...</div>
-            </div>
+            <div className="text-center py-20 text-gray-400">Đang tải...</div>
           ) : diaries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-              <div className="text-lg mb-2">Chưa có nhật ký nào</div>
-              <div className="text-sm">Hãy tạo nhật ký mới để bắt đầu!</div>
+            <div className="text-center py-20 text-gray-400">
+              Chưa có nhật ký nào
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -227,37 +262,27 @@ export default function Diary() {
         </main>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* DELETE CONFIRM MODAL */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Xác nhận xóa</h3>
-            <p className="text-gray-600 mb-6">
-              Bạn có chắc chắn muốn xóa {selectedIds.size} nhật ký đã chọn không? Hành động này không thể hoàn tác.
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Xác nhận xóa</h3>
+            <p className="mb-6">
+              Bạn có chắc chắn muốn xóa {selectedIds.size} nhật ký không?
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleting}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition disabled:opacity-50"
+                className="px-4 py-2 bg-gray-200 rounded-lg"
               >
                 Hủy
               </button>
               <button
                 onClick={handleDeleteSelected}
                 disabled={deleting}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg"
               >
-                {deleting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Đang xóa...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Xóa</span>
-                  </>
-                )}
+                {deleting ? "Đang xóa..." : "Xóa"}
               </button>
             </div>
           </div>
