@@ -15,8 +15,8 @@ import GrammarDetail from "./pages/GrammarDetail";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
-
-
+import SearchPage from "./pages/SearchPage.jsx";
+import Listening from "./pages/Listening.jsx";
 function App() {
   return (
     <Router>
@@ -45,9 +45,14 @@ function App() {
         <Route path="/grammar/:level" element={<GrammarLevel />} />
         <Route path="/grammar/:level/:grammarId" element={<GrammarDetail />} />
 
+        {/* --- Listening Routes --- */}
+        <Route path="/listening" element={<Listening />} />
+
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
         <Route path="/diary/:title" element={<DiaryDetail />} />
+        {/* --- Search Routes --- */}
+        <Route path="/search" element={<SearchPage />} />
       </Routes>
     </Router>
   );
