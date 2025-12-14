@@ -8,6 +8,7 @@ import {
   FaPenNib,
   FaClone,
   FaBars,
+  FaHeadphones,
 } from "react-icons/fa";
 import styles from "../styles/Sidebar.module.css";
 import { useSidebar } from "../context/SidebarContext";
@@ -24,6 +25,7 @@ const Sidebar = () => {
     { icon: <FaPenNib />, label: "Ngữ pháp", path: "/grammar" },
     { icon: <FaEdit />, label: "Viết nhật ký", path: "/diary" },
     { icon: <FaClone />, label: "Flashcard", path: "/flashcard" },
+    { icon: <FaHeadphones />, label: "Luyện nghe", path: "/listening" },
     { icon: <FaRobot />, label: "Chatbot AI", path: "/chatbot" },
   ];
 
