@@ -7,6 +7,8 @@ import CreateFlashcard from "./pages/CreateFlashcard";
 import VocabPractice from "./pages/VocabPractice";
 import Flashcard from "./pages/Flashcard";
 import SignIn from "./pages/SignIn";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Vocab from "./pages/Vocab";
 import VocabLevel from "./pages/VocabLevel";
 import VocabMatching from "./pages/VocabMatching";
@@ -31,12 +33,15 @@ function App() {
         {/* --- Flashcard Routes --- */}
         <Route path="/flashcard" element={<Flashcard />} />
         <Route path="/flashcard/newflashcard" element={<CreateFlashcard />} />
-        <Route path="/flashcard/folders/:folderName" element={<Flashcard />} />
+        <Route path="/flashcard/folders/:folderId" element={<Flashcard />} />
+        <Route path="/flashcard/edit/:setId" element={<CreateFlashcard />} />
         <Route path="/flashcard/vocab-practice/:id" element={<VocabPractice />} />
 
         <Route path="*" element={<Navigate to="/" />} />
         
         <Route path="/signin" element={<SignIn />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         {/* --- Vocab Routes --- */}
         <Route path="/vocab" element={<Vocab />} />
         <Route path="/vocab/:level" element={<VocabLevel />} />
