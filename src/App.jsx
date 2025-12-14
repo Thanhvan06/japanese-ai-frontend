@@ -9,6 +9,8 @@ import Flashcard from "./pages/Flashcard";
 import SignIn from "./pages/SignIn";
 import Vocab from "./pages/Vocab";
 import VocabLevel from "./pages/VocabLevel";
+import VocabMatching from "./pages/VocabMatching";
+import VocabTest from "./pages/VocabTest";
 import Grammar from "./pages/Grammar";
 import GrammarLevel from "./pages/GrammarLevel";
 import GrammarDetail from "./pages/GrammarDetail";
@@ -39,6 +41,8 @@ function App() {
         <Route path="/vocab" element={<Vocab />} />
         <Route path="/vocab/:level" element={<VocabLevel />} />
         <Route path="/vocab/topic/:topicId" element={<VocabTopic />} />
+        <Route path="/vocab/practice/matching" element={<VocabMatching />} />
+        <Route path="/vocab/practice/test" element={<VocabTest />} />
 
         {/* --- Grammar Routes --- */}
         <Route path="/grammar" element={<Grammar />} />
