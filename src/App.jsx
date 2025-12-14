@@ -11,11 +11,14 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Vocab from "./pages/Vocab";
 import VocabLevel from "./pages/VocabLevel";
+import VocabMatching from "./pages/VocabMatching";
+import VocabTest from "./pages/VocabTest";
 import Grammar from "./pages/Grammar";
 import GrammarLevel from "./pages/GrammarLevel";
 import GrammarDetail from "./pages/GrammarDetail";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
+import VocabTopic from "./pages/VocabTopic.jsx";
 
 
 function App() {
@@ -42,6 +45,9 @@ function App() {
         {/* --- Vocab Routes --- */}
         <Route path="/vocab" element={<Vocab />} />
         <Route path="/vocab/:level" element={<VocabLevel />} />
+        <Route path="/vocab/topic/:topicId" element={<VocabTopic />} />
+        <Route path="/vocab/practice/matching" element={<VocabMatching />} />
+        <Route path="/vocab/practice/test" element={<VocabTest />} />
 
         {/* --- Grammar Routes --- */}
         <Route path="/grammar" element={<Grammar />} />
