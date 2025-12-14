@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "../styles/VocabPractice.module.css";
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
+import Header from "../components/Header.jsx";
+import Sidebar from "../components/Sidebar.jsx";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { IoShuffle, IoFolderOpenOutline } from "react-icons/io5";
 import { FiEdit2 } from "react-icons/fi";
