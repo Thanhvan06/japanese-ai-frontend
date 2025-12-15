@@ -30,9 +30,9 @@ const getItemKey = (it) => {
 };
 
 const FILTERS = [
-  { key: "all", label: "All" },
-  { key: "vocab", label: "Vocabulary" },
-  { key: "grammar", label: "Grammar" },
+  { key: "all", label: "All", icon: "🔍" },
+  { key: "vocab", label: "Vocabulary", icon: "📚" },
+  { key: "grammar", label: "Grammar", icon: "📖" },
 ];
 
 const SearchPage = () => {
@@ -59,6 +59,7 @@ const SearchPage = () => {
     },
     [navigate, q]
   );
+
 
   useEffect(() => {
     if (!q) {
@@ -116,107 +117,270 @@ const SearchPage = () => {
   }, [q, type]);
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen" style={{ backgroundColor: '#F0F8FF' }}>
       <Sidebar />
       <div className="flex-1">
         <Header />
-        <main className="p-6">
+        <main className="p-6 md:p-8">
           <div className="max-w-6xl mx-auto">
-            <h1 className="mb-4 text-2xl font-semibold">Search</h1>
+            {/* Header Section */}
+            <div className="mb-8">
+              <h1 className="mb-2 text-2xl font-bold" style={{ 
+                background: 'linear-gradient(to right, #77BEF0, #A8D4F0)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Search
+              </h1>
+              <p className="text-gray-600">Tìm kiếm từ vựng và ngữ pháp tiếng Nhật</p>
+            </div>
 
             {/* Filters */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-wrap gap-3 mb-6">
               {FILTERS.map((f) => (
                 <button
                   key={f.key}
                   onClick={() => onSubmitFilter(f.key)}
-                  className={`px-3 py-1 rounded ${
-                    type === f.key ? "bg-[#77bef0] text-white" : "bg-gray-100"
+                  className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                    type === f.key
+                      ? "text-white shadow-lg scale-105"
+                      : "bg-white text-gray-700 border-2 border-gray-200 hover:border-opacity-50"
                   }`}
+                  style={type === f.key ? {
+                    background: 'linear-gradient(to right, #77BEF0, #A8D4F0)',
+                    boxShadow: '0 10px 25px rgba(119, 190, 240, 0.3)'
+                  } : {
+                    borderColor: '#E8F4FD'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (type !== f.key) {
+                      e.currentTarget.style.borderColor = '#A8D4F0';
+                      e.currentTarget.style.backgroundColor = '#E8F4FD';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (type !== f.key) {
+                      e.currentTarget.style.borderColor = '#E8F4FD';
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
+                  }}
                 >
-                  {f.label}
+                  <span>{f.icon}</span>
+                  <span>{f.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Results */}
-            <div className="mb-3 text-sm text-gray-500">
-              Search results: {q}
-            </div>
-            {loading && <div className="text-sm text-gray-500">Loading...</div>}
-            {!loading && items.length === 0 && (
-              <div className="text-sm text-gray-500">No results</div>
+            {/* Results Header */}
+            {q && (
+              <div className="mb-6 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="animate-spin">⏳</span>
+                      Đang tìm kiếm...
+                    </span>
+                  ) : (
+                    <span>
+                      Tìm thấy <span className="font-semibold" style={{ color: '#77BEF0' }}>{items.length}</span> kết quả cho "
+                      <span className="font-semibold">{q}</span>"
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
 
-            <div className="space-y-6">
-              {items.map((it) => {
-                const itemKey = getItemKey(it);
-                return (
+            {/* Loading Skeleton */}
+            {loading && (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
                   <div
-                    key={itemKey}
-                    className="p-4 bg-white border border-gray-200 rounded"
+                    key={i}
+                    className="p-6 bg-white rounded-xl shadow-sm border border-gray-200 animate-pulse"
                   >
-                    {it._type === "vocab" ? (
-                      <div>
-                        <div
-                          className="mb-1 text-3xl font-bold"
-                          dangerouslySetInnerHTML={{
-                            __html: highlight(it.word, q),
-                          }}
-                        />
-                        <div className="mb-2 text-lg text-gray-600">
-                          {it.furigana} • {it.meaning}
-                        </div>
-                        <div className="mb-2 text-sm text-gray-500">
-                          JLPT: {it.jlpt_level}
-                          {it.topic ? ` • Topic: ${it.topic.topic_name}` : ""}
-                        </div>
-                        {it.image_url && (
-                          <img
-                            src={it.image_url}
-                            alt={it.word}
-                            className="object-cover w-40 h-40 mb-2 rounded"
-                            loading="lazy"
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <div
-                          className="mb-1 text-2xl font-bold"
-                          dangerouslySetInnerHTML={{
-                            __html: highlight(it.grammar_structure, q),
-                          }}
-                        />
-                        <div className="mb-2 text-sm text-gray-500">
-                          JLPT: {it.jlpt_level}
-                        </div>
-                        <div
-                          className="mb-2 text-gray-800"
-                          dangerouslySetInnerHTML={{
-                            __html: highlight(it.explanation_viet || "", q),
-                          }}
-                        />
-                        {it.example_jp && (
-                          <div className="mt-2">
-                            <div className="text-sm text-gray-700">例文</div>
-                            <div className="italic">{it.example_jp}</div>
-                            {it.example_viet && (
-                              <div className="text-sm text-gray-600">
-                                {it.example_viet}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="h-8 bg-gray-200 rounded w-1/3 mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !q && (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                  Bắt đầu tìm kiếm
+                </h3>
+                <p className="text-gray-500">
+                  Sử dụng ô tìm kiếm ở header để tìm từ vựng hoặc ngữ pháp
+                </p>
+              </div>
+            )}
+
+            {!loading && q && items.length === 0 && (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">😕</div>
+                <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                  Không tìm thấy kết quả
+                </h3>
+                <p className="text-gray-500">
+                  Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
+                </p>
+              </div>
+            )}
+
+            {/* Results */}
+            <div className="space-y-4">
+              {!loading &&
+                items.map((it, index) => {
+                  const itemKey = getItemKey(it);
+                  return (
+                    <div
+                      key={itemKey}
+                      className="p-6 bg-white rounded-xl shadow-sm transition-all duration-300 transform hover:-translate-y-1"
+                      style={{
+                        animation: `fadeIn 0.3s ease-out ${index * 0.1}s both`,
+                        border: '1px solid #E8F4FD',
+                        boxShadow: '0 1px 3px rgba(119, 190, 240, 0.1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 10px 25px rgba(119, 190, 240, 0.2)';
+                        e.currentTarget.style.borderColor = '#A8D4F0';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(119, 190, 240, 0.1)';
+                        e.currentTarget.style.borderColor = '#E8F4FD';
+                      }}
+                    >
+                      {it._type === "vocab" ? (
+                        <div className="flex gap-6">
+                          {it.image_url && (
+                            <div className="flex-shrink-0">
+                              <img
+                                src={it.image_url}
+                                alt={it.word}
+                                className="object-cover w-32 h-32 rounded-lg shadow-md"
+                                loading="lazy"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-3">
+                              <div
+                                className="text-4xl font-bold text-gray-800"
+                                dangerouslySetInnerHTML={{
+                                  __html: highlight(it.word, q),
+                                }}
+                              />
+                              <span className="px-3 py-1 text-xs font-semibold rounded-full" style={{ 
+                                color: '#77BEF0', 
+                                backgroundColor: '#E8F4FD' 
+                              }}>
+                                Vocabulary
+                              </span>
+                            </div>
+                            <div className="mb-3 text-xl text-gray-700 font-medium">
+                              {it.furigana && (
+                                <span className="text-gray-500 mr-2">
+                                  {it.furigana}
+                                </span>
+                              )}
+                              <span>{it.meaning}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                              {it.jlpt_level && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-yellow-500">⭐</span>
+                                  JLPT {it.jlpt_level}
+                                </span>
+                              )}
+                              {it.topic && (
+                                <span className="flex items-center gap-1">
+                                  <span>📁</span>
+                                  {it.topic.topic_name}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-start justify-between mb-3">
+                            <div
+                              className="text-2xl font-bold text-gray-800"
+                              dangerouslySetInnerHTML={{
+                                __html: highlight(it.grammar_structure, q),
+                              }}
+                            />
+                            <span className="px-3 py-1 text-xs font-semibold rounded-full" style={{ 
+                              color: '#77BEF0', 
+                              backgroundColor: '#E8F4FD' 
+                            }}>
+                              Grammar
+                            </span>
+                          </div>
+                          {it.jlpt_level && (
+                            <div className="mb-3 text-sm text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <span className="text-yellow-500">⭐</span>
+                                JLPT {it.jlpt_level}
+                              </span>
+                            </div>
+                          )}
+                          <div
+                            className="mb-4 text-gray-700 leading-relaxed"
+                            dangerouslySetInnerHTML={{
+                              __html: highlight(it.explanation_viet || "", q),
+                            }}
+                          />
+                          {it.example_jp && (
+                            <div className="mt-4 p-4 rounded-lg border-l-4" style={{
+                              background: 'linear-gradient(to right, #E8F4FD, #F0F8FF)',
+                              borderLeftColor: '#77BEF0'
+                            }}>
+                              <div className="text-sm font-semibold text-gray-700 mb-2">
+                                例文 (Ví dụ)
+                              </div>
+                              <div className="text-lg italic text-gray-800 mb-2">
+                                {it.example_jp}
+                              </div>
+                              {it.example_viet && (
+                                <div className="text-sm text-gray-600">
+                                  {it.example_viet}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </main>
       </div>
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        mark {
+          background: linear-gradient(120deg, #FFE5B4 0%, #FFD89B 100%);
+          padding: 2px 4px;
+          border-radius: 3px;
+          font-weight: 600;
+        }
+      `}</style>
     </div>
   );
 };
