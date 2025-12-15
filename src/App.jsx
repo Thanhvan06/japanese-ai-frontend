@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import EditProfile from "./pages/EditProfile";
 import Chatbot from "./pages/Chatbot";
 import CreateFlashcard from "./pages/CreateFlashcard";
-import VocabPractice from "./pages/VocabPractice";
+import VocabPractice from "./pages/FlashcardPractice.jsx";
 import Flashcard from "./pages/Flashcard";
 import SignIn from "./pages/SignIn";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";

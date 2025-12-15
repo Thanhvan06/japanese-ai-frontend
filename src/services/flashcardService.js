@@ -134,3 +134,16 @@ export async function getStudyStats(setId) {
   return api(`${BASE}/sets/${setId}/stats`);
 }
 
+// Create flashcard set from vocab selection
+export async function createSetFromVocab({ setName, vocabIds, source, folderId }) {
+  return api(`${BASE}/sets/from-vocab`, {
+    method: "POST",
+    body: JSON.stringify({
+      setName,
+      vocabIds,
+      source,
+      folderId: folderId || null,
+    }),
+  });
+}
+

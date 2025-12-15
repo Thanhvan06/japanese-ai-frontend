@@ -6,6 +6,7 @@ import axios from "axios";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import VocabCard from "../components/VocabCard";
+import CreateFlashcardFromVocab from "../components/CreateFlashcardFromVocab";
 
 const API_BASE = "http://localhost:4000";
 
@@ -17,6 +18,7 @@ export default function VocabTopic() {
   const [vocab, setVocab] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("N5");
+  const [showFlashcardModal, setShowFlashcardModal] = useState(false);
   const levels = ["N5", "N4", "N3", "N2", "N1"];
 
   useEffect(() => {
@@ -38,9 +40,6 @@ export default function VocabTopic() {
     fetchTopicData();
   }, [topicId, selectedLevel]);
 
-  const handleFlashcard = () => {
-    navigate(`/flashcard?topicId=${topicId}`);
-  };
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -69,10 +68,10 @@ export default function VocabTopic() {
             </div>
 
             <button
-              onClick={handleFlashcard}
+              onClick={() => setShowFlashcardModal(true)}
               className="rounded-full bg-[#77BEF0] hover:bg-[#4aa6e0] text-white px-5 py-2 text-sm font-semibold shadow-sm"
             >
-              Học với Flashcard
+              Học cùng flashcard
             </button>
           </div>
 
@@ -120,6 +119,18 @@ export default function VocabTopic() {
           </div>
         </main>
       </div>
+
+      <CreateFlashcardFromVocab
+        isOpen={showFlashcardModal}
+        onClose={() => setShowFlashcardModal(false)}
+        onSuccess={() => {
+          setShowFlashcardModal(false);
+          navigate("/flashcard");
+        }}
+        sourceType="topic"
+        sourceId={topicId}
+        vocabList={vocab}
+      />
     </div>
   );
 }
