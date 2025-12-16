@@ -17,6 +17,7 @@ import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
 import Listening from "./pages/Listening.jsx";
+import Speaking from "./pages/Speaking.jsx";
 function App() {
   return (
     <Router>
@@ -47,6 +48,7 @@ function App() {
 
         {/* --- Listening Routes --- */}
         <Route path="/listening" element={<Listening />} />
+        <Route path="/speaking" element={<Speaking />} />
 
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
