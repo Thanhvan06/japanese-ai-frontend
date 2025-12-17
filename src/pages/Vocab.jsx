@@ -181,7 +181,7 @@ export default function Vocab() {
           {/* ===== TỪ VỰNG THEO CẤP ĐỘ ===== */}
           <div className="flex items-center gap-4 mb-8">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
-              Từ vựng theo cấp độ
+              JLPT
             </h1>
           </div>
 

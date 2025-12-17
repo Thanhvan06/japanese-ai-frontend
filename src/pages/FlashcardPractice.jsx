@@ -224,27 +224,74 @@ const FlashcardPractice = () => {
       const resCardId = String(res.card_id ?? res.cardId ?? currentCard.card_id);
       const newMastery = res.mastery_level ?? res.masteryLevel ?? (correct ? 1 : 0);
 
+      // Calculate updated fccards first (immutable update)
+      const currentFccards = setInfo?.fccards || [];
+      const updatedFccards = currentFccards.map((c) =>
+        String(c.card_id) === resCardId ? { ...c, mastery_level: newMastery } : c
+      );
+
+      // Update setInfo.fccards (single source of truth)
+      setSetInfo((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          fccards: updatedFccards,
+        };
+      });
+
+      // Re-filter studyCards from updated source based on current mode
+      const filteredCards = filterCardsByMode(updatedFccards, mode);
+      const filteredStudyCards = filteredCards.map(card => ({
+        card_id: card.card_id,
+        front: card.side_jp,
+        image_url: card.image_url,
+        mastery_level: card.mastery_level || 1
+      }));
+
+      // Update current index if card moved between tabs
+      if (mode === "not-mastered" && newMastery >= 5) {
+        // Card moved to mastered, remove from current list
+        const cardIndex = filteredStudyCards.findIndex(c => String(c.card_id) === resCardId);
+        if (cardIndex !== -1) {
+          filteredStudyCards.splice(cardIndex, 1);
+        }
+        if (current >= filteredStudyCards.length && filteredStudyCards.length > 0) {
+          setCurrent(filteredStudyCards.length - 1);
+        } else if (filteredStudyCards.length === 0) {
+          setCurrent(0);
+        }
+      } else if (mode === "mastered" && newMastery < 5) {
+        // Card moved to not-mastered, remove from current list
+        const cardIndex = filteredStudyCards.findIndex(c => String(c.card_id) === resCardId);
+        if (cardIndex !== -1) {
+          filteredStudyCards.splice(cardIndex, 1);
+        }
+        if (current >= filteredStudyCards.length && filteredStudyCards.length > 0) {
+          setCurrent(filteredStudyCards.length - 1);
+        } else if (filteredStudyCards.length === 0) {
+          setCurrent(0);
+        }
+      }
+
+      // Update studyCards from filtered list
+      setStudyCards(filteredStudyCards);
+
       if (mode === "all") {
         studiedCardsRef.current.add(currentCard.card_id);
-        
-        const updatedSetInfo = setInfo?.fccards ? setInfo.fccards.map((c) =>
-          String(c.card_id) === resCardId ? { ...c, mastery_level: newMastery } : c
-        ) : [];
         
         if (initialCardsRef.current.size > 0 && 
             studiedCardsRef.current.size >= initialCardsRef.current.size &&
             Array.from(initialCardsRef.current).every(id => studiedCardsRef.current.has(id))) {
           
-          const allCards = updatedSetInfo.length > 0 ? updatedSetInfo : (setInfo?.fccards || []);
-          const masteredCount = allCards.filter(c => (c.mastery_level || 1) >= 5).length;
-          const notMasteredCount = allCards.length - masteredCount;
-          const masteredPercent = allCards.length > 0 ? (masteredCount / allCards.length) * 100 : 0;
+          const masteredCount = updatedFccards.filter(c => (c.mastery_level || 1) >= 5).length;
+          const notMasteredCount = updatedFccards.length - masteredCount;
+          const masteredPercent = updatedFccards.length > 0 ? (masteredCount / updatedFccards.length) * 100 : 0;
           
           setCompletionStats({
             mastered: masteredCount,
             notMastered: notMasteredCount,
             masteredPercent: masteredPercent,
-            total: allCards.length
+            total: updatedFccards.length
           });
           
           setShowCompletionChart(true);
@@ -257,51 +304,8 @@ const FlashcardPractice = () => {
           }, 30000);
           
           fetchSetDetail();
-          
-          setTimeout(() => {
-            if (setInfo?.fccards) {
-              fetchStudyCards("not-mastered", true, false);
-              fetchStudyCards("mastered", true, false);
-            }
-          }, 500);
         }
       }
-
-      setStudyCards((prev) => {
-        const updated = prev.map((card) =>
-          String(card.card_id) === resCardId ? { ...card, mastery_level: newMastery } : card
-        );
-        
-        if (mode === "not-mastered" && newMastery >= 5) {
-          const filtered = updated.filter(card => String(card.card_id) !== resCardId);
-          if (current >= filtered.length && filtered.length > 0) {
-            setCurrent(filtered.length - 1);
-          } else if (filtered.length === 0) {
-            setCurrent(0);
-          }
-          return filtered;
-        } else if (mode === "mastered" && newMastery < 5) {
-          const filtered = updated.filter(card => String(card.card_id) !== resCardId);
-          if (current >= filtered.length && filtered.length > 0) {
-            setCurrent(filtered.length - 1);
-          } else if (filtered.length === 0) {
-            setCurrent(0);
-          }
-          return filtered;
-        }
-        
-        return updated;
-      });
-
-      setSetInfo((prev) => {
-        if (!prev || !Array.isArray(prev.fccards)) return prev;
-        return {
-          ...prev,
-          fccards: prev.fccards.map((c) =>
-            String(c.card_id) === resCardId ? { ...c, mastery_level: newMastery } : c
-          ),
-        };
-      });
 
       setStatus(correct ? "Đã đánh dấu thẻ là ĐÃ NHỚ" : "Đã đánh dấu thẻ là CHƯA NHỚ");
 
@@ -312,7 +316,7 @@ const FlashcardPractice = () => {
       setStatus(err.message);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentCard, setId, moveToNextCard, mode, current, setInfo?.fccards]);
+  }, [currentCard, setId, moveToNextCard, mode, current, setInfo?.fccards, filterCardsByMode]);
 
   const handleRemembered = useCallback(() => processStudyResult(true), [processStudyResult]);
   const handleNotRemembered = useCallback(() => processStudyResult(false), [processStudyResult]);

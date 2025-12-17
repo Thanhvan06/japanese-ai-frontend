@@ -16,6 +16,7 @@ import VocabTest from "./pages/VocabTest";
 import Grammar from "./pages/Grammar";
 import GrammarLevel from "./pages/GrammarLevel";
 import GrammarDetail from "./pages/GrammarDetail";
+import GrammarPractice from "./pages/GrammarPractice";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
@@ -51,6 +52,7 @@ function App() {
 
         {/* --- Grammar Routes --- */}
         <Route path="/grammar" element={<Grammar />} />
+        <Route path="/grammar/practice" element={<GrammarPractice />} />
         <Route path="/grammar/:level" element={<GrammarLevel />} />
         <Route path="/grammar/:level/:grammarId" element={<GrammarDetail />} />
 
