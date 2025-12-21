@@ -20,6 +20,7 @@ import GrammarPractice from "./pages/GrammarPractice";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
+import PersonalStudyRoom from "./pages/PersonalStudyRoom";
 
 
 function App() {
@@ -59,6 +60,9 @@ function App() {
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
         <Route path="/diary/:title" element={<DiaryDetail />} />
+
+        {/* --- Personal Study Room Routes --- */}
+        <Route path="/personal-study-room" element={<PersonalStudyRoom />} />
       </Routes>
     </Router>
   );
