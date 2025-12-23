@@ -2,11 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import styles from "../styles/Header.module.css";
-
-const Header = () => {
-  const navigate = useNavigate();
-
-  // UI states
 import { api } from "../lib/api";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -195,11 +190,6 @@ const Header = () => {
 
         {/* Avatar */}
         <div className={styles.avatarWrapper} ref={dropdownRef}>
-          <FaUserCircle
-            size={28}
-            className={styles.avatar}
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          />
 
           {userAvatar ? (
             <img
