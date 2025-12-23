@@ -288,8 +288,8 @@ export default function DiaryDetail() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Xác nhận xóa</h3>
             <p className="text-gray-600 mb-6">
               Bạn có chắc chắn muốn xóa nhật ký này không? Hành động này không thể hoàn tác.
@@ -341,7 +341,7 @@ function ContentEditor({ initialValue, onChange }) {
     setGrammarErrors([]);
   }, [initialValue]);
 
-  // Debounced grammar check
+  // Debounced grammar check - word-based matching
   const checkGrammar = async (text) => {
     if (!text || text.trim().length === 0) {
       setGrammarErrors([]);
@@ -364,8 +364,51 @@ function ContentEditor({ initialValue, onChange }) {
 
       if (response.ok) {
         const data = await response.json();
-        setGrammarErrors(data.errors || []);
+        console.log("Grammar check response:", data);
+        
+        // Validate response structure - word-based matching
+        if (data && Array.isArray(data.errors)) {
+          // Map errors to include positions found in text
+          const validErrors = data.errors
+            .filter(
+              (err) =>
+                typeof err.original_word === "string" &&
+                err.original_word.trim().length > 0 &&
+                Array.isArray(err.suggestions) &&
+                err.suggestions.length > 0
+            )
+            .map((err) => {
+              // Find all occurrences of the word in text
+              const word = err.original_word.trim();
+              const positions = [];
+              let searchIndex = 0;
+              
+              while (true) {
+                const index = text.indexOf(word, searchIndex);
+                if (index === -1) break;
+                positions.push({
+                  start_index: index,
+                  end_index: index + word.length,
+                });
+                searchIndex = index + 1;
+              }
+              
+              return {
+                original_word: word,
+                suggestions: err.suggestions.filter(s => typeof s === "string" && s.trim().length > 0),
+                positions: positions, // All occurrences
+              };
+            })
+            .filter((err) => err.positions.length > 0); // Only include if word found in text
+          
+          setGrammarErrors(validErrors);
+        } else {
+          console.warn("Invalid grammar check response format:", data);
+          setGrammarErrors([]);
+        }
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Grammar check failed:", response.status, errorData);
         setGrammarErrors([]);
       }
     } catch (error) {
@@ -392,9 +435,10 @@ function ContentEditor({ initialValue, onChange }) {
     }, 500);
   };
 
-  const handleAcceptSuggestion = (error, suggestion) => {
-    const before = value.substring(0, error.start_index);
-    const after = value.substring(error.end_index);
+  const handleAcceptSuggestion = (error, suggestion, position) => {
+    // Replace word at specific position
+    const before = value.substring(0, position.start_index);
+    const after = value.substring(position.end_index);
     const newValue = before + suggestion + after;
     
     setValue(newValue);
@@ -411,13 +455,23 @@ function ContentEditor({ initialValue, onChange }) {
     const textarea = e.target;
     const cursorPos = textarea.selectionStart;
     
-    // Find error at cursor position
-    const error = grammarErrors.find(
-      (err) => cursorPos >= err.start_index && cursorPos <= err.end_index
-    );
+    // Find error at cursor position - check all positions
+    let foundError = null;
+    let foundPosition = null;
     
-    if (error) {
-      setSelectedError(error);
+    for (const err of grammarErrors) {
+      for (const pos of err.positions) {
+        if (cursorPos >= pos.start_index && cursorPos <= pos.end_index) {
+          foundError = err;
+          foundPosition = pos;
+          break;
+        }
+      }
+      if (foundError) break;
+    }
+    
+    if (foundError) {
+      setSelectedError({ ...foundError, position: foundPosition });
     } else {
       setSelectedError(null);
     }
@@ -432,37 +486,51 @@ function ContentEditor({ initialValue, onChange }) {
     };
   }, []);
 
-  // Render text with error highlights
+  // Render text with error highlights - word-based matching
   const renderTextWithHighlights = () => {
     if (grammarErrors.length === 0) {
-      // Luôn trả về array, ngay cả khi không có lỗi
-      return [{ text: value, isError: false, error: null }];
+      return [{ text: value, isError: false, error: null, position: null }];
     }
+
+    // Collect all error positions with their errors
+    const errorPositions = [];
+    grammarErrors.forEach((error) => {
+      error.positions.forEach((pos) => {
+        errorPositions.push({
+          start_index: pos.start_index,
+          end_index: pos.end_index,
+          error: error,
+          position: pos,
+        });
+      });
+    });
+
+    // Sort by start_index
+    errorPositions.sort((a, b) => a.start_index - b.start_index);
 
     const parts = [];
     let lastIndex = 0;
 
-    // Sort errors by start_index
-    const sortedErrors = [...grammarErrors].sort((a, b) => a.start_index - b.start_index);
-
-    sortedErrors.forEach((error) => {
+    errorPositions.forEach((errPos) => {
       // Add text before error
-      if (error.start_index > lastIndex) {
+      if (errPos.start_index > lastIndex) {
         parts.push({
-          text: value.substring(lastIndex, error.start_index),
+          text: value.substring(lastIndex, errPos.start_index),
           isError: false,
           error: null,
+          position: null,
         });
       }
 
       // Add error text
       parts.push({
-        text: value.substring(error.start_index, error.end_index),
+        text: value.substring(errPos.start_index, errPos.end_index),
         isError: true,
-        error: error,
+        error: errPos.error,
+        position: errPos.position,
       });
 
-      lastIndex = error.end_index;
+      lastIndex = errPos.end_index;
     });
 
     // Add remaining text
@@ -471,17 +539,18 @@ function ContentEditor({ initialValue, onChange }) {
         text: value.substring(lastIndex),
         isError: false,
         error: null,
+        position: null,
       });
     }
 
     return parts;
   };
 
-  // Calculate tooltip position based on error location
+  // Calculate tooltip position based on error location - word-based
   const getTooltipPosition = () => {
-    if (!ref.current || !selectedError) return { top: 0, left: 0 };
+    if (!ref.current || !selectedError || !selectedError.position) return { top: 0, left: 0 };
     
-    const textBeforeError = value.substring(0, selectedError.start_index);
+    const textBeforeError = value.substring(0, selectedError.position.start_index);
     const lines = textBeforeError.split('\n');
     const lineNumber = lines.length - 1;
     const lineHeight = 24; // Approximate line height
@@ -529,7 +598,7 @@ function ContentEditor({ initialValue, onChange }) {
           ) : (
             renderTextWithHighlights().map((part, idx) => {
               if (part.isError) {
-                const isSelected = selectedError?.start_index === part.error.start_index;
+                const isSelected = selectedError?.position?.start_index === part.position?.start_index;
                 return (
                   <span
                     key={idx}
@@ -591,7 +660,7 @@ function ContentEditor({ initialValue, onChange }) {
                 {selectedError.suggestions.map((suggestion, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleAcceptSuggestion(selectedError, suggestion)}
+                    onClick={() => handleAcceptSuggestion(selectedError, suggestion, selectedError.position)}
                     className="w-full text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-sm text-gray-800 transition-all hover:shadow-sm"
                   >
                     ✓ {suggestion}

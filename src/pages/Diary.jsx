@@ -264,8 +264,8 @@ export default function Diary() {
 
       {/* DELETE CONFIRM MODAL */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-gray-200">
             <h3 className="text-xl font-bold mb-4">Xác nhận xóa</h3>
             <p className="mb-6">
               Bạn có chắc chắn muốn xóa {selectedIds.size} nhật ký không?
