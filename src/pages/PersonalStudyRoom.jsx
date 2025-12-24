@@ -1,4 +1,4 @@
-import { useState} from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import StudyRoomTabBar from "../components/StudyRoomTabBar";
@@ -10,15 +10,16 @@ import TodoList from "../components/TodoList";
 import NotePad from "../components/NotePad";
 import DraggableNote from "../components/DraggableNote";
 import ThemeSelector from "../components/ThemeSelector";
-import { 
-  FaClock, 
-  FaMusic, 
-  FaVolumeUp, 
-  FaCheckSquare, 
-  FaStickyNote, 
+import {
+  FaClock,
+  FaMusic,
+  FaVolumeUp,
+  FaCheckSquare,
+  FaStickyNote,
   FaYoutube,
-  FaPalette
+  FaPalette,
 } from "react-icons/fa";
+import { getPersonalRoomState, updatePersonalRoomState } from "../services/personalRoomService";
 
 const DEFAULT_THEMES = [
   { id: 1, name: "Ocean Blue", image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800", color: "#4aa6e0" },
@@ -29,21 +30,19 @@ const DEFAULT_THEMES = [
   { id: 6, name: "Sky Blue", image: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800", color: "#3b82f6" },
 ];
 
-const SYSTEM_PLAYLIST = [
-  { id: "sys1", title: "Lofi Rain sounds", artist: "Chill Journal", youtubeId: "9kzE8isXlQY", isSystem: true },
-  { id: "sys2", title: "Vintage Jazz", artist: "Lepreezy", youtubeId: "JElyhCKzhWI", isSystem: true },
-  { id: "sys3", title: "Alpha sounds", artist: "Zen Melody", youtubeId: "ihZYtrWTbkY", isSystem: true },
-  { id: "sys4", title: "Piano Study Music", artist: "Relaxing Jazz Piano", youtubeId: "MYPVQccHhAQ", isSystem: true },
-  { id: "sys5", title: "Japan Vibes", artist: "Calm City", youtubeId: "PLLRRXURicM", isSystem: true },
-];
-
 export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
   const [themeColor, setThemeColor] = useState(panelColor);
   const [backgroundImage, setBackgroundImage] = useState(DEFAULT_THEMES[0].image);
+  const [playlist, setPlaylist] = useState([]);
   const [showVideo, setShowVideo] = useState(false);
   const [videoId, setVideoId] = useState(null);
   const [notes, setNotes] = useState([]);
   const [maxZIndex, setMaxZIndex] = useState(100);
+  const [loading, setLoading] = useState(true);
+  const [timerDuration, setTimerDuration] = useState(0);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const [windows, setWindows] = useState({
     timer: { visible: false, minimized: false, position: { x: 50, y: 50 }, zIndex: 10 },
     music: { visible: false, minimized: false, position: { x: 500, y: 50 }, zIndex: 11 },
@@ -54,17 +53,113 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
     theme: { visible: false, minimized: false, position: { x: 300, y: 100 }, zIndex: 16 },
   });
 
-  // REMOVED localStorage - All state is now in-memory only
-  // Components will manage their own internal state
+  // Restore state from backend on mount
+  useEffect(() => {
+    const restoreState = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        const res = await getPersonalRoomState();
+        const state = res.state || {};
 
-  const handleThemeChange = (selectedTheme) => {
-    setThemeColor(selectedTheme.color || panelColor);
-    if (selectedTheme.image) {
-      setBackgroundImage(selectedTheme.image);
-    } else {
-      setBackgroundImage(null);
+        // Apply theme
+        if (state.theme) {
+          if (state.theme.color) {
+            setThemeColor(state.theme.color);
+          }
+          if (state.theme.image) {
+            setBackgroundImage(state.theme.image);
+          } else if (state.theme.color && !state.theme.image) {
+            setBackgroundImage(null);
+          }
+        }
+
+        // Apply playlist
+        if (Array.isArray(state.playlist)) {
+          setPlaylist(state.playlist);
+        }
+      } catch (err) {
+        console.error("Failed to restore state:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    restoreState();
+  }, []);
+
+  // ===== FULLSCREEN TOGGLE (ADDED) =====
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error("Fullscreen error:", err);
     }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+  
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);  
+
+  // --- HÀM XỬ LÝ KẾT NỐI TODO -> TIMER ---
+  const handleStartTaskTimer = (duration) => {
+    setTimerDuration(duration);
+    setIsTimerActive(true);
+
+    // Tự động mở cửa sổ Timer và đưa lên trên cùng
+    setMaxZIndex(prev => prev + 1);
+    setWindows(prev => ({
+      ...prev,
+      timer: {
+        ...prev.timer,
+        visible: true,
+        minimized: false, // Đảm bảo không bị ẩn
+        zIndex: maxZIndex + 1
+      }
+    }));
+  };
+
+  const handleTimerComplete = () => {
+    setIsTimerActive(false);
+    // Có thể thêm âm thanh thông báo hoặc alert tại đây
+    // new Audio('/sounds/bell.mp3').play(); 
+  };
+  // ---------------------------------------
+
+  const handleThemeChange = async (selectedTheme) => {
+    const newColor = selectedTheme.color || panelColor;
+    const newImage = selectedTheme.image || null;
+
+    // Update local state immediately
+    setThemeColor(newColor);
+    setBackgroundImage(newImage);
     setWindows(prev => ({ ...prev, theme: { ...prev.theme, visible: false } }));
+
+    // Save to backend
+    try {
+      await updatePersonalRoomState({
+        theme: {
+          color: newColor,
+          image: newImage,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to save theme:", err);
+    }
   };
 
   const handleWindowClose = (windowId) => {
@@ -82,65 +177,76 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
 
   const toggleWindow = (windowId) => {
     setWindows(prev => {
-      const currentWindow = prev[windowId];
-      // If window is already visible, just bring it to front
-      if (currentWindow.visible && !currentWindow.minimized) {
-        setMaxZIndex(prev => prev + 1);
+      const current = prev[windowId];
+  
+      // Nếu đang visible → đóng
+      if (current.visible) {
         return {
           ...prev,
           [windowId]: {
-            ...currentWindow,
+            ...current,
+            visible: false,
             minimized: false,
-            zIndex: maxZIndex + 1,
           },
         };
       }
-      // Otherwise, toggle visibility
-      const newVisible = !currentWindow.visible;
-      if (newVisible) {
-        setMaxZIndex(prev => prev + 1);
-      }
+  
+      // Nếu đang đóng → mở
+      setMaxZIndex(prevZ => prevZ + 1);
+  
       return {
         ...prev,
         [windowId]: {
-          ...currentWindow,
-          visible: newVisible,
+          ...current,
+          visible: true,
           minimized: false,
-          zIndex: newVisible ? maxZIndex + 1 : currentWindow.zIndex,
+          zIndex: maxZIndex + 1,
         },
       };
     });
   };
+  
 
   const backgroundStyle = backgroundImage
     ? {
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+    }
     : {
-        background: `linear-gradient(to bottom right, ${themeColor}10, ${themeColor}20, ${themeColor}30)`,
-      };
+      background: `linear-gradient(to bottom right, ${themeColor}10, ${themeColor}20, ${themeColor}30)`,
+    };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-white items-center justify-center">
+        <p>Đang tải...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-white">
-      <Sidebar />
-      <div className="flex-1 ml-14 relative overflow-hidden">
-        <Header />
-        <div 
+      {!isFullscreen && <Sidebar />}
+      <div
+        className={`flex-1 relative overflow-hidden ${isFullscreen ? "" : "ml-14"
+          }`}
+      >
+        {!isFullscreen && <Header />}
+        <div
           className="absolute inset-0"
           style={backgroundStyle}
         >
-          <div 
+          <div
             className="absolute inset-0 transition-opacity"
-            style={{ 
-              backgroundColor: backgroundImage ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.1)" 
+            style={{
+              backgroundColor: backgroundImage ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.1)"
             }}
           />
 
           {/* Tab Bar - Bottom Right */}
-          <StudyRoomTabBar onWindowToggle={toggleWindow} windows={windows} />
+          <StudyRoomTabBar onWindowToggle={toggleWindow} windows={windows} onToggleFullscreen={toggleFullscreen} isFullscreen={isFullscreen} />
 
           {/* Windows - Only render if visible */}
           {windows.timer.visible && (
@@ -156,7 +262,14 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
               zIndex={windows.timer.zIndex}
               onZIndexChange={handleZIndexChange}
             >
-              <PomodoroTimer defaultMinutes={25} panelColor={themeColor} />
+              {/* GHÉP NỐI: Truyền state vào Timer */}
+              <PomodoroTimer
+                defaultMinutes={25}
+                panelColor={themeColor}
+                initialTime={timerDuration}
+                isActive={isTimerActive}
+                onComplete={handleTimerComplete}
+              />
             </DraggableWindow>
           )}
 
@@ -173,8 +286,17 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
               zIndex={windows.music.zIndex}
               onZIndexChange={handleZIndexChange}
             >
-              <MusicPlayer 
-                panelColor={themeColor} 
+              <MusicPlayer
+                panelColor={themeColor}
+                playlist={playlist}
+                onPlaylistChange={async (newPlaylist) => {
+                  setPlaylist(newPlaylist);
+                  try {
+                    await updatePersonalRoomState({ playlist: newPlaylist });
+                  } catch (err) {
+                    console.error("Failed to save playlist:", err);
+                  }
+                }}
                 onVideoToggle={(show, id) => {
                   setShowVideo(show);
                   setVideoId(id);
@@ -185,7 +307,7 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
                     }));
                     setMaxZIndex(prev => prev + 1);
                   }
-                }} 
+                }}
               />
             </DraggableWindow>
           )}
@@ -220,7 +342,8 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
               zIndex={windows.todo.zIndex}
               onZIndexChange={handleZIndexChange}
             >
-              <TodoList />
+              {/* GHÉP NỐI: Truyền hàm handleStartTaskTimer vào TodoList */}
+              <TodoList onStartTask={handleStartTaskTimer} />
             </DraggableWindow>
           )}
 

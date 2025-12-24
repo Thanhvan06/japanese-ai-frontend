@@ -27,7 +27,7 @@ export default function Timer({ onComplete, isActive = true }) {
 
   return (
     <div className="flex items-center gap-2 text-lg font-semibold text-[#4aa6e0]">
-      <span>⏱️</span>
+      <span>Thời gian:</span>
       <span>{formatTime(seconds)}</span>
     </div>
   );

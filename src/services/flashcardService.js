@@ -147,3 +147,20 @@ export async function createSetFromVocab({ setName, vocabIds, source, folderId }
   });
 }
 
+// Study round APIs
+export async function completeStudyRound(setId, { answers, durationSeconds }) {
+  return api(`${BASE}/sets/${setId}/study/round/complete`, {
+    method: "POST",
+    body: JSON.stringify({ answers, durationSeconds }),
+  });
+}
+
+export async function getLastStudyRound(setId) {
+  return api(`${BASE}/sets/${setId}/study/round/last`);
+}
+
+export async function resetStudyRound(setId) {
+  return api(`${BASE}/sets/${setId}/study/round/reset`, {
+    method: "POST",
+  });
+}

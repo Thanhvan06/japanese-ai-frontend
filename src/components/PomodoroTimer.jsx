@@ -3,7 +3,10 @@ import { FaCog } from "react-icons/fa";
 
 export default function PomodoroTimer({
   defaultMinutes = 25,
-  panelColor = "#4aa6e0"
+  panelColor = "#4aa6e0",
+  initialTime = 0,   // [MỚI] Nhận thời gian từ TodoList
+  isActive = false,  // [MỚI] Trạng thái kích hoạt từ TodoList
+  onComplete         // [MỚI] Hàm gọi khi chạy xong
 }) {
   const [totalSeconds, setTotalSeconds] = useState(defaultMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
@@ -17,6 +20,24 @@ export default function PomodoroTimer({
   const alarmIntervalRef = useRef(null);
   const audioContextRef = useRef(null);
 
+  // --- [LOGIC MỚI] Lắng nghe thay đổi từ TodoList ---
+  useEffect(() => {
+    // Nếu có initialTime truyền vào (lớn hơn 0), cập nhật Timer ngay lập tức
+    if (initialTime > 0) {
+      const newSeconds = initialTime * 60;
+      setTotalSeconds(newSeconds);
+      initialTimeRef.current = newSeconds; // Cập nhật mốc reset
+      setCustomMinutes(initialTime); // Cập nhật số phút hiển thị ở setting
+      
+      // Nếu được yêu cầu kích hoạt ngay (bấm nút Play bên Todo)
+      if (isActive) {
+        setIsRunning(true);
+        setIsPaused(false);
+        stopAlarm(); // Tắt chuông nếu đang kêu
+      }
+    }
+  }, [initialTime, isActive]);
+  // --------------------------------------------------
 
   // Play countdown beeps (3-2-1)
   const playCountdownBeeps = () => {
@@ -103,15 +124,15 @@ export default function PomodoroTimer({
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
-  // Update initial time when defaultMinutes changes
+  // Update initial time when defaultMinutes changes (only if not running via TodoList logic)
   useEffect(() => {
-    if (!isRunning && !isPaused) {
+    if (!isRunning && !isPaused && initialTime === 0) {
       const newTotalSeconds = defaultMinutes * 60;
       initialTimeRef.current = newTotalSeconds;
       setTotalSeconds(newTotalSeconds);
       setCustomMinutes(defaultMinutes);
     }
-  }, [defaultMinutes, isRunning, isPaused]);
+  }, [defaultMinutes, isRunning, isPaused, initialTime]);
 
   // Timer countdown logic
   useEffect(() => {
@@ -131,6 +152,10 @@ export default function PomodoroTimer({
             setIsPaused(false);
             setIsAlarming(true);
             startContinuousAlarm();
+            
+            // [MỚI] Gọi hàm onComplete để báo cho component cha biết
+            if (onComplete) onComplete(); 
+            
             return 0;
           }
         });
@@ -146,7 +171,7 @@ export default function PomodoroTimer({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, isPaused]);
+  }, [isRunning, isPaused, onComplete]);
 
 
   const handleStart = () => {

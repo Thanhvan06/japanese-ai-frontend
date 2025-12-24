@@ -10,7 +10,10 @@ import {
   getSet,
   startStudy,
   getCardAnswer,
-  submitStudyAnswer
+  submitStudyAnswer,
+  completeStudyRound,
+  getLastStudyRound,
+  resetStudyRound
 } from "../services/flashcardService.js";
 
 const FlashcardPractice = () => {
@@ -29,8 +32,11 @@ const FlashcardPractice = () => {
   const [loadingSet, setLoadingSet] = useState(true);
   const [completionStats, setCompletionStats] = useState(null);
   const [showCompletionChart, setShowCompletionChart] = useState(false);
+  const [roundData, setRoundData] = useState(null);
   const studiedCardsRef = useRef(new Set());
   const initialCardsRef = useRef(new Set());
+  const roundAnswersRef = useRef([]);
+  const roundStartTimeRef = useRef(null);
   const chartTimeoutRef = useRef(null);
   const restartTimeoutRef = useRef(null);
 
@@ -111,8 +117,11 @@ const FlashcardPractice = () => {
             initialCardsRef.current = new Set(cards.map(c => c.card_id));
             if (resetCompletion) {
               studiedCardsRef.current = new Set();
+              roundAnswersRef.current = [];
+              roundStartTimeRef.current = Date.now();
               setCompletionStats(null);
               setShowCompletionChart(false);
+              setRoundData(null);
               if (chartTimeoutRef.current) {
                 clearTimeout(chartTimeoutRef.current);
                 chartTimeoutRef.current = null;
@@ -121,6 +130,8 @@ const FlashcardPractice = () => {
                 clearTimeout(restartTimeoutRef.current);
                 restartTimeoutRef.current = null;
               }
+            } else if (!roundStartTimeRef.current) {
+              roundStartTimeRef.current = Date.now();
             }
           } else {
             setCompletionStats(null);
@@ -156,6 +167,31 @@ const FlashcardPractice = () => {
       fetchStudyCards(mode, false);
     }
   }, [mode, setInfo?.fccards, fetchStudyCards]);
+
+  // Load last round data on mount
+  useEffect(() => {
+    const loadLastRound = async () => {
+      try {
+        const res = await getLastStudyRound(setId);
+        if (res.round && res.round.round_id) {
+          setRoundData(res);
+          setCompletionStats({
+            mastered: res.round.remembered_count || 0,
+            notMastered: res.round.not_remembered_count || 0,
+            masteredPercent: res.round.total_cards > 0 
+              ? ((res.round.remembered_count || 0) / res.round.total_cards) * 100 
+              : 0,
+            total: res.round.total_cards || 0
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load last round:", err);
+      }
+    };
+    if (setId) {
+      loadLastRound();
+    }
+  }, [setId]);
 
   const moveToNextCard = useCallback(() => {
     if (!studyCards.length) return;
@@ -193,28 +229,60 @@ const FlashcardPractice = () => {
   }, [currentCard, flipped, answers, setAnswers, setStatus, setId]);
 
   const handleRestart = useCallback(async () => {
+    try {
+      await resetStudyRound(setId);
+      setShowCompletionChart(false);
+      setCompletionStats(null);
+      setRoundData(null);
+      if (chartTimeoutRef.current) {
+        clearTimeout(chartTimeoutRef.current);
+        chartTimeoutRef.current = null;
+      }
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
+      studiedCardsRef.current = new Set();
+      roundAnswersRef.current = [];
+      roundStartTimeRef.current = null;
+      await fetchSetDetail();
+      setTimeout(async () => {
+        const updatedSetInfo = await getSet(setId);
+        if (updatedSetInfo?.set?.fccards) {
+          fetchStudyCards("all", true, true);
+        } else {
+          fetchStudyCards("all", false, true);
+        }
+      }, 100);
+    } catch (err) {
+      console.error("Failed to reset round:", err);
+      setStatus(err.message || "Lỗi khi reset tiến trình");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setId]);
+
+  const handleContinueLearning = useCallback(async () => {
     setShowCompletionChart(false);
     setCompletionStats(null);
     if (chartTimeoutRef.current) {
       clearTimeout(chartTimeoutRef.current);
       chartTimeoutRef.current = null;
     }
-    if (restartTimeoutRef.current) {
-      clearTimeout(restartTimeoutRef.current);
-      restartTimeoutRef.current = null;
+    // Refresh tabs based on last round data
+    if (roundData?.tabs) {
+      // The tabs are already updated in the backend, just refresh
+      await fetchSetDetail();
+      setTimeout(async () => {
+        const updatedSetInfo = await getSet(setId);
+        if (updatedSetInfo?.set?.fccards) {
+          fetchStudyCards("all", true, true);
+        } else {
+          fetchStudyCards("all", false, true);
+        }
+      }, 100);
     }
-    studiedCardsRef.current = new Set();
-    await fetchSetDetail();
-    setTimeout(async () => {
-      const updatedSetInfo = await getSet(setId);
-      if (updatedSetInfo?.set?.fccards) {
-        fetchStudyCards("all", true, true);
-      } else {
-        fetchStudyCards("all", false, true);
-      }
-    }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setId]);
+  }, [setId, roundData]);
 
   const processStudyResult = useCallback(async (correct) => {
     if (!currentCard) return;
@@ -223,6 +291,7 @@ const FlashcardPractice = () => {
 
       const resCardId = String(res.card_id ?? res.cardId ?? currentCard.card_id);
       const newMastery = res.mastery_level ?? res.masteryLevel ?? (correct ? 1 : 0);
+      const completed = res.completed === true;
 
       // Calculate updated fccards first (immutable update)
       const currentFccards = setInfo?.fccards || [];
@@ -276,38 +345,79 @@ const FlashcardPractice = () => {
       // Update studyCards from filtered list
       setStudyCards(filteredStudyCards);
 
+      // If set is completed (all cards remembered), refetch sets to update tabs
+      if (completed) {
+        await fetchSetDetail();
+        window.dispatchEvent(new CustomEvent("flashcardSetCompleted", { 
+          detail: { setId } 
+        }));
+      }
+
+      // Track answer for round completion
+      roundAnswersRef.current.push({
+        cardId: currentCard.card_id,
+        correct: correct
+      });
+
       if (mode === "all") {
         studiedCardsRef.current.add(currentCard.card_id);
         
+        // Check if all cards have been studied
         if (initialCardsRef.current.size > 0 && 
             studiedCardsRef.current.size >= initialCardsRef.current.size &&
             Array.from(initialCardsRef.current).every(id => studiedCardsRef.current.has(id))) {
           
-          const masteredCount = updatedFccards.filter(c => (c.mastery_level || 1) >= 5).length;
-          const notMasteredCount = updatedFccards.length - masteredCount;
-          const masteredPercent = updatedFccards.length > 0 ? (masteredCount / updatedFccards.length) * 100 : 0;
+          // Complete the round via backend
+          const durationSeconds = roundStartTimeRef.current 
+            ? Math.floor((Date.now() - roundStartTimeRef.current) / 1000)
+            : undefined;
           
-          setCompletionStats({
-            mastered: masteredCount,
-            notMastered: notMasteredCount,
-            masteredPercent: masteredPercent,
-            total: updatedFccards.length
-          });
-          
-          setShowCompletionChart(true);
-          
-          if (chartTimeoutRef.current) {
-            clearTimeout(chartTimeoutRef.current);
+          try {
+            const roundRes = await completeStudyRound(setId, {
+              answers: roundAnswersRef.current,
+              durationSeconds
+            });
+            
+            // Use backend response for stats
+            setRoundData(roundRes);
+            setCompletionStats({
+              mastered: roundRes.round.remembered_count || 0,
+              notMastered: roundRes.round.not_remembered_count || 0,
+              masteredPercent: roundRes.round.total_cards > 0
+                ? ((roundRes.round.remembered_count || 0) / roundRes.round.total_cards) * 100
+                : 0,
+              total: roundRes.round.total_cards || 0
+            });
+            
+            setShowCompletionChart(true);
+            
+            if (chartTimeoutRef.current) {
+              clearTimeout(chartTimeoutRef.current);
+            }
+            chartTimeoutRef.current = setTimeout(() => {
+              setShowCompletionChart(false);
+            }, 30000);
+            
+            // Reset for next round
+            roundAnswersRef.current = [];
+            roundStartTimeRef.current = null;
+            studiedCardsRef.current = new Set();
+            
+            // Refetch set detail to get updated completion status
+            await fetchSetDetail();
+            
+            // Dispatch event to notify other components (like Flashcard library) to refetch
+            window.dispatchEvent(new CustomEvent("flashcardSetCompleted", { 
+              detail: { setId } 
+            }));
+          } catch (err) {
+            console.error("Failed to complete round:", err);
+            setStatus(err.message || "Lỗi khi hoàn thành vòng học");
           }
-          chartTimeoutRef.current = setTimeout(() => {
-            setShowCompletionChart(false);
-          }, 30000);
-          
-          fetchSetDetail();
         }
       }
 
-      setStatus(correct ? "Đã đánh dấu thẻ là ĐÃ NHỚ" : "Đã đánh dấu thẻ là CHƯA NHỚ");
+      //setStatus(correct ? "Đã đánh dấu thẻ là ĐÃ NHỚ" : "Đã đánh dấu thẻ là CHƯA NHỚ");
 
       setTimeout(() => {
         moveToNextCard();
@@ -538,7 +648,7 @@ const FlashcardPractice = () => {
 
             {status && !showCompletionChart && <p className={styles.statusMessage}>{status}</p>}
             
-            {showCompletionChart && completionStats && mode === "all" && (
+            {showCompletionChart && completionStats && mode === "all" && roundData && (
               <div style={{
                 marginTop: "24px",
                 padding: "20px",
@@ -570,7 +680,7 @@ const FlashcardPractice = () => {
                         stroke="#4CAF50"
                         strokeWidth="8"
                         strokeDasharray={`${2 * Math.PI * 36}`}
-                        strokeDashoffset={`${2 * Math.PI * 36 * (1 - completionStats.masteredPercent / 100)}`}
+                        strokeDashoffset={`${2 * Math.PI * 36 * (1 - (roundData.chart.slices.remembered / roundData.round.total_cards))}`}
                         strokeLinecap="round"
                       />
                       <circle
@@ -580,7 +690,7 @@ const FlashcardPractice = () => {
                         fill="none"
                         stroke="#f44336"
                         strokeWidth="8"
-                        strokeDasharray={`${2 * Math.PI * 36 * (completionStats.masteredPercent / 100)}, ${2 * Math.PI * 36}`}
+                        strokeDasharray={`${2 * Math.PI * 36 * (roundData.chart.slices.remembered / roundData.round.total_cards)}, ${2 * Math.PI * 36}`}
                         strokeLinecap="round"
                         style={{ transform: "rotate(0deg)", transformOrigin: "40px 40px" }}
                       />
@@ -599,31 +709,60 @@ const FlashcardPractice = () => {
                   </div>
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                     <div style={{ fontSize: "16px", fontWeight: "600", color: "#2e3856" }}>
-                      Từ đã học được: <span style={{ color: "#4CAF50" }}>{completionStats.mastered}</span>
+                      Từ đã nhớ: <span style={{ color: "#4CAF50" }}>{roundData.chart.slices.remembered || 0}</span>
                     </div>
                     <div style={{ fontSize: "16px", fontWeight: "600", color: "#2e3856" }}>
-                      Từ chưa học được: <span style={{ color: "#f44336" }}>{completionStats.notMastered}</span>
+                      Từ chưa nhớ: <span style={{ color: "#f44336" }}>{roundData.chart.slices.not_remembered || 0}</span>
+                    </div>
+                    <div style={{ fontSize: "14px", color: "#666" }}>
+                      Tổng: {roundData.round.total_cards || 0} thẻ
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={handleRestart}
-                  style={{
-                    padding: "12px 24px",
-                    background: "#77bef0",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease"
-                  }}
-                  onMouseOver={(e) => e.target.style.background = "#6ba8d6"}
-                  onMouseOut={(e) => e.target.style.background = "#77bef0"}
-                >
-                  Khởi động lại
-                </button>
+                <div style={{ display: "flex", gap: "12px", width: "100%" }}>
+                  {roundData.actions.continue_learning && (
+                    <button
+                      onClick={handleContinueLearning}
+                      style={{
+                        flex: 1,
+                        padding: "12px 24px",
+                        background: "#4CAF50",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseOver={(e) => e.target.style.background = "#45a049"}
+                      onMouseOut={(e) => e.target.style.background = "#4CAF50"}
+                    >
+                      Tiếp tục học
+                    </button>
+                  )}
+                  {roundData.actions.reset_progress && (
+                    <button
+                      onClick={handleRestart}
+                      style={{
+                        flex: 1,
+                        padding: "12px 24px",
+                        background: "#77bef0",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseOver={(e) => e.target.style.background = "#6ba8d6"}
+                      onMouseOut={(e) => e.target.style.background = "#77bef0"}
+                    >
+                      Reset tiến trình
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -34,6 +34,7 @@ const FlashcardLibrary = () => {
   const [error, setError] = useState("");
   const [creatingSet, setCreatingSet] = useState(false);
   const [unassignedSets, setUnassignedSets] = useState([]);
+  const [completionTab, setCompletionTab] = useState("all"); // "all" | "incomplete" | "complete"
 
   const currentFolder = useMemo(
     () => folders.find(f => f.folder_id === numericFolderId) || null,
@@ -91,6 +92,21 @@ const FlashcardLibrary = () => {
     } else {
       setUnassignedSets([]);
     }
+  }, [fetchSets, numericFolderId, fetchUnassignedSets]);
+
+  // Listen for flashcard completion events to refetch sets
+  useEffect(() => {
+    const handleFlashcardCompleted = () => {
+      fetchSets(numericFolderId);
+      if (numericFolderId) {
+        fetchUnassignedSets();
+      }
+    };
+    
+    window.addEventListener("flashcardSetCompleted", handleFlashcardCompleted);
+    return () => {
+      window.removeEventListener("flashcardSetCompleted", handleFlashcardCompleted);
+    };
   }, [fetchSets, numericFolderId, fetchUnassignedSets]);
 
   const handleAddClick = useCallback(() => {
@@ -263,6 +279,26 @@ const FlashcardLibrary = () => {
     [handleAttachSetToFolder, handleDeleteSet, navigate]
   );
 
+  const filteredSets = useMemo(() => {
+    if (completionTab === "all") {
+      return sets;
+    }
+    return sets.filter(set => {
+      const isCompleted = set.is_completed === true;
+      return completionTab === "complete" ? isCompleted : !isCompleted;
+    });
+  }, [sets, completionTab]);
+
+  const filteredUnassignedSets = useMemo(() => {
+    if (completionTab === "all") {
+      return unassignedSets;
+    }
+    return unassignedSets.filter(set => {
+      const isCompleted = set.is_completed === true;
+      return completionTab === "complete" ? isCompleted : !isCompleted;
+    });
+  }, [unassignedSets, completionTab]);
+
   const renderSetGrid = useMemo(() => {
     if (loadingSets) {
       return <p className={styles.statusText}>Đang tải học phần...</p>;
@@ -276,11 +312,11 @@ const FlashcardLibrary = () => {
               Tạo học phần đầu tiên
             </button>
           </div>
-          {currentFolder && unassignedSets.length > 0 && (
+          {currentFolder && filteredUnassignedSets.length > 0 && (
             <div className={styles.attachSection}>
               <h4 className={styles.attachTitle}>Chọn học phần chưa thuộc thư mục</h4>
               <div className={styles.cardGrid}>
-                {unassignedSets.map(set => renderSetCard(set, { attachable: true }))}
+                {filteredUnassignedSets.map(set => renderSetCard(set, { attachable: true }))}
               </div>
             </div>
           )}
@@ -288,28 +324,42 @@ const FlashcardLibrary = () => {
       );
     }
 
+    if (filteredSets.length === 0) {
+      return (
+        <div className={styles.emptyState}>
+          <p>
+            {completionTab === "complete" 
+              ? "Chưa có học phần đã hoàn thành" 
+              : "Tất cả học phần đã hoàn thành"}
+          </p>
+        </div>
+      );
+    }
+
     return (
       <>
         <div className={styles.cardGrid}>
-          {sets.map(set => renderSetCard(set))}
+          {filteredSets.map(set => renderSetCard(set))}
         </div>
-        {currentFolder && unassignedSets.length > 0 && (
+        {currentFolder && filteredUnassignedSets.length > 0 && (
           <div className={styles.attachSection}>
             <h4 className={styles.attachTitle}>Thêm học phần chưa có thư mục</h4>
             <div className={styles.cardGrid}>
-              {unassignedSets.map(set => renderSetCard(set, { attachable: true }))}
+              {filteredUnassignedSets.map(set => renderSetCard(set, { attachable: true }))}
             </div>
           </div>
         )}
       </>
     );
   }, [
+    filteredSets,
+    filteredUnassignedSets,
     sets,
     loadingSets,
     currentFolder,
     handleAddSection,
     renderSetCard,
-    unassignedSets
+    completionTab
   ]);
 
   const renderFolderList = useMemo(() => {
@@ -438,6 +488,53 @@ const FlashcardLibrary = () => {
                 Thư mục
               </button>
             </div>
+
+            {activeTab === "hocphan" && (
+              <div style={{ marginBottom: "1rem", display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => setCompletionTab("all")}
+                  style={{
+                    padding: "6px 12px",
+                    background: completionTab === "all" ? "#77bef0" : "#e0e0e0",
+                    color: completionTab === "all" ? "#fff" : "#333",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "0.875rem"
+                  }}
+                >
+                  Tất cả
+                </button>
+                <button
+                  onClick={() => setCompletionTab("incomplete")}
+                  style={{
+                    padding: "6px 12px",
+                    background: completionTab === "incomplete" ? "#77bef0" : "#e0e0e0",
+                    color: completionTab === "incomplete" ? "#fff" : "#333",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "0.875rem"
+                  }}
+                >
+                  Chưa hoàn thành
+                </button>
+                <button
+                  onClick={() => setCompletionTab("complete")}
+                  style={{
+                    padding: "6px 12px",
+                    background: completionTab === "complete" ? "#77bef0" : "#e0e0e0",
+                    color: completionTab === "complete" ? "#fff" : "#333",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "0.875rem"
+                  }}
+                >
+                  Đã hoàn thành
+                </button>
+              </div>
+            )}
 
             {activeTab === "hocphan" ? renderSetGrid : renderFolderList}
           </div>

@@ -40,8 +40,8 @@ const SYSTEM_PLAYLIST = [
   },
 ];
 
-export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
-  const [userPlaylist, setUserPlaylist] = useState([]);
+export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, playlist = [], onPlaylistChange }) {
+  const [userPlaylist, setUserPlaylist] = useState(playlist);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(50);
@@ -59,6 +59,13 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
   const playerContainerRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const volumeRef = useRef(null);
+
+  // Sync playlist prop with state
+  useEffect(() => {
+    if (Array.isArray(playlist) && playlist.length >= 0) {
+      setUserPlaylist(playlist);
+    }
+  }, [playlist]);
 
   const systemPlaylist = SYSTEM_PLAYLIST;
   const currentPlaylist = activePlaylist === "system" ? systemPlaylist : userPlaylist;
@@ -248,23 +255,19 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
     }
   }, [currentTrack?.youtubeId, showVideo, onVideoToggle]);
 
+  // Sync playlist prop with state and notify parent of changes
   useEffect(() => {
-    const savedPlaylist = localStorage.getItem("musicUserPlaylist");
-    if (savedPlaylist) {
-      try {
-        const parsed = JSON.parse(savedPlaylist);
-        setUserPlaylist(parsed);
-      } catch (e) {
-        console.error("Error loading playlist:", e);
-      }
+    if (Array.isArray(playlist)) {
+      setUserPlaylist(playlist);
     }
-  }, []);
+  }, [playlist]);
 
+  // Notify parent when playlist changes
   useEffect(() => {
-    if (userPlaylist.length > 0) {
-      localStorage.setItem("musicUserPlaylist", JSON.stringify(userPlaylist));
+    if (onPlaylistChange && activePlaylist === "user") {
+      onPlaylistChange(userPlaylist);
     }
-  }, [userPlaylist]);
+  }, [userPlaylist, activePlaylist, onPlaylistChange]);
 
   const handlePlayPause = () => {
     if (!playerRef.current || !playerReady) return;
@@ -356,7 +359,11 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
         youtubeId: videoId,
         isSystem: false
       };
-      setUserPlaylist([...userPlaylist, newTrack]);
+      const updatedPlaylist = [...userPlaylist, newTrack];
+      setUserPlaylist(updatedPlaylist);
+      if (onPlaylistChange) {
+        onPlaylistChange(updatedPlaylist);
+      }
       setYoutubeLink("");
       setShowYoutubeInput(false);
       
@@ -420,7 +427,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold">🎵 Nhạc nền</h4>
+        <h4 className="font-semibold"> Nhạc nền</h4>
         <div className="flex gap-2">
           <button
             onClick={() => {
@@ -435,13 +442,13 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
             }`}
             title={showVideo ? "Ẩn video" : "Hiện video"}
           >
-            {showVideo ? "📺" : "🎵"}
+            {showVideo ? "Hiện video" : "Ẩn video"}
           </button>
           <button
             onClick={() => setShowPlaylistSelector(!showPlaylistSelector)}
             className="text-xs px-2 py-1 bg-white/10 bg-opacity-20 rounded hover:bg-opacity-30 transition-colors"
           >
-            📋 {activePlaylist === "system" ? "Hệ thống" : "Của tôi"}
+             {activePlaylist === "system" ? "Hệ thống" : "Của tôi"}
           </button>
           <button
             onClick={() => setShowYoutubeInput(!showYoutubeInput)}
@@ -462,7 +469,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
                 : "bg-white/10 bg-opacity-20 hover:bg-opacity-30"
             }`}
           >
-            📋 Playlist hệ thống ({systemPlaylist.length} bài)
+             Playlist hệ thống ({systemPlaylist.length} bài)
           </button>
           <button
             onClick={() => switchPlaylist("user")}
@@ -473,7 +480,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
             }`}
             disabled={userPlaylist.length === 0}
           >
-            🎵 Playlist của tôi ({userPlaylist.length} bài)
+             Playlist của tôi ({userPlaylist.length} bài)
           </button>
         </div>
       )}
@@ -492,7 +499,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
                 handleAddYoutubeLink();
               }
             }}
-            placeholder="https://youtube.com/watch?v=..."
+            placeholder=""
             className="w-full px-3 py-2 bg-gray-200 bg-opacity-20 rounded text-sm text-black placeholder-black placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
           />
           <div className="flex gap-2 mt-2">
@@ -526,7 +533,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
           <div className="text-sm font-medium mb-1 truncate">{currentTrack.title}</div>
           <div className="text-xs text-black text-opacity-70 truncate">{currentTrack.artist}</div>
           <div className="text-xs text-black text-opacity-50 mt-1">
-            {activePlaylist === "system" ? "🔷 Playlist hệ thống" : "🎵 Playlist của tôi"}
+            {activePlaylist === "system" ? "Playlist hệ thống" : "Playlist của tôi"}
           </div>
         </div>
       )}
@@ -541,13 +548,13 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
             max={duration || 100}
             value={currentTime}
             onChange={handleSeek}
-            className="w-full h-1 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-1 bg-black bg-opacity-20 rounded-lg appearance-none cursor-pointer"
             style={{
-              background: `linear-gradient(to right, #4aa6e0 0%, #4aa6e0 ${(currentTime / (duration || 100)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 100)) * 100}%, rgba(255,255,255,0.2) 100%)`
+              background: `linear-gradient(to right,rgb(85, 223, 92) 0%, #4aa6e0 ${(currentTime / (duration || 100)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 100)) * 100}%, rgba(255,255,255,0.2) 100%)`
             }}
             disabled={!playerReady}
           />
-          <div className="flex justify-between text-xs text-white text-opacity-60">
+          <div className="flex justify-between text-xs text-black text-opacity-60">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -635,7 +642,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle }) {
       {currentPlaylist.length > 0 && (
         <div className="mt-4">
           <div className="text-xs text-white text-opacity-70 mb-2 font-medium">
-            {activePlaylist === "system" ? "📋 Playlist hệ thống" : "🎵 Playlist của tôi"}
+            {activePlaylist === "system" ? "Playlist hệ thống" : "Playlist của tôi"}
           </div>
           <div className="max-h-40 overflow-y-auto space-y-1">
             {currentPlaylist.map((track, index) => (
