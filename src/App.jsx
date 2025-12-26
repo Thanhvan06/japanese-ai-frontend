@@ -21,7 +21,6 @@ import Speaking from "./pages/Speaking.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
-import AdminEditUser from "./pages/admin/AdminEditUser.jsx";
 function App() {
   return (
     <Router>
@@ -54,14 +53,6 @@ function App() {
           element={
             <AdminRoute>
               <AdminUsers />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/users/:id/edit"
-          element={
-            <AdminRoute>
-              <AdminEditUser />
             </AdminRoute>
           }
         />

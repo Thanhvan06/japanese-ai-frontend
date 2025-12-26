@@ -17,6 +17,7 @@ import {
 } from "react-icons/fa";
 import styles from "../styles/Sidebar.module.css";
 import { useSidebar } from "../context/SidebarContext";
+import { api } from "../lib/api";
 
 const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
@@ -37,10 +38,35 @@ const Sidebar = () => {
   ];
 
   // detect current user to show admin links
-  let currentUser = {};
-  try {
-    currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  } catch (e) {}
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Get user from localStorage
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      setCurrentUser(user);
+      setIsAdmin(user?.role === "admin");
+    } catch (e) {
+      setCurrentUser(null);
+      setIsAdmin(false);
+    }
+
+    // Also check via API to ensure role is up-to-date
+    (async () => {
+      try {
+        const res = await api("/api/auth/me").catch(() => null);
+        if (res?.user) {
+          setCurrentUser(res.user);
+          setIsAdmin(res.user.role === "admin");
+          // Update localStorage
+          localStorage.setItem("user", JSON.stringify(res.user));
+        }
+      } catch (err) {
+        // Ignore errors
+      }
+    })();
+  }, []);
 
   // Decide which menu to show:
   const adminMenu = [
@@ -49,15 +75,19 @@ const Sidebar = () => {
   ];
 
   const isAdminArea = location.pathname.startsWith("/admin");
-  const menuItems = (isAdminArea && currentUser.role === "admin") ? adminMenu : [...baseMenu];
+  
+  // Show admin menu only if user is admin, otherwise show base menu
+  // If already in admin area, show admin menu (AdminRoute will protect it)
+  const menuItems = isAdminArea ? adminMenu : (isAdmin ? [...baseMenu, ...adminMenu] : baseMenu);
 
   useEffect(() => {
     const currentPath = location.pathname;
-    const currentItem = menuItems.find(item => item.path === currentPath);
+    const allMenuItems = isAdminArea ? adminMenu : (isAdmin ? [...baseMenu, ...adminMenu] : baseMenu);
+    const currentItem = allMenuItems.find(item => item.path === currentPath);
     if (currentItem) {
       setActive(currentItem.path);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isAdmin, isAdminArea]);
 
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`} style={{ display: "flex", flexDirection: "column" }}>
@@ -83,8 +113,7 @@ const Sidebar = () => {
         </ul>
       </div>
 
-      {/* support only on admin area */}
-      {isAdminArea && currentUser.role === "admin" && (
+      {isAdminArea && (
         <div style={{ marginTop: "auto", padding: "12px 8px" }}>
           <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 12 }}>
             <div className={styles.supportTitle}>SUPPORT</div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -11,6 +11,8 @@ export default function SignIn() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
 
   // Hàm gọi API tiện ích
   async function api(path, options = {}) {
@@ -51,12 +53,24 @@ export default function SignIn() {
         if (res.token) localStorage.setItem("token", res.token);
         if (res.user) localStorage.setItem("user", JSON.stringify(res.user));
         setMessage("Đăng nhập thành công!");
-        // Nếu là admin => chuyển hướng đến admin dashboard, ngược lại về trang chính
+        // Xử lý redirect sau khi đăng nhập
         setTimeout(() => {
           const role = res.user?.role || (JSON.parse(localStorage.getItem("user") || "{}").role);
-          if (role === "admin") {
+          
+          // Nếu có returnUrl và user là admin → redirect đến returnUrl
+          if (returnUrl && role === "admin") {
+            navigate(returnUrl);
+          } 
+          // Nếu là admin → chuyển hướng đến admin dashboard
+          else if (role === "admin") {
             navigate("/admin");
-          } else {
+          } 
+          // Nếu có returnUrl nhưng không phải admin → về home
+          else if (returnUrl) {
+            navigate("/home");
+          }
+          // Mặc định → về home
+          else {
             navigate("/home");
           }
         }, 1000);

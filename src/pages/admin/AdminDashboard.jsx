@@ -27,12 +27,6 @@ export default function AdminDashboard() {
   const onlineUsers = users.filter((u) => u.is_active).length;
   const totalCourses = 105; // placeholder — replace with real endpoint if available
 
-  const filteredUsers = users.filter((u) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (u.display_name || u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
-  });
-
   return (
     <AdminLayout title="Trang chủ">
       <div className="space-y-6">
@@ -66,18 +60,6 @@ export default function AdminDashboard() {
             />
             <button className="px-4 py-2 text-white rounded-lg" style={{ background: "#77BEF0" }}>Tìm kiếm</button>
           </div>
-        </div>
-
-        {/* Optionally show preview of filtered users or other widgets */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="text-sm text-gray-600 mb-2">Kết quả tìm kiếm</div>
-          {loading ? (
-            <div>Đang tải...</div>
-          ) : (
-            <div className="text-sm text-gray-700">
-              Hiển thị <span className="font-medium">{filteredUsers.length}</span> người dùng
-            </div>
-          )}
         </div>
       </div>
     </AdminLayout>
