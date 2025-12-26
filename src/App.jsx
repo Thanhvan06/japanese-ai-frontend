@@ -18,6 +18,10 @@ import VocabTopic from "./pages/VocabTopic.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
 import Listening from "./pages/Listening.jsx";
 import Speaking from "./pages/Speaking.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import AdminUsers from "./pages/admin/AdminUsers.jsx";
+import AdminEditUser from "./pages/admin/AdminEditUser.jsx";
 function App() {
   return (
     <Router>
@@ -34,8 +38,33 @@ function App() {
         <Route path="/flashcard/vocab-practice/:id" element={<VocabPractice />} />
 
         <Route path="*" element={<Navigate to="/" />} />
-        
         <Route path="/signin" element={<SignIn />} />
+
+        {/* --- Admin Routes (protected) --- */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminUsers />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users/:id/edit"
+          element={
+            <AdminRoute>
+              <AdminEditUser />
+            </AdminRoute>
+          }
+        />
         {/* --- Vocab Routes --- */}
         <Route path="/vocab" element={<Vocab />} />
         <Route path="/vocab/:level" element={<VocabLevel />} />

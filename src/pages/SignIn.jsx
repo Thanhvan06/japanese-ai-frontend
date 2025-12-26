@@ -47,9 +47,19 @@ export default function SignIn() {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
-        localStorage.setItem("token", res.token);
+        // lưu token và user public (nếu backend trả về user)
+        if (res.token) localStorage.setItem("token", res.token);
+        if (res.user) localStorage.setItem("user", JSON.stringify(res.user));
         setMessage("Đăng nhập thành công!");
-        setTimeout(() => navigate("/home"), 1000); // chuyển về trang chính
+        // Nếu là admin => chuyển hướng đến admin dashboard, ngược lại về trang chính
+        setTimeout(() => {
+          const role = res.user?.role || (JSON.parse(localStorage.getItem("user") || "{}").role);
+          if (role === "admin") {
+            navigate("/admin");
+          } else {
+            navigate("/home");
+          }
+        }, 1000);
       }
     } catch (err) {
       setMessage(err.message);
