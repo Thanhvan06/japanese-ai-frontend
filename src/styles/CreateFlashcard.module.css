@@ -46,6 +46,17 @@
   color: #525354ff;
 }
 
+.select {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #333;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
 .cardRow {
   display: flex;
   align-items: center;
@@ -104,6 +115,13 @@
   transform: scale(1.1);
 }
 
+.preview {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
 .addButton {
   display: block;
   margin: 25px auto 15px;
@@ -136,7 +154,18 @@
   transition: 0.2s;
 }
 
+.createButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .createButton:hover {
   background-color: #5aaae5;
   transform: translateY(-1px);
+}
+
+.helper {
+  text-align: center;
+  color: #4a4a4a;
+  margin-top: 12px;
 }
