@@ -1,7 +1,8 @@
 .sidebar {
-  width: 220px;
+  width: 260px;
   background-color: white;
-  border-right: 1px solid #ddd;
+  /* remove dark border and use subtle separation */
+  border-right: none;
   transition: width 0.3s ease;
   overflow: hidden;
   position: sticky;
@@ -41,11 +42,122 @@
 }
 
 .menuItem:hover {
-  background-color: #77bef0;
+  /* hover uses site pastel and white text */
+  background-color: #77BEF0;
   color: white;
 }
 
-.active {
-  background-color: #77bef0;
+.menuItem:hover svg {
   color: white;
+}
+
+.menuItem > svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.menuItem span {
+  display: inline-block;
+}
+
+.active {
+  /* keep active highlight, pastel tone */
+  background-color: #77BEF0;
+  color: white;
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+.active > svg {
+  color: white;
+}
+
+.active .menuLabel {
+  color: white;
+}
+
+/* Profile block at top */
+.profile {
+  padding: 20px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.profile .avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.profile .meta { line-height: 1; }
+.profile .name { font-weight: 600; color: #111827; }
+.profile .role { font-size: 12px; color: #9ca3af; }
+
+/* icon box */
+.iconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(0,0,0,0.04);
+  flex-shrink: 0;
+}
+
+.menuItem {
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+}
+
+.menuItem .menuLabel {
+  font-size: 16px;
+  color: #111827;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuItem:hover .iconBox {
+  background: rgba(119,190,240,0.12);
+}
+
+.active .iconBox {
+  background: rgba(255,255,255,0.2);
+}
+
+.supportTitle {
+  font-size: 12px;
+  color: #9ca3af;
+  padding: 12px 12px 8px 12px;
+}
+
+/* Open state explicit */
+.open {
+  width: 260px;
+}
+
+/* Labels fade/slide animation */
+.menuLabel {
+  display: inline-block;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  opacity: 1;
+  transform: translateX(0);
+  white-space: nowrap;
+}
+
+.closed .menuLabel {
+  opacity: 0;
+  transform: translateX(-6px);
+  pointer-events: none;
+}
+
+.menuItem {
+  overflow: hidden;
 }

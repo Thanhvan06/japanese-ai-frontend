@@ -21,6 +21,11 @@ import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
+import Listening from "./pages/Listening.jsx";
+import Speaking from "./pages/Speaking.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import AdminUsers from "./pages/admin/AdminUsers.jsx";
 import PersonalStudyRoom from "./pages/PersonalStudyRoom";
 
 
@@ -41,8 +46,25 @@ function App() {
         <Route path="/flashcard/vocab-practice/:id" element={<VocabPractice />} />
 
         <Route path="*" element={<Navigate to="/" />} />
-        
         <Route path="/signin" element={<SignIn />} />
+
+        {/* --- Admin Routes (protected) --- */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminUsers />
+            </AdminRoute>
+          }
+        />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         {/* --- Vocab Routes --- */}
@@ -57,6 +79,10 @@ function App() {
         <Route path="/grammar/practice" element={<GrammarPractice />} />
         <Route path="/grammar/:level" element={<GrammarLevel />} />
         <Route path="/grammar/:level/:grammarId" element={<GrammarDetail />} />
+
+        {/* --- Listening Routes --- */}
+        <Route path="/listening" element={<Listening />} />
+        <Route path="/speaking" element={<Speaking />} />
 
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
