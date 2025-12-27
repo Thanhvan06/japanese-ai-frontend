@@ -14,6 +14,7 @@ import {
   FaCog,
   FaQuestionCircle,
   FaSignOutAlt,
+  FaUser,
 } from "react-icons/fa";
 import styles from "../styles/Sidebar.module.css";
 import { useSidebar } from "../context/SidebarContext";
@@ -35,6 +36,8 @@ const Sidebar = () => {
     { icon: <FaHeadphones />, label: "Luyện nghe", path: "/listening" },
     { icon: <FaMicrophoneAlt />, label: "Luyện nói", path: "/speaking" },
     { icon: <FaRobot />, label: "Chatbot AI", path: "/chatbot" },
+    { icon: <FaUser />, label: "Phòng học cá nhân", path: "/personal-study-room" },
+    { icon: <FaRobot />, label: "Chatbot AI", path: "/chatbot" },  
   ];
 
   // detect current user to show admin links

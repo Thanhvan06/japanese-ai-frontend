@@ -1,38 +1,196 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { api } from "../lib/api";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function DiaryDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const isNew = id === "new";
 
   const [diary, setDiary] = useState({
     id: id || "new",
     title: "",
-    cover: "", 
-    content: "",
+    content_jp: "",
+    images: [],
     date: "",
   });
+
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const loadDiary = useCallback(async () => {
+    if (!id || id === "new" || isNaN(parseInt(id, 10))) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const data = await api(`/api/diaries/${id}`);
+      const date = new Date(data.created_at);
+      const formatted = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      
+      const existingImages = (data.images || []).map(img => ({
+        url: img,
+        preview: img.startsWith('/') ? `${BASE_URL}${img}` : img,
+        isNew: false,
+      }));
+      
+      setDiary({
+        id: data.id,
+        title: data.title || "",
+        content_jp: data.content_jp || "",
+        images: data.images || [],
+        date: formatted,
+      });
+      setUploadedImages(existingImages);
+    } catch (error) {
+      console.error("Error loading diary:", error);
+      alert("Không thể tải nhật ký");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
     const today = new Date();
     const formatted = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
     setDiary((prev) => ({ ...prev, date: formatted }));
 
-  }, [id]);
+    if (!isNew && id) {
+      loadDiary();
+    }
+  }, [id, isNew, loadDiary]);
 
-  const fileInputRef = useRef(null);
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-  const handleCoverClick = () => {
-    fileInputRef.current?.click();
+    const newImages = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      isNew: true,
+    }));
+
+    setUploadedImages(prev => [...prev, ...newImages]);
   };
 
-  const handleCoverChange = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    setDiary((prev) => ({ ...prev, cover: url }));
+  const handleRemoveImage = (index) => {
+    setUploadedImages(prev => {
+      const newImages = [...prev];
+      const removed = newImages[index];
+      if (removed.isNew && removed.preview) {
+        URL.revokeObjectURL(removed.preview);
+      }
+      newImages.splice(index, 1);
+      return newImages;
+    });
   };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append("title", diary.title);
+      formData.append("content_jp", diary.content_jp);
+
+      // Add new image files
+      const newImageFiles = uploadedImages.filter(img => img.isNew && img.file);
+      newImageFiles.forEach((img) => {
+        formData.append("images", img.file);
+      });
+
+      // If updating, also send existing image URLs as separate field
+      if (!isNew && id && !isNaN(parseInt(id, 10))) {
+        const existingImageUrls = uploadedImages
+          .filter(img => !img.isNew)
+          .map(img => img.url);
+        formData.append("existing_images", JSON.stringify(existingImageUrls));
+      }
+
+      const token = localStorage.getItem("token");
+      const url = isNew 
+        ? `${BASE_URL}/api/diaries`
+        : `${BASE_URL}/api/diaries/${id}`;
+
+      // Validate id for PUT requests
+      if (!isNew && (!id || id === "new" || isNaN(parseInt(id, 10)))) {
+        throw new Error("Invalid diary ID");
+      }
+
+      const response = await fetch(url, {
+        method: isNew ? "POST" : "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || "Lỗi khi lưu nhật ký");
+      }
+
+      await response.json();
+      navigate("/diary");
+    } catch (error) {
+      console.error("Error saving diary:", error);
+      alert(error.message || "Không thể lưu nhật ký");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id || id === "new" || isNaN(parseInt(id, 10))) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_URL}/api/diaries/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || "Lỗi khi xóa nhật ký");
+      }
+
+      navigate("/diary");
+    } catch (error) {
+      console.error("Error deleting diary:", error);
+      alert(error.message || "Không thể xóa nhật ký");
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-white">
+        <Sidebar />
+        <div className="flex-1 ml-14">
+          <Header />
+          <main className="p-6 flex items-center justify-center">
+            <div className="text-gray-400">Đang tải...</div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -40,95 +198,482 @@ export default function DiaryDetail() {
       <div className="flex-1 ml-14">
         <Header />
 
-        <main className="p-6">
-          {/* Cover large */}
-          <div
-            className="w-full h-40 bg-gray-200 rounded-md mb-6 overflow-hidden flex items-center justify-center relative"
-            onClick={handleCoverClick}
-            role="button"
-          >
-            {diary.cover ? (
-              <img src={diary.cover} alt="cover" className="w-full h-full object-cover" />
-            ) : (
-              <div className="text-gray-500">Thêm hình ảnh</div>
-            )}
+        <main className="p-6 max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <input
+              value={diary.title}
+              onChange={(e) => setDiary((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Tiêu đề nhật ký"
+              className="text-3xl font-bold w-full focus:outline-none border-none"
+            />
+            <div className="flex items-center gap-4">
+              <div className="text-gray-400 text-sm whitespace-nowrap">{diary.date}</div>
+              {!isNew && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition flex items-center gap-2"
+                  title="Xóa nhật ký"
+                >
+                  <span>Xóa</span>
+                </button>
+              )}
+            </div>
+          </div>
 
+          <div className="border-t border-gray-200 mb-6" />
+
+          {/* Image Gallery */}
+          {uploadedImages.length > 0 && (
+            <div className="mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {uploadedImages.map((img, idx) => (
+                  <div key={idx} className="relative group">
+                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={img.preview || img.url || img}
+                        alt={`Image ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-lg leading-none"
+                      title="Xóa ảnh"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Images Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition flex items-center gap-2"
+            >
+              <span>📷</span>
+              <span>Thêm ảnh</span>
+            </button>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
-              onChange={handleCoverChange}
+              onChange={handleImageSelect}
             />
           </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <input
-              value={diary.title}
-              onChange={(e) => setDiary((p) => ({ ...p, title: e.target.value }))}
-              placeholder="Tiêu đề"
-              className="text-3xl font-bold w-full focus:outline-none border-none"
-            />
-            <div className="text-gray-400 text-sm ml-6 whitespace-nowrap">{diary.date}</div>
-          </div>
-
-          <div className="border-t border-gray-200 mb-4" />
-
+          {/* Content Editor */}
           <ContentEditor
-            initialValue={diary.content}
-            onChange={(value) => setDiary((p) => ({ ...p, content: value }))}
+            initialValue={diary.content_jp}
+            onChange={(value) => setDiary((p) => ({ ...p, content_jp: value }))}
           />
+
+          {/* Save Button */}
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-[#4aa6e0] hover:bg-[#77BEF0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-md transition"
+            >
+              {saving ? "Đang lưu..." : "Lưu nhật ký"}
+            </button>
+          </div>
         </main>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-gray-200">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Xác nhận xóa</h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn xóa nhật ký này không? Hành động này không thể hoàn tác.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Đang xóa...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🗑️</span>
+                    <span>Xóa</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function ContentEditor({ initialValue, onChange }) {
-  const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(initialValue || "");
+  const [grammarErrors, setGrammarErrors] = useState([]);
+  const [selectedError, setSelectedError] = useState(null);
+  const [checkingGrammar, setCheckingGrammar] = useState(false);
   const ref = useRef(null);
+  const debounceTimer = useRef(null);
+  const tooltipRef = useRef(null);
 
   useEffect(() => {
     setValue(initialValue || "");
+    setGrammarErrors([]);
   }, [initialValue]);
 
+  // Debounced grammar check - word-based matching
+  const checkGrammar = async (text) => {
+    if (!text || text.trim().length === 0) {
+      setGrammarErrors([]);
+      return;
+    }
+
+    try {
+      setCheckingGrammar(true);
+      const token = localStorage.getItem("token");
+      const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+      
+      const response = await fetch(`${BASE_URL}/api/diaries/check-grammar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Grammar check response:", data);
+        
+        // Validate response structure - word-based matching
+        if (data && Array.isArray(data.errors)) {
+          // Map errors to include positions found in text
+          const validErrors = data.errors
+            .filter(
+              (err) =>
+                typeof err.original_word === "string" &&
+                err.original_word.trim().length > 0 &&
+                Array.isArray(err.suggestions) &&
+                err.suggestions.length > 0
+            )
+            .map((err) => {
+              // Find all occurrences of the word in text
+              const word = err.original_word.trim();
+              const positions = [];
+              let searchIndex = 0;
+              
+              while (true) {
+                const index = text.indexOf(word, searchIndex);
+                if (index === -1) break;
+                positions.push({
+                  start_index: index,
+                  end_index: index + word.length,
+                });
+                searchIndex = index + 1;
+              }
+              
+              return {
+                original_word: word,
+                suggestions: err.suggestions.filter(s => typeof s === "string" && s.trim().length > 0),
+                positions: positions, // All occurrences
+              };
+            })
+            .filter((err) => err.positions.length > 0); // Only include if word found in text
+          
+          setGrammarErrors(validErrors);
+        } else {
+          console.warn("Invalid grammar check response format:", data);
+          setGrammarErrors([]);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Grammar check failed:", response.status, errorData);
+        setGrammarErrors([]);
+      }
+    } catch (error) {
+      console.error("Error checking grammar:", error);
+      setGrammarErrors([]);
+    } finally {
+      setCheckingGrammar(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    onChange && onChange(newValue);
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Set new timer for debounced grammar check
+    debounceTimer.current = setTimeout(() => {
+      checkGrammar(newValue);
+    }, 500);
+  };
+
+  const handleAcceptSuggestion = (error, suggestion, position) => {
+    // Replace word at specific position
+    const before = value.substring(0, position.start_index);
+    const after = value.substring(position.end_index);
+    const newValue = before + suggestion + after;
+    
+    setValue(newValue);
+    onChange && onChange(newValue);
+    setSelectedError(null);
+    
+    // Recheck grammar after applying suggestion
+    setTimeout(() => {
+      checkGrammar(newValue);
+    }, 100);
+  };
+
+  const handleTextClick = (e) => {
+    const textarea = e.target;
+    const cursorPos = textarea.selectionStart;
+    
+    // Find error at cursor position - check all positions
+    let foundError = null;
+    let foundPosition = null;
+    
+    for (const err of grammarErrors) {
+      for (const pos of err.positions) {
+        if (cursorPos >= pos.start_index && cursorPos <= pos.end_index) {
+          foundError = err;
+          foundPosition = pos;
+          break;
+        }
+      }
+      if (foundError) break;
+    }
+    
+    if (foundError) {
+      setSelectedError({ ...foundError, position: foundPosition });
+    } else {
+      setSelectedError(null);
+    }
+  };
+
+  // Cleanup on unmount
   useEffect(() => {
-    if (editing) ref.current?.focus();
-  }, [editing]);
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
+  // Render text with error highlights - word-based matching
+  const renderTextWithHighlights = () => {
+    if (grammarErrors.length === 0) {
+      return [{ text: value, isError: false, error: null, position: null }];
+    }
+
+    // Collect all error positions with their errors
+    const errorPositions = [];
+    grammarErrors.forEach((error) => {
+      error.positions.forEach((pos) => {
+        errorPositions.push({
+          start_index: pos.start_index,
+          end_index: pos.end_index,
+          error: error,
+          position: pos,
+        });
+      });
+    });
+
+    // Sort by start_index
+    errorPositions.sort((a, b) => a.start_index - b.start_index);
+
+    const parts = [];
+    let lastIndex = 0;
+
+    errorPositions.forEach((errPos) => {
+      // Add text before error
+      if (errPos.start_index > lastIndex) {
+        parts.push({
+          text: value.substring(lastIndex, errPos.start_index),
+          isError: false,
+          error: null,
+          position: null,
+        });
+      }
+
+      // Add error text
+      parts.push({
+        text: value.substring(errPos.start_index, errPos.end_index),
+        isError: true,
+        error: errPos.error,
+        position: errPos.position,
+      });
+
+      lastIndex = errPos.end_index;
+    });
+
+    // Add remaining text
+    if (lastIndex < value.length) {
+      parts.push({
+        text: value.substring(lastIndex),
+        isError: false,
+        error: null,
+        position: null,
+      });
+    }
+
+    return parts;
+  };
+
+  // Calculate tooltip position based on error location - word-based
+  const getTooltipPosition = () => {
+    if (!ref.current || !selectedError || !selectedError.position) return { top: 0, left: 0 };
+    
+    const textBeforeError = value.substring(0, selectedError.position.start_index);
+    const lines = textBeforeError.split('\n');
+    const lineNumber = lines.length - 1;
+    const lineHeight = 24; // Approximate line height
+    const padding = 16;
+    
+    return {
+      top: `${lineNumber * lineHeight + padding + 20}px`,
+      left: `${padding}px`,
+    };
+  };
 
   return (
-    <div>
-      {!editing && !value ? (
-        <div
-          className="text-gray-400 cursor-text"
-          onClick={() => setEditing(true)}
-        >
-          Nhập nội dung
+    <div className="relative">
+      {/* Grammar checking indicator */}
+      {checkingGrammar && (
+        <div className="mb-2 text-sm text-gray-500 flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-[#77BEF0] border-t-transparent rounded-full animate-spin"></div>
+          <span>Đang kiểm tra ngữ pháp...</span>
         </div>
-      ) : null}
+      )}
 
-      <textarea
-        ref={ref}
-        value={value}
-        onChange={(e) => {
-          setValue(e.target.value);
-          onChange && onChange(e.target.value);
-        }}
-        onBlur={() => {
-          if (value === "") setEditing(false);
-        }}
-        className="w-full min-h-[300px] border-none focus:outline-none resize-none text-gray-700"
-        placeholder=""
-      />
+      {/* Error count */}
+      {grammarErrors.length > 0 && !checkingGrammar && (
+        <div className="mb-2 text-sm text-orange-600 flex items-center gap-2">
+          <span>⚠️</span>
+          <span>Tìm thấy {grammarErrors.length} lỗi ngữ pháp - Click vào từ gạch chân để xem đề xuất</span>
+        </div>
+      )}
 
-      <div className="flex justify-center">
-            <button className="bg-[#4aa6e0] hover:bg-[#77BEF0] text-white font-semibold px-8 py-3 rounded-full shadow-md transition">
-              Lưu
+      <div className="relative">
+        {/* Overlay for highlighting (positioned behind textarea) */}
+        <div
+          className="absolute inset-0 pointer-events-none p-4 whitespace-pre-wrap break-words text-gray-700 overflow-hidden rounded-lg"
+          style={{
+            fontFamily: "inherit",
+            fontSize: "inherit",
+            lineHeight: "inherit",
+            zIndex: 1,
+            wordWrap: "break-word",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {value.length === 0 ? (
+            <span className="text-gray-400">Viết nội dung nhật ký của bạn bằng tiếng Nhật...</span>
+          ) : (
+            renderTextWithHighlights().map((part, idx) => {
+              if (part.isError) {
+                const isSelected = selectedError?.position?.start_index === part.position?.start_index;
+                return (
+                  <span
+                    key={idx}
+                    className={`underline decoration-red-500 decoration-2 ${
+                      isSelected ? "bg-red-300" : "bg-red-200"
+                    }`}
+                    style={{
+                      cursor: "pointer",
+                    }}
+                  >
+                    {part.text}
+                  </span>
+                );
+              }
+              return <span key={idx}>{part.text}</span>;
+            })
+          )}
+        </div>
+
+        {/* Textarea (transparent text, visible cursor) */}
+        <textarea
+          ref={ref}
+          value={value}
+          onChange={handleChange}
+          onClick={handleTextClick}
+          onKeyUp={handleTextClick}
+          onSelect={handleTextClick}
+          className="w-full min-h-[400px] border border-gray-200 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#77BEF0] resize-none text-transparent caret-gray-700 relative z-10 bg-transparent"
+          placeholder="Viết nội dung nhật ký của bạn bằng tiếng Nhật..."
+          style={{
+            color: "transparent",
+          }}
+        />
+      </div>
+
+      {/* Tooltip for suggestions */}
+      {selectedError && (
+        <div
+          ref={tooltipRef}
+          className="absolute z-50 bg-white border-2 border-red-300 rounded-lg shadow-xl p-4 min-w-[280px] max-w-[400px]"
+          style={getTooltipPosition()}
+        >
+          <div className="flex items-start justify-between mb-2">
+            <div className="text-sm font-semibold text-gray-800">
+              Lỗi: <span className="text-red-600">"{selectedError.original_word}"</span>
+            </div>
+            <button
+              onClick={() => setSelectedError(null)}
+              className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+              title="Đóng"
+            >
+              ×
             </button>
           </div>
-      
+          {selectedError.suggestions && selectedError.suggestions.length > 0 ? (
+            <div>
+              <div className="text-xs text-gray-600 mb-2 font-medium">Đề xuất sửa:</div>
+              <div className="space-y-1.5">
+                {selectedError.suggestions.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleAcceptSuggestion(selectedError, suggestion, selectedError.position)}
+                    className="w-full text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-sm text-gray-800 transition-all hover:shadow-sm"
+                  >
+                    ✓ {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500 italic">Không có đề xuất sửa chữa</div>
+          )}
+        </div>
+      )}
     </div>
-    
   );
 }
+

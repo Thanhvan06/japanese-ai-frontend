@@ -4,14 +4,19 @@ import Dashboard from "./pages/Dashboard";
 import EditProfile from "./pages/EditProfile";
 import Chatbot from "./pages/Chatbot";
 import CreateFlashcard from "./pages/CreateFlashcard";
-import VocabPractice from "./pages/VocabPractice";
+import VocabPractice from "./pages/FlashcardPractice.jsx";
 import Flashcard from "./pages/Flashcard";
 import SignIn from "./pages/SignIn";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Vocab from "./pages/Vocab";
 import VocabLevel from "./pages/VocabLevel";
+import VocabMatching from "./pages/VocabMatching";
+import VocabTest from "./pages/VocabTest";
 import Grammar from "./pages/Grammar";
 import GrammarLevel from "./pages/GrammarLevel";
 import GrammarDetail from "./pages/GrammarDetail";
+import GrammarPractice from "./pages/GrammarPractice";
 import Diary from "./pages/Diary";
 import DiaryDetail from "./pages/DiaryDetail";
 import VocabTopic from "./pages/VocabTopic.jsx";
@@ -21,6 +26,9 @@ import Speaking from "./pages/Speaking.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
+import PersonalStudyRoom from "./pages/PersonalStudyRoom";
+
+
 function App() {
   return (
     <Router>
@@ -33,7 +41,8 @@ function App() {
         {/* --- Flashcard Routes --- */}
         <Route path="/flashcard" element={<Flashcard />} />
         <Route path="/flashcard/newflashcard" element={<CreateFlashcard />} />
-        <Route path="/flashcard/folders/:folderName" element={<Flashcard />} />
+        <Route path="/flashcard/folders/:folderId" element={<Flashcard />} />
+        <Route path="/flashcard/edit/:setId" element={<CreateFlashcard />} />
         <Route path="/flashcard/vocab-practice/:id" element={<VocabPractice />} />
 
         <Route path="*" element={<Navigate to="/" />} />
@@ -56,13 +65,18 @@ function App() {
             </AdminRoute>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         {/* --- Vocab Routes --- */}
         <Route path="/vocab" element={<Vocab />} />
         <Route path="/vocab/:level" element={<VocabLevel />} />
         <Route path="/vocab/topic/:topicId" element={<VocabTopic />} />
+        <Route path="/vocab/practice/matching" element={<VocabMatching />} />
+        <Route path="/vocab/practice/test" element={<VocabTest />} />
 
         {/* --- Grammar Routes --- */}
         <Route path="/grammar" element={<Grammar />} />
+        <Route path="/grammar/practice" element={<GrammarPractice />} />
         <Route path="/grammar/:level" element={<GrammarLevel />} />
         <Route path="/grammar/:level/:grammarId" element={<GrammarDetail />} />
 
@@ -72,9 +86,13 @@ function App() {
 
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />
+        <Route path="/diary/:id" element={<DiaryDetail />} />
         <Route path="/diary/:title" element={<DiaryDetail />} />
         {/* --- Search Routes --- */}
         <Route path="/search" element={<SearchPage />} />
+
+        {/* --- Personal Study Room Routes --- */}
+        <Route path="/personal-study-room" element={<PersonalStudyRoom />} />
       </Routes>
     </Router>
   );
