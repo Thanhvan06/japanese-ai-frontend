@@ -26,6 +26,9 @@ import Speaking from "./pages/Speaking.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
+import AdminVocab from "./pages/admin/AdminVocab.jsx";
+import AdminGrammar from "./pages/admin/AdminGrammar.jsx";
+import AdminGrammarExercises from "./pages/admin/AdminGrammarExercises.jsx";
 import PersonalStudyRoom from "./pages/PersonalStudyRoom";
 
 
@@ -62,6 +65,30 @@ function App() {
           element={
             <AdminRoute>
               <AdminUsers />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/vocab"
+          element={
+            <AdminRoute>
+              <AdminVocab />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/grammar"
+          element={
+            <AdminRoute>
+              <AdminGrammar />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/grammar-exercises"
+          element={
+            <AdminRoute>
+              <AdminGrammarExercises />
             </AdminRoute>
           }
         />

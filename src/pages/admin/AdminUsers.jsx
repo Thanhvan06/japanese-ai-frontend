@@ -189,7 +189,7 @@ export default function AdminUsers() {
   const isSuperAdmin = currentAdminRole === "super_admin";
   const getRoleDisplay = (user) => {
     if (user.role === "admin" && user.adminRole) {
-      return user.adminRole === "super_admin" ? "Super Admin" : "Content Manager";
+      return user.adminRole === "super_admin" ? "Super Admin" : "Admin";
     }
     return "Người dùng";
   };

@@ -75,6 +75,9 @@ const Sidebar = () => {
   const adminMenu = [
     { icon: <FaHome />, label: "Trang chủ", path: "/admin" },
     { icon: <FaUserCog />, label: "Quản lý người dùng", path: "/admin/users" },
+    { icon: <FaBook />, label: "Quản lý từ vựng", path: "/admin/vocab" },
+    { icon: <FaPenNib />, label: "Quản lý ngữ pháp", path: "/admin/grammar" },
+    { icon: <FaPenNib />, label: "Quản lý bài tập ngữ pháp", path: "/admin/grammar-exercises" },
   ];
 
   const isAdminArea = location.pathname.startsWith("/admin");
