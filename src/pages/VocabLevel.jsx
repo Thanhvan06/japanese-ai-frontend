@@ -5,10 +5,13 @@ import Sidebar from "../components/Sidebar";
 import VocabCard from "../components/VocabCard";
 import CreateFlashcardFromVocab from "../components/CreateFlashcardFromVocab";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function VocabLevel() {
   const { level } = useParams();
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [vocabList, setVocabList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,17 +46,17 @@ export default function VocabLevel() {
         <main className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
-              Từ vựng JLPT {level}
+              {t("vocabLevel.title", language, { level })}
             </h1>
             <button
               onClick={() => setShowFlashcardModal(true)}
               className="rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-5 py-2 text-sm font-semibold shadow-sm"
             >
-              Học cùng flashcard
+              {t("vocabLevel.studyWithFlashcard", language)}
             </button>
           </div>
 
-          {loading && <p>Đang tải từ vựng...</p>}
+          {loading && <p>{t("vocabLevel.loading", language)}</p>}
           {error && <p className="text-red-500">{error}</p>}
 
           {!loading && !error && (

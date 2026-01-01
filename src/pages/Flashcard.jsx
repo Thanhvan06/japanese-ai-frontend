@@ -7,6 +7,8 @@ import { PiCardsLight } from "react-icons/pi";
 import { FaTrashAlt } from "react-icons/fa";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 import {
   listFolders,
   createFolder,
@@ -19,6 +21,7 @@ import {
 
 const FlashcardLibrary = () => {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const { folderId } = useParams();
   const numericFolderId = folderId ? Number(folderId) : null;
 
@@ -141,7 +144,7 @@ const FlashcardLibrary = () => {
 
   const handleDeleteFolder = useCallback(
     async (folder) => {
-      const confirm = window.confirm(`Xóa thư mục "${folder.folder_name}"?`);
+      const confirm = window.confirm(t("flashcard.deleteFolderConfirm", language, { folderName: folder.folder_name }));
       if (!confirm) return;
       try {
         await removeFolder(folder.folder_id);
@@ -153,11 +156,11 @@ const FlashcardLibrary = () => {
         setError(err.message);
       }
     },
-    [navigate, numericFolderId]
+    [navigate, numericFolderId, language]
   );
 
   const handleCreateSetQuickly = useCallback(async () => {
-    const name = window.prompt("Tên học phần mới");
+    const name = window.prompt(t("flashcard.newSetName", language));
     if (!name || !name.trim()) return;
     try {
       setCreatingSet(true);
@@ -175,11 +178,11 @@ const FlashcardLibrary = () => {
     } finally {
       setCreatingSet(false);
     }
-  }, [numericFolderId, folders]);
+  }, [numericFolderId, folders, language]);
 
   const handleDeleteSet = useCallback(
     async (set) => {
-      const confirm = window.confirm(`Xóa học phần "${set.set_name}"?`);
+      const confirm = window.confirm(t("flashcard.deleteSetConfirm", language, { setName: set.set_name }));
       if (!confirm) return;
       try {
         await removeSet(set.set_id);
@@ -188,7 +191,7 @@ const FlashcardLibrary = () => {
         setError(err.message);
       }
     },
-    []
+    [language]
   );
 
   const handleAttachSetToFolder = useCallback(
@@ -235,7 +238,7 @@ const FlashcardLibrary = () => {
         <div className={styles.cardBody}>
           <h3 className={styles.cardTitle}>{set.set_name}</h3>
           <div className={styles.cardMeta}>
-            <span>{set.card_count || 0} thuật ngữ</span>
+            <span>{t("flashcard.terms", language, { count: set.card_count || 0 })}</span>
           </div>
         </div>
         {attachable ? (
@@ -247,14 +250,14 @@ const FlashcardLibrary = () => {
                 handleAttachSetToFolder(set);
               }}
             >
-              Thêm vào thư mục
+              {t("flashcard.addToFolder", language)}
             </button>
           </div>
         ) : (
           <div className={styles.cardActions}>
             <button
               className={styles.iconButton}
-              title="Chỉnh sửa học phần"
+              title={t("flashcard.editSet", language)}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/flashcard/edit/${set.set_id}`);
@@ -264,7 +267,7 @@ const FlashcardLibrary = () => {
             </button>
             <button
               className={`${styles.iconButton} ${styles.danger}`}
-              title="Xóa học phần"
+              title={t("flashcard.deleteSet", language)}
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteSet(set);
@@ -276,7 +279,7 @@ const FlashcardLibrary = () => {
         )}
       </div>
     ),
-    [handleAttachSetToFolder, handleDeleteSet, navigate]
+    [handleAttachSetToFolder, handleDeleteSet, navigate, language]
   );
 
   const filteredSets = useMemo(() => {
@@ -301,20 +304,20 @@ const FlashcardLibrary = () => {
 
   const renderSetGrid = useMemo(() => {
     if (loadingSets) {
-      return <p className={styles.statusText}>Đang tải học phần...</p>;
+      return <p className={styles.statusText}>{t("flashcard.loadingSets", language)}</p>;
     }
     if (!sets.length) {
       return (
         <>
           <div className={styles.emptyState}>
-            <p>{currentFolder ? "Thư mục này chưa có học phần" : "Bạn chưa tạo học phần nào"}</p>
+            <p>{currentFolder ? t("flashcard.folderEmpty", language) : t("flashcard.noSets", language)}</p>
             <button className={styles.secondaryBtn} onClick={handleAddSection}>
-              Tạo học phần đầu tiên
+              {t("flashcard.createFirstSet", language)}
             </button>
           </div>
           {currentFolder && filteredUnassignedSets.length > 0 && (
             <div className={styles.attachSection}>
-              <h4 className={styles.attachTitle}>Chọn học phần chưa thuộc thư mục</h4>
+              <h4 className={styles.attachTitle}>{t("flashcard.selectUnassignedSets", language)}</h4>
               <div className={styles.cardGrid}>
                 {filteredUnassignedSets.map(set => renderSetCard(set, { attachable: true }))}
               </div>
@@ -329,8 +332,8 @@ const FlashcardLibrary = () => {
         <div className={styles.emptyState}>
           <p>
             {completionTab === "complete" 
-              ? "Chưa có học phần đã hoàn thành" 
-              : "Tất cả học phần đã hoàn thành"}
+              ? t("flashcard.noCompletedSets", language)
+              : t("flashcard.allCompleted", language)}
           </p>
         </div>
       );
@@ -343,7 +346,7 @@ const FlashcardLibrary = () => {
         </div>
         {currentFolder && filteredUnassignedSets.length > 0 && (
           <div className={styles.attachSection}>
-            <h4 className={styles.attachTitle}>Thêm học phần chưa có thư mục</h4>
+            <h4 className={styles.attachTitle}>{t("flashcard.addUnassignedSets", language)}</h4>
             <div className={styles.cardGrid}>
               {filteredUnassignedSets.map(set => renderSetCard(set, { attachable: true }))}
             </div>
@@ -359,20 +362,21 @@ const FlashcardLibrary = () => {
     currentFolder,
     handleAddSection,
     renderSetCard,
-    completionTab
+    completionTab,
+    language
   ]);
 
   const renderFolderList = useMemo(() => {
     if (loadingFolders) {
-      return <p className={styles.statusText}>Đang tải thư mục...</p>;
+      return <p className={styles.statusText}>{t("flashcard.loadingFolders", language)}</p>;
     }
 
     if (!folders.length) {
       return (
         <div className={styles.emptyState}>
-          <p>Bạn chưa có thư mục nào.</p>
+          <p>{t("flashcard.noFolders", language)}</p>
           <button className={styles.secondaryBtn} onClick={handleAddFolder}>
-            Thêm thư mục
+            {t("flashcard.addFolder", language)}
           </button>
         </div>
       );
@@ -400,12 +404,12 @@ const FlashcardLibrary = () => {
               </div>
               <div className={styles.listText}>
                 <h3 className={styles.listTitle}>{f.folder_name}</h3>
-                <p className={styles.listSubtitle}>{f.fcsets?.length || 0} học phần</p>
+                <p className={styles.listSubtitle}>{t("flashcard.setsCount", language, { count: f.fcsets?.length || 0 })}</p>
               </div>
             </div>
             <button
               className={`${styles.iconButton} ${styles.danger}`}
-              title="Xóa thư mục"
+              title={t("flashcard.deleteFolder", language)}
               onClick={() => handleDeleteFolder(f)}
             >
               <FaTrashAlt size={14} />
@@ -414,7 +418,7 @@ const FlashcardLibrary = () => {
         ))}
       </div>
     );
-  }, [folders, loadingFolders, handleAddFolder, navigate, numericFolderId, handleDeleteFolder]);
+  }, [folders, loadingFolders, handleAddFolder, navigate, numericFolderId, handleDeleteFolder, language]);
 
   return (
     <div className={styles.pageWrapper}>
@@ -425,11 +429,11 @@ const FlashcardLibrary = () => {
         <div className={styles.libraryContainer}>
           <div className={styles.topBar}>
             <div>
-              <h1 className={styles.libraryTitle}>Thư viện của bạn</h1>
+              <h1 className={styles.libraryTitle}>{t("flashcard.libraryTitle", language)}</h1>
               {currentFolder && (
                 <div className={styles.filterPill}>
-                  <span>Đang xem: {currentFolder.folder_name}</span>
-                  <button onClick={() => navigate("/flashcard")}>Xóa lọc</button>
+                  <span>{t("flashcard.viewingFolder", language, { folderName: currentFolder.folder_name })}</span>
+                  <button onClick={() => navigate("/flashcard")}>{t("flashcard.clearFilter", language)}</button>
                 </div>
               )}
             </div>
@@ -440,7 +444,7 @@ const FlashcardLibrary = () => {
                 onClick={handleAddClick}
                 aria-haspopup="menu"
                 aria-expanded={showDropdown}
-                aria-label="Thêm học phần hoặc thư mục"
+                aria-label={t("flashcard.addSetOrFolder", language)}
               >
                 <FiPlus size={22} />
               </button>
@@ -448,17 +452,17 @@ const FlashcardLibrary = () => {
               {showDropdown && (
                 <div className={styles.dropdown} role="menu">
                   <button onClick={handleAddSection} className={styles.dropdownItem}>
-                    <PiCardsLight /> <span>Học phần mới</span>
+                    <PiCardsLight /> <span>{t("flashcard.newSet", language)}</span>
                   </button>
                   <button onClick={handleAddFolder} className={styles.dropdownItem}>
-                    <IoFolderOpenOutline /> <span>Thư mục</span>
+                    <IoFolderOpenOutline /> <span>{t("flashcard.folder", language)}</span>
                   </button>
                   <button
                     onClick={handleCreateSetQuickly}
                     className={styles.dropdownItem}
                     disabled={creatingSet}
                   >
-                    <PiCardsLight /> <span>Tạo nhanh học phần</span>
+                    <PiCardsLight /> <span>{t("flashcard.quickCreateSet", language)}</span>
                   </button>
                 </div>
               )}
@@ -476,7 +480,7 @@ const FlashcardLibrary = () => {
                 role="tab"
                 aria-selected={activeTab === "hocphan"}
               >
-                Học phần
+                {t("flashcard.sets", language)}
               </button>
 
               <button
@@ -485,7 +489,7 @@ const FlashcardLibrary = () => {
                 role="tab"
                 aria-selected={activeTab === "thumuc"}
               >
-                Thư mục
+                {t("flashcard.folders", language)}
               </button>
             </div>
 
@@ -503,7 +507,7 @@ const FlashcardLibrary = () => {
                     fontSize: "0.875rem"
                   }}
                 >
-                  Tất cả
+                  {t("flashcard.all", language)}
                 </button>
                 <button
                   onClick={() => setCompletionTab("incomplete")}
@@ -517,7 +521,7 @@ const FlashcardLibrary = () => {
                     fontSize: "0.875rem"
                   }}
                 >
-                  Chưa hoàn thành
+                  {t("flashcard.incomplete", language)}
                 </button>
                 <button
                   onClick={() => setCompletionTab("complete")}
@@ -531,7 +535,7 @@ const FlashcardLibrary = () => {
                     fontSize: "0.875rem"
                   }}
                 >
-                  Đã hoàn thành
+                  {t("flashcard.complete", language)}
                 </button>
               </div>
             )}
@@ -545,20 +549,20 @@ const FlashcardLibrary = () => {
       {showFolderModal && (
         <div className={styles.modalOverlay} role="dialog" aria-modal="true">
           <div className={styles.modal}>
-            <h3>Thêm thư mục</h3>
+            <h3>{t("flashcard.addFolder", language)}</h3>
             <input
               type="text"
-              placeholder="Tên thư mục"
+              placeholder={t("flashcard.folderName", language)}
               value={folderTitle}
               onChange={(e) => setFolderTitle(e.target.value)}
               className={styles.input}
             />
             <div className={styles.modalButtons}>
               <button className={styles.createBtn} onClick={handleSaveFolder}>
-                Thêm thư mục
+                {t("flashcard.addFolder", language)}
               </button>
               <button className={styles.cancelBtn} onClick={handleCloseModal}>
-                Hủy
+                {t("common.cancel", language)}
               </button>
             </div>
           </div>

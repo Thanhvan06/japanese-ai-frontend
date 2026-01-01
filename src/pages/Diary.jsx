@@ -4,9 +4,12 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import DiaryCard from "../components/DiaryCard";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function Diary() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const [diaries, setDiaries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,14 +103,15 @@ export default function Diary() {
       if (failed.length > 0) {
         setMessage({
           type: "warning",
-          text: `Đã xóa ${
-            selectedIds.size - failed.length
-          }/${selectedIds.size} nhật ký.`,
+          text: t("diary.deleteWarning", language, {
+            deleted: selectedIds.size - failed.length,
+            total: selectedIds.size,
+          }),
         });
       } else {
         setMessage({
           type: "success",
-          text: "Xóa nhật ký thành công.",
+          text: t("diary.deleteSuccess", language),
         });
       }
 
@@ -118,7 +122,7 @@ export default function Diary() {
       console.error("Error deleting diaries:", error);
       setMessage({
         type: "error",
-        text: "Có lỗi xảy ra khi xóa nhật ký.",
+        text: t("diary.deleteError", language),
       });
     } finally {
       setDeleting(false);
@@ -167,7 +171,7 @@ export default function Diary() {
                 disabled={selectionMode}
                 className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white"
               >
-                <option value="">Tất cả tháng</option>
+                <option value="">{t("diary.allMonths", language)}</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(0, i).toLocaleString("vi-VN", { month: "long" })}
@@ -181,7 +185,7 @@ export default function Diary() {
                 disabled={selectionMode}
                 className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white"
               >
-                <option value="">Tất cả năm</option>
+                <option value="">{t("diary.allYears", language)}</option>
                 {years.map((y) => (
                   <option key={y} value={y}>
                     {y}
@@ -191,7 +195,7 @@ export default function Diary() {
 
               {selectionMode && selectedIds.size > 0 && (
                 <span className="text-sm text-gray-600">
-                  Đã chọn: {selectedIds.size}
+                  {t("diary.selected", language, { count: selectedIds.size })}
                 </span>
               )}
             </div>
@@ -204,7 +208,7 @@ export default function Diary() {
                     disabled={selectedIds.size === 0 || deleting}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg"
                   >
-                    Xóa ({selectedIds.size})
+                    {t("diary.delete", language, { count: selectedIds.size })}
                   </button>
                   <button
                     onClick={() => {
@@ -213,7 +217,7 @@ export default function Diary() {
                     }}
                     className="px-4 py-2 bg-gray-500 text-white rounded-lg"
                   >
-                    Hủy
+                    {t("diary.cancel", language)}
                   </button>
                 </>
               ) : (
@@ -222,7 +226,7 @@ export default function Diary() {
                     onClick={() => setSelectionMode(true)}
                     className="w-12 h-12 bg-red-500 text-white rounded-full"
                   >
-                    Xóa
+                    {t("diary.deleteButton", language)}
                   </button>
                   <button
                     onClick={() => navigate("/diary/new")}
@@ -237,10 +241,10 @@ export default function Diary() {
 
           {/* Diary list */}
           {loading ? (
-            <div className="text-center py-20 text-gray-400">Đang tải...</div>
+            <div className="text-center py-20 text-gray-400">{t("diary.loading", language)}</div>
           ) : diaries.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
-              Chưa có nhật ký nào
+              {t("diary.noDiaries", language)}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -265,25 +269,25 @@ export default function Diary() {
       {/* DELETE CONFIRM MODAL */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-gray-200">
-            <h3 className="text-xl font-bold mb-4">Xác nhận xóa</h3>
-            <p className="mb-6">
-              Bạn có chắc chắn muốn xóa {selectedIds.size} nhật ký không?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleDeleteSelected}
-                disabled={deleting}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg"
-              >
-                {deleting ? "Đang xóa..." : "Xóa"}
-              </button>
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-gray-200">
+          <h3 className="text-xl font-bold mb-4">{t("diary.deleteConfirmTitle", language)}</h3>
+          <p className="mb-6">
+            {t("diary.deleteConfirmMessage", language, { count: selectedIds.size })}
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-4 py-2 bg-gray-200 rounded-lg"
+            >
+              {t("diary.cancel", language)}
+            </button>
+            <button
+              onClick={handleDeleteSelected}
+              disabled={deleting}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg"
+            >
+              {deleting ? t("diary.deleting", language) : t("diary.deleteButton", language)}
+            </button>
             </div>
           </div>
         </div>

@@ -3,28 +3,27 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import styles from "../styles/Header.module.css";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, toggleLanguage } = useLanguage();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
-  const [language, setLanguage] = useState("jp");
   const [userAvatar, setUserAvatar] = useState(null);
 
   // 🔍 Search state
   const [searchText, setSearchText] = useState("");
 
   // refs
-  const langRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // language select
-  const handleSelectLanguage = (lang) => {
-    setLanguage(lang);
-    setLangOpen(false);
+  // Toggle between Vietnamese and English (for content translation)
+  const handleToggleContentLanguage = () => {
+    toggleLanguage();
   };
 
   // logout
@@ -87,12 +86,9 @@ const Header = () => {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
-        langRef.current &&
-        !langRef.current.contains(e.target) &&
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target)
       ) {
-        setLangOpen(false);
         setDropdownOpen(false);
       }
     };
@@ -129,7 +125,7 @@ const Header = () => {
         <form onSubmit={handleSearchSubmit} style={{ width: "100%" }}>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder={t("header.searchPlaceholder", language)}
             className={styles.search}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -140,52 +136,19 @@ const Header = () => {
 
       {/* RIGHT */}
       <div className={styles.rightSection}>
-        {/* Language */}
-        <div className={styles.languageWrapper} ref={langRef}>
+        {/* Language Toggle */}
+        <div className={styles.languageWrapper}>
           <button
             className={styles.flagBtn}
-            onClick={() => setLangOpen(!langOpen)}
+            onClick={handleToggleContentLanguage}
+            title={language === "vi" ? "Switch to English" : "Chuyển sang Tiếng Việt"}
           >
             <img
-              src={
-                language === "jp"
-                  ? "/flags/japan.png"
-                  : language === "en"
-                  ? "/flags/uk.png"
-                  : "/flags/vietnam.png"
-              }
+              src={language === "en" ? "/flags/uk.png" : "/flags/vietnam.png"}
               alt={language}
               className={styles.flagIcon}
             />
           </button>
-
-          {langOpen && (
-            <div className={styles.langDropdown}>
-              <button
-                className={styles.langOption}
-                onClick={() => handleSelectLanguage("jp")}
-              >
-                <img src="/flags/japan.png" alt="jp" />
-                <span>日本語</span>
-              </button>
-
-              <button
-                className={styles.langOption}
-                onClick={() => handleSelectLanguage("en")}
-              >
-                <img src="/flags/uk.png" alt="en" />
-                <span>English</span>
-              </button>
-
-              <button
-                className={styles.langOption}
-                onClick={() => handleSelectLanguage("vn")}
-              >
-                <img src="/flags/vietnam.png" alt="vn" />
-                <span>Tiếng Việt</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Avatar */}
@@ -221,11 +184,11 @@ const Header = () => {
                 }}
                 className={styles.dropdownItem}
               >
-                Edit Profile
+                {t("header.editProfile", language)}
               </button>
 
               <button onClick={handleSignOut} className={styles.dropdownItem}>
-                Sign Out
+                {t("header.signOut", language)}
               </button>
             </div>
           )}

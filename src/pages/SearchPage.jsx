@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { searchAll } from "../services/search.service";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 /** Hook đọc querystring ổn định */
 function useQuery() {
@@ -29,15 +31,16 @@ const getItemKey = (it) => {
   return `${it._type || "unknown"}:${id || JSON.stringify(it)}`;
 };
 
-const FILTERS = [
-  { key: "all", label: "All", icon: "🔍" },
-  { key: "vocab", label: "Vocabulary", icon: "📚" },
-  { key: "grammar", label: "Grammar", icon: "📖" },
+const FILTERS = (lang) => [
+  { key: "all", label: t("search.all", lang), icon: "🔍" },
+  { key: "vocab", label: t("search.vocabulary", lang), icon: "📚" },
+  { key: "grammar", label: t("search.grammar", lang), icon: "📖" },
 ];
 
 const SearchPage = () => {
   const query = useQuery();
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const q = (query.get("q") || "").trim();
   const type = query.get("type") || "all";
@@ -131,14 +134,14 @@ const SearchPage = () => {
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}>
-                Search
+                {t("search.title", language)}
               </h1>
-              <p className="text-gray-600">Tìm kiếm từ vựng và ngữ pháp tiếng Nhật</p>
+              <p className="text-gray-600">{t("search.subtitle", language)}</p>
             </div>
 
             {/* Filters */}
             <div className="flex flex-wrap gap-3 mb-6">
-              {FILTERS.map((f) => (
+              {FILTERS(language).map((f) => (
                 <button
                   key={f.key}
                   onClick={() => onSubmitFilter(f.key)}
@@ -179,12 +182,11 @@ const SearchPage = () => {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <span className="animate-spin">⏳</span>
-                      Đang tìm kiếm...
+                      {t("search.searching", language)}
                     </span>
                   ) : (
                     <span>
-                      Tìm thấy <span className="font-semibold" style={{ color: '#77BEF0' }}>{items.length}</span> kết quả cho "
-                      <span className="font-semibold">{q}</span>"
+                      {t("search.foundResults", language, { count: items.length, query: q })}
                     </span>
                   )}
                 </div>
@@ -212,10 +214,10 @@ const SearchPage = () => {
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                  Bắt đầu tìm kiếm
+                  {t("search.startSearching", language)}
                 </h3>
                 <p className="text-gray-500">
-                  Sử dụng ô tìm kiếm ở header để tìm từ vựng hoặc ngữ pháp
+                  {t("search.startSearchingHint", language)}
                 </p>
               </div>
             )}
@@ -224,10 +226,10 @@ const SearchPage = () => {
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">😕</div>
                 <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                  Không tìm thấy kết quả
+                  {t("search.noResults", language)}
                 </h3>
                 <p className="text-gray-500">
-                  Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
+                  {t("search.noResultsHint", language)}
                 </p>
               </div>
             )}
@@ -279,7 +281,7 @@ const SearchPage = () => {
                                 color: '#77BEF0', 
                                 backgroundColor: '#E8F4FD' 
                               }}>
-                                Vocabulary
+                                {t("search.vocabularyLabel", language)}
                               </span>
                             </div>
                             <div className="mb-3 text-xl text-gray-700 font-medium">
@@ -319,7 +321,7 @@ const SearchPage = () => {
                               color: '#77BEF0', 
                               backgroundColor: '#E8F4FD' 
                             }}>
-                              Grammar
+                              {t("search.grammarLabel", language)}
                             </span>
                           </div>
                           {it.jlpt_level && (
@@ -342,7 +344,7 @@ const SearchPage = () => {
                               borderLeftColor: '#77BEF0'
                             }}>
                               <div className="text-sm font-semibold text-gray-700 mb-2">
-                                例文 (Ví dụ)
+                                {t("search.exampleSentence", language)}
                               </div>
                               <div className="text-lg italic text-gray-800 mb-2">
                                 {it.example_jp}

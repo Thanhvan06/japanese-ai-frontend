@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaHome,
@@ -18,40 +18,39 @@ import {
 } from "react-icons/fa";
 import styles from "../styles/Sidebar.module.css";
 import { useSidebar } from "../context/SidebarContext";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 import { api } from "../lib/api";
 
 const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
+  const { language } = useLanguage();
   const [active, setActive] = useState("");
 
   // build menu dynamically so we can insert admin links
-  const baseMenu = [
-    { icon: <FaHome />, label: "Trang chủ", path: "/home" },
-    { icon: <FaBook />, label: "Từ vựng", path: "/vocab" },
-    { icon: <FaPenNib />, label: "Ngữ pháp", path: "/grammar" },
-    { icon: <FaEdit />, label: "Viết nhật ký", path: "/diary" },
-    { icon: <FaClone />, label: "Flashcard", path: "/flashcard" },
-    { icon: <FaHeadphones />, label: "Luyện nghe", path: "/listening" },
-    { icon: <FaMicrophoneAlt />, label: "Luyện nói", path: "/speaking" },
-    { icon: <FaRobot />, label: "Chatbot AI", path: "/chatbot" },
-    { icon: <FaUser />, label: "Phòng học cá nhân", path: "/personal-study-room" },
-    { icon: <FaRobot />, label: "Chatbot AI", path: "/chatbot" },  
-  ];
+  const baseMenu = useMemo(() => [
+    { icon: <FaHome />, label: t("sidebar.home", language), path: "/home" },
+    { icon: <FaBook />, label: t("sidebar.vocabulary", language), path: "/vocab" },
+    { icon: <FaPenNib />, label: t("sidebar.grammar", language), path: "/grammar" },
+    { icon: <FaEdit />, label: t("sidebar.diary", language), path: "/diary" },
+    { icon: <FaClone />, label: t("sidebar.flashcard", language), path: "/flashcard" },
+    { icon: <FaUser />, label: t("sidebar.personalRoom", language), path: "/personal-study-room" },
+    { icon: <FaHeadphones />, label: t("sidebar.listening", language), path: "/listening" },
+    { icon: <FaMicrophoneAlt />, label: t("sidebar.speaking", language), path: "/speaking" },
+    { icon: <FaRobot />, label: t("sidebar.chatbot", language), path: "/chatbot" },  
+  ], [language]);
 
   // detect current user to show admin links
-  const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Get user from localStorage
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      setCurrentUser(user);
       setIsAdmin(user?.role === "admin");
-    } catch (e) {
-      setCurrentUser(null);
+    } catch {
       setIsAdmin(false);
     }
 
@@ -60,25 +59,24 @@ const Sidebar = () => {
       try {
         const res = await api("/api/auth/me").catch(() => null);
         if (res?.user) {
-          setCurrentUser(res.user);
           setIsAdmin(res.user.role === "admin");
           // Update localStorage
           localStorage.setItem("user", JSON.stringify(res.user));
         }
-      } catch (err) {
+      } catch {
         // Ignore errors
       }
     })();
   }, []);
 
   // Decide which menu to show:
-  const adminMenu = [
-    { icon: <FaHome />, label: "Trang chủ", path: "/admin" },
-    { icon: <FaUserCog />, label: "Quản lý người dùng", path: "/admin/users" },
-    { icon: <FaBook />, label: "Quản lý từ vựng", path: "/admin/vocab" },
-    { icon: <FaPenNib />, label: "Quản lý ngữ pháp", path: "/admin/grammar" },
-    { icon: <FaPenNib />, label: "Quản lý bài tập ngữ pháp", path: "/admin/grammar-exercises" },
-  ];
+  const adminMenu = useMemo(() => [
+    { icon: <FaHome />, label: t("sidebar.adminHome", language), path: "/admin" },
+    { icon: <FaUserCog />, label: t("sidebar.adminUsers", language), path: "/admin/users" },
+    { icon: <FaBook />, label: t("sidebar.adminVocab", language), path: "/admin/vocab" },
+    { icon: <FaPenNib />, label: t("sidebar.adminGrammar", language), path: "/admin/grammar" },
+    { icon: <FaPenNib />, label: t("sidebar.adminGrammarExercises", language), path: "/admin/grammar-exercises" },
+  ], [language]);
 
   const isAdminArea = location.pathname.startsWith("/admin");
   
@@ -93,7 +91,7 @@ const Sidebar = () => {
     if (currentItem) {
       setActive(currentItem.path);
     }
-  }, [location.pathname, isAdmin, isAdminArea]);
+  }, [location.pathname, isAdmin, isAdminArea, adminMenu, baseMenu]);
 
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`} style={{ display: "flex", flexDirection: "column" }}>
@@ -122,15 +120,15 @@ const Sidebar = () => {
       {isAdminArea && (
         <div style={{ marginTop: "auto", padding: "12px 8px" }}>
           <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 12 }}>
-            <div className={styles.supportTitle}>SUPPORT</div>
+            <div className={styles.supportTitle}>{t("sidebar.support", language)}</div>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => navigate("/settings")}>
                 <FaCog />
-                {isOpen && <span style={{ marginLeft: 8 }}>Setting</span>}
+                {isOpen && <span style={{ marginLeft: 8 }}>{t("sidebar.settings", language)}</span>}
               </li>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => navigate("/help")}>
                 <FaQuestionCircle />
-                {isOpen && <span style={{ marginLeft: 8 }}>Help</span>}
+                {isOpen && <span style={{ marginLeft: 8 }}>{t("sidebar.help", language)}</span>}
               </li>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => {
                 localStorage.removeItem("token");
@@ -138,7 +136,7 @@ const Sidebar = () => {
                 navigate("/signin");
               }}>
                 <FaSignOutAlt />
-                {isOpen && <span style={{ marginLeft: 8 }}>Sign Out</span>}
+                {isOpen && <span style={{ marginLeft: 8 }}>{t("header.signOut", language)}</span>}
               </li>
             </ul>
           </div>

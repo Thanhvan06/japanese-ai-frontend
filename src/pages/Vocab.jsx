@@ -7,6 +7,8 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import LevelCard from "../components/LevelCard";
 import TopicCard from "../components/TopicCard";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const API_BASE = "http://localhost:4000";
 
@@ -18,6 +20,7 @@ export default function Vocab() {
   const [selectedTopic, setSelectedTopic] = useState("");
 
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   // load topics theo cấp độ
   useEffect(() => {
@@ -60,7 +63,7 @@ export default function Vocab() {
           {/* ===== LUYỆN TẬP TỪ VỰNG ===== */}
           <div className="flex items-center gap-4 mb-6">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
-              Luyện tập từ vựng
+              {t("vocab.title", language)}
             </h1>
           </div>
 
@@ -68,16 +71,16 @@ export default function Vocab() {
             {/* Matching Cards Card */}
             <div className="rounded-2xl border-2 border-[#4aa6e0] bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
               <h2 className="text-xl font-bold text-[#4aa6e0] mb-4">
-                Matching Cards
+                {t("vocab.matchingCards", language)}
               </h2>
               <p className="text-sm text-slate-600 mb-6">
-                Ghép từ tiếng Nhật với nghĩa tương ứng
+                {t("vocab.matchingDescription", language)}
               </p>
               
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Cấp độ
+                    {t("vocab.level", language)}
                   </label>
                   <select
                     value={selectedLevel}
@@ -117,23 +120,23 @@ export default function Vocab() {
                 onClick={handleStartMatching}
                 className="w-full rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-4 py-3 font-semibold transition-colors"
               >
-                Bắt đầu luyện tập
+                {t("vocab.startPractice", language)}
               </button>
             </div>
 
             {/* Random Test Card */}
             <div className="rounded-2xl border-2 border-[#4aa6e0] bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
               <h2 className="text-xl font-bold text-[#4aa6e0] mb-4">
-                Random Test
+                {t("vocab.randomTest", language)}
               </h2>
               <p className="text-sm text-slate-600 mb-6">
-                Kiểm tra kiến thức với câu hỏi trắc nghiệm
+                {t("vocab.randomTestDescription", language)}
               </p>
               
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Cấp độ
+                    {t("vocab.level", language)}
                   </label>
                   <select
                     value={selectedLevel}
@@ -150,14 +153,14 @@ export default function Vocab() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Chủ đề (tùy chọn)
+                    {t("vocab.topic", language)}
                   </label>
                   <select
                     value={selectedTopic}
                     onChange={(e) => setSelectedTopic(e.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#4aa6e0]"
                   >
-                    <option value="">Tất cả chủ đề</option>
+                    <option value="">{t("vocab.allTopics", language)}</option>
                     {topics
                       .filter((topic) => topic._count?.vocabitems > 0)
                       .map((topic) => (
@@ -173,7 +176,7 @@ export default function Vocab() {
                 onClick={handleStartTest}
                 className="w-full rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-4 py-3 font-semibold transition-colors"
               >
-                Bắt đầu kiểm tra
+                {t("vocab.startTest", language)}
               </button>
             </div>
           </div>
@@ -181,7 +184,7 @@ export default function Vocab() {
           {/* ===== TỪ VỰNG THEO CẤP ĐỘ ===== */}
           <div className="flex items-center gap-4 mb-8">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
-              JLPT
+              {t("vocab.jlpt", language)}
             </h1>
           </div>
 
@@ -194,15 +197,15 @@ export default function Vocab() {
           {/* =====  TỪ VỰNG THEO CHỦ ĐỀ ===== */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
-              Từ vựng theo chủ đề
+              {t("vocab.vocabByTopic", language)}
             </h1>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 min-h-[220px]">
             {loadingTopics ? (
-              <p className="text-sm text-slate-500">Đang tải chủ đề...</p>
+              <p className="text-sm text-slate-500">{t("vocab.loadingTopics", language)}</p>
             ) : topics.length === 0 ? (
-              <p className="text-sm text-slate-500">Chưa có chủ đề.</p>
+              <p className="text-sm text-slate-500">{t("vocab.noTopics", language)}</p>
             ) : (
               <div className="grid grid-cols-3 gap-4">
                 {topics
