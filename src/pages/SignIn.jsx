@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -11,6 +11,8 @@ export default function SignIn() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
 
   // Hàm gọi API tiện ích
   async function api(path, options = {}) {
@@ -47,9 +49,31 @@ export default function SignIn() {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
-        localStorage.setItem("token", res.token);
+        // lưu token và user public (nếu backend trả về user)
+        if (res.token) localStorage.setItem("token", res.token);
+        if (res.user) localStorage.setItem("user", JSON.stringify(res.user));
         setMessage("Đăng nhập thành công!");
-        setTimeout(() => navigate("/home"), 1000); // chuyển về trang chính
+        // Xử lý redirect sau khi đăng nhập
+        setTimeout(() => {
+          const role = res.user?.role || (JSON.parse(localStorage.getItem("user") || "{}").role);
+          
+          // Nếu có returnUrl và user là admin → redirect đến returnUrl
+          if (returnUrl && role === "admin") {
+            navigate(returnUrl);
+          } 
+          // Nếu là admin → chuyển hướng đến admin dashboard
+          else if (role === "admin") {
+            navigate("/admin");
+          } 
+          // Nếu có returnUrl nhưng không phải admin → về home
+          else if (returnUrl) {
+            navigate("/home");
+          }
+          // Mặc định → về home
+          else {
+            navigate("/home");
+          }
+        }, 1000);
       }
     } catch (err) {
       setMessage(err.message);
@@ -70,7 +94,7 @@ export default function SignIn() {
       {/* Auth Card */}
       <div className="relative z-10 bg-white bg-opacity-90 rounded-2xl shadow-xl p-8 w-[350px] text-center animate-fadeIn">
         <h1 className="text-2xl font-bold mb-4 text-[#77BEF0]">
-          {isSignUp ? "Sign Up" : "Sign In"}
+          {isSignUp ? "Đăng ký" : "Đăng nhập"}
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -109,8 +133,8 @@ export default function SignIn() {
             {loading
               ? "Processing..."
               : isSignUp
-              ? "Sign Up"
-              : "Sign In"}
+              ? "Đăng ký"
+              : "Đăng nhập"}
           </button>
         </form>
 
@@ -126,13 +150,24 @@ export default function SignIn() {
           </p>
         )}
 
+        {!isSignUp && (
+          <p className="mt-2 text-sm">
+            <button
+              onClick={() => navigate("/forgot-password")}
+              className="text-[#77BEF0] hover:underline"
+            >
+              Quên mật khẩu?
+            </button>
+          </p>
+        )}
+
         <p className="mt-4 text-sm">
-          {isSignUp ? "Already have an account?" : "Don’t have an account?"}{" "}
+          {isSignUp ? "Đã có tài khoản?" : "Chưa có tài khoản?"}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-[#77BEF0] hover:underline"
           >
-            {isSignUp ? "Sign In" : "Sign Up"}
+            {isSignUp ? "Đăng nhập" : "Đăng ký"}
           </button>
         </p>
       </div>

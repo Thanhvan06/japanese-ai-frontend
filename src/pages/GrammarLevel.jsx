@@ -3,9 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function GrammarLevel() {
   const { level } = useParams();
+  const { language } = useLanguage();
   const [grammarList, setGrammarList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,7 +38,7 @@ export default function GrammarLevel() {
         <main className="p-6">
           <h2 className="mb-6 text-3xl font-bold">{level}</h2>
 
-          {loading && <p>Đang tải ngữ pháp...</p>}
+          {loading && <p>{t("grammarLevel.loading", language)}</p>}
           {error && <p className="text-red-500">{error}</p>}
 
           {!loading && !error && (

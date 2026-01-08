@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/Home.module.css";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 import flashcards from "../assets/flashcards.png";
 import vocab from "../assets/vocab2.png";
@@ -10,12 +12,13 @@ import grammar from "../assets/grammar2.png";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const features = [
-    { title: "Study flashcards", image: flashcards, color: "#E3F2FD" },
-    { title: "Vocabulary practice", image: vocab, color: "#FFF3E0" },
-    { title: "Grammar practice", image: grammar, color: "#E8F5E9" },
-    { title: "Writing a diary", image: diary, color: "#F3E5F5" },
-    { title: "Study with AI", image: ai, color: "#E1F5FE" },
+    { title: t("home.studyFlashcards", language), image: flashcards, color: "#E3F2FD" },
+    { title: t("home.vocabPractice", language), image: vocab, color: "#FFF3E0" },
+    { title: t("home.grammarPractice", language), image: grammar, color: "#E8F5E9" },
+    { title: t("home.writeDiary", language), image: diary, color: "#F3E5F5" },
+    { title: t("home.studyAI", language), image: ai, color: "#E1F5FE" },
   ];
 
   const [index, setIndex] = useState(0);
@@ -32,14 +35,13 @@ const Home = () => {
     <div className={styles.home}>
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <h1>Học tiếng Nhật với AI</h1>
+          <h1>{t("home.title", language)}</h1>
           <p>
-            Nền tảng học tiếng Nhật trực tuyến thông minh với sự hỗ trợ của AI, giúp bạn
-            nắm vững từ vựng, ngữ pháp và cải thiện kỹ năng giao tiếp.
+            {t("home.description", language)}
           </p>
           <div className={styles.heroButtons}>
-            <button className={styles.primaryBtn} onClick={() => navigate('/signin')}>Bắt đầu học ngay</button>
-            <button className={styles.secondaryBtn} onClick={() => navigate('/signin')}>Đăng nhập</button>
+            <button className={styles.primaryBtn} onClick={() => navigate('/signin')}>{t("home.startNow", language)}</button>
+            <button className={styles.secondaryBtn} onClick={() => navigate('/signin')}>{t("home.signIn", language)}</button>
           </div>
         </div>
         <div className={styles.heroImage}>
@@ -48,7 +50,7 @@ const Home = () => {
       </section>
 
       <section className={styles.features}>
-        <h2>Những tính năng nổi bật</h2>
+        <h2>{t("home.features", language)}</h2>
         <div className={styles.sliderWrapper}>
           <button onClick={handlePrev} className={styles.arrowBtn}>
             &#8592;
@@ -79,8 +81,8 @@ const Home = () => {
       </section>
 
       <footer className={styles.footer}>
-        <p>Sẵn sàng bắt đầu hành trình học tiếng Nhật của bạn?</p>
-        <button className={styles.signUpBtn} onClick={() => navigate('/signin')}>Đăng ký miễn phí</button>
+        <p>{t("home.ready", language)}</p>
+        <button className={styles.signUpBtn} onClick={() => navigate('/signin')}>{t("home.signUpFree", language)}</button>
       </footer>
     </div>
   );
