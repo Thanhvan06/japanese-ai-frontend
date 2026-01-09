@@ -8,11 +8,12 @@ async function api(path, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("Content-Type", "application/json");
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg = await res.json().catch(() => ({}));
-    throw new Error(msg.message || `Request failed: ${res.status}`);
+    // Trả về cả errors nếu có
+    throw data;
   }
-  return res.json();
+  return data;
 }
 
 const SignUp = () => {
@@ -32,12 +33,18 @@ const SignUp = () => {
         method: "POST",
         body: JSON.stringify({ displayName, email, password }),
       });
-      // Lưu token để tự động đăng nhập
       localStorage.setItem("token", res.token);
       setMessage("Đăng ký thành công!");
       setTimeout(() => navigate("/signin"), 1500);
     } catch (err) {
-      setMessage(err.message);
+      // Nếu backend trả về errors (Zod validation)
+      if (err.errors && Array.isArray(err.errors)) {
+        setMessage(err.errors.map(e => e.message).join(". "));
+      } else if (err.message) {
+        setMessage(err.message);
+      } else {
+        setMessage("Có lỗi xảy ra");
+      }
     } finally {
       setLoading(false);
     }

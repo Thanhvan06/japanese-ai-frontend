@@ -110,29 +110,31 @@ const Header = () => {
         </div>
       </div>
 
-      <div
-        className={styles.searchContainer}
-        style={{
-          position: "absolute",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "min(520px, 50vw)", 
-          display: "flex",
-          justifyContent: "center",
-          pointerEvents: "auto",
-        }}
-      >
-        <form onSubmit={handleSearchSubmit} style={{ width: "100%" }}>
-          <input
-            type="text"
-            placeholder={t("header.searchPlaceholder", language)}
-            className={styles.search}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: "100%" }}
-          />
-        </form>
-      </div>
+      {!location.pathname.startsWith("/admin") && (
+        <div
+          className={styles.searchContainer}
+          style={{
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "min(520px, 50vw)", 
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "auto",
+          }}
+        >
+          <form onSubmit={handleSearchSubmit} style={{ width: "100%" }}>
+            <input
+              type="text"
+              placeholder={t("header.searchPlaceholder", language)}
+              className={styles.search}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: "100%" }}
+            />
+          </form>
+        </div>
+      )}
 
       {/* RIGHT */}
       <div className={styles.rightSection}>

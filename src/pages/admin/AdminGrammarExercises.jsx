@@ -15,6 +15,9 @@ export default function AdminGrammarExercises() {
   const [filterGrammarId, setFilterGrammarId] = useState("");
   const [filterQuestionType, setFilterQuestionType] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Grammar list for dropdown
   const [grammars, setGrammars] = useState([]);
@@ -85,12 +88,31 @@ export default function AdminGrammarExercises() {
     };
   }, [page, filterGrammarId, filterQuestionType, filterDifficulty, limit, refetchTrigger]);
 
-  // Reset filters
-  const handleResetFilters = () => {
-    setFilterGrammarId("");
-    setFilterQuestionType("");
-    setFilterDifficulty("");
-    setPage(1);
+  // Handle search
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const res = await api(`/api/admin/search?q=${encodeURIComponent(q)}&type=all&limit=100`);
+      setSearchResults(res.items || []);
+    } catch (err) {
+      console.error("Search failed", err);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
   };
 
   // Open create modal
@@ -367,9 +389,40 @@ export default function AdminGrammarExercises() {
           </div>
         )}
 
+        {/* Search Bar */}
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <form onSubmit={handleSearch} className="flex items-center gap-3">
+            <div className="flex-1">
+              <input
+                type="text"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Tìm kiếm bài tập (câu hỏi, ngữ pháp)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={searchLoading}
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50"
+            >
+              {searchLoading ? "Đang tìm..." : "Tìm kiếm"}
+            </button>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+              >
+                Xóa
+              </button>
+            )}
+          </form>
+        </div>
+
         {/* Filters */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ngữ pháp
@@ -429,15 +482,6 @@ export default function AdminGrammarExercises() {
                 <option value="N1">N1</option>
               </select>
             </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={handleResetFilters}
-                className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              >
-                Đặt lại
-              </button>
-            </div>
           </div>
         </div>
 
@@ -468,7 +512,88 @@ export default function AdminGrammarExercises() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {loading ? (
+                {searchQuery ? (
+                  searchLoading ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                        Đang tìm kiếm...
+                      </td>
+                    </tr>
+                  ) : searchResults.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                        Không tìm thấy kết quả
+                      </td>
+                    </tr>
+                  ) : (
+                    searchResults.filter(item => item._type === "grammar").map((item) => {
+                      const relatedExercises = items.filter(ex => ex.grammar_id === item.grammar_id);
+                      if (relatedExercises.length === 0) {
+                        return (
+                          <tr key={`search-${item.grammar_id}`} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm text-gray-600" colSpan="6">
+                              <div className="flex items-center justify-between">
+                                <span>
+                                  <strong>{item.grammar_structure}</strong> - {item.explanation_viet.substring(0, 50)}...
+                                </span>
+                                <span className="text-xs text-gray-500">Không có bài tập</span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return relatedExercises.map((ex) => (
+                        <tr key={ex.exercise_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            {ex.exercise_id}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {item.grammar_structure}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                            {ex.question_text}
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                ex.question_type === "multiple_choice"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-purple-100 text-purple-800"
+                              }`}
+                            >
+                              {ex.question_type === "multiple_choice"
+                                ? "Trắc nghiệm"
+                                : "Sắp xếp câu"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              {ex.difficulty_level}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleEdit(ex)}
+                                className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                                title="Chỉnh sửa"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(ex)}
+                                className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+                                title="Xóa"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ));
+                    }).flat()
+                  )
+                ) : loading ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                       Đang tải...
@@ -536,7 +661,7 @@ export default function AdminGrammarExercises() {
           </div>
 
           {/* Pagination */}
-          {total > limit && (
+          {!searchQuery && total > limit && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <div className="text-sm text-gray-700">
                 Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, total)}{" "}
