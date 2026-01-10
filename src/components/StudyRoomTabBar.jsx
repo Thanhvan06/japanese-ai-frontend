@@ -28,7 +28,7 @@ export default function StudyRoomTabBar({
     { id: "todo", icon: FaCheckSquare, label: "Todo" },
     { id: "notes", icon: FaStickyNote, label: "Note" },
     { id: "theme", icon: FaPalette, label: "Theme" },
-    { id: "video", icon: FaYoutube, label: "YouTube" },
+    //{ id: "video", icon: FaYoutube, label: "YouTube" },
   ];
 
   return (
