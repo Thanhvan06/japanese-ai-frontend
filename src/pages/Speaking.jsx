@@ -317,9 +317,9 @@ export default function Speaking() {
                   </div>
                 </div>
                 <div className="bg-white/15 border border-white/25 rounded-2xl px-6 py-4 shadow-md">
-                  <div className="text-sm opacity-90">Mục tiêu hôm nay</div>
+                  <div className="text-sm opacity-90">Hôm nay đã luyện</div>
                   <div className="text-3xl font-bold">
-                    {stats?.totalAttempts || 0} câu
+                    {stats?.todayAttempts ?? 0} câu
                   </div>
                   <div className="mt-2 text-sm opacity-80">
                     {stats?.averageScore

@@ -1,10 +1,16 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const BASE_URL = "http://localhost:4000";
 
 export async function api(path, options = {}) {
   const token = localStorage.getItem("token");
   const headers = new Headers(options.headers || {});
-  headers.set("Content-Type", "application/json");
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  if (!(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   if (!res.ok) {
@@ -13,3 +19,5 @@ export async function api(path, options = {}) {
   }
   return res.json();
 }
+
+export { BASE_URL };
