@@ -374,9 +374,9 @@ export default function SentenceOrderingExercise({
               <h4 className="text-lg font-semibold text-[#4aa6e0] mb-2">
                 Đáp án đúng:
               </h4>
-              <p className="mb-3 leading-relaxed text-[#2e3856] text-lg font-medium">
-                {result.correctAnswer}
-              </p>
+              <div className="mb-3 leading-relaxed text-[#2e3856] text-lg font-medium">
+{result.correctAnswer}
+              </div>
               {exercise.translation && (
                 <p className="leading-relaxed text-[#2e3856]">
                   <strong className="text-[#4aa6e0] mr-2">Dịch:</strong>{" "}
