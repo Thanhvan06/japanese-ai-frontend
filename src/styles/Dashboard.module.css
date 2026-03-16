@@ -28,6 +28,34 @@
   color: #555;
 }
 
+.studySummary {
+  margin: 0 auto 2rem auto;
+  max-width: 520px;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.quickAddButton {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: none;
+  background-color: #1976d2;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.quickAddButton:hover {
+  background-color: #1259a1;
+  transform: translateY(-1px);
+}
+
 .cardContainer {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

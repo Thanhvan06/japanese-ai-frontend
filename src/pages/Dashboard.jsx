@@ -31,7 +31,7 @@ const Dashboard = () => {
               <div
                 key={i}
                 className={styles.studyCard}
-                style={{ backgroundColor: c.color, cursor: 'pointer' }}
+                style={{ backgroundColor: c.color, cursor: "pointer" }}
                 onClick={() => navigate(c.path)}
               >
                 <h3>{c.title}</h3>
