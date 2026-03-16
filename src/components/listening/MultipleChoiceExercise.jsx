@@ -188,9 +188,9 @@ export default function MultipleChoiceExercise({
 
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-[#4aa6e0] mb-3">Câu hỏi:</h3>
-        <p className="text-xl text-[#2e3856] leading-relaxed">
-          {exercise.question || "会話を聞いて、正しい答えを選んでください。"}
-        </p>
+        <div className="text-xl text-[#2e3856] leading-relaxed">
+{exercise.question || "会話を聞いて、正しい答えを選んでください。"}
+        </div>
       </div>
 
       <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -234,10 +234,10 @@ export default function MultipleChoiceExercise({
         <div className="bg-blue-50 border-2 border-[#4aa6e0] rounded-xl p-6">
           <h4 className="text-lg font-semibold text-[#4aa6e0] mb-4">Đáp án:</h4>
           {exercise.transcript && (
-            <p className="mb-3 leading-relaxed text-[#2e3856]">
+            <div className="mb-3 leading-relaxed text-[#2e3856]">
               <strong className="text-[#4aa6e0] mr-2">Transcript:</strong>{" "}
-              {exercise.transcript}
-            </p>
+{exercise.transcript}
+            </div>
           )}
           {exercise.translation && (
             <p className="mb-3 leading-relaxed text-[#2e3856]">
