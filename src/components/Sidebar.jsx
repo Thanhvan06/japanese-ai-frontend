@@ -78,6 +78,8 @@ const Sidebar = () => {
     { icon: <FaPenNib />, label: t("sidebar.adminGrammar", language), path: "/admin/grammar" },
     { icon: <FaPenNib />, label: t("sidebar.adminGrammarExercises", language), path: "/admin/grammar-exercises" },
     { icon: <FaBook />, label: t("sidebar.adminReading", language), path: "/admin/reading" },
+    { icon: <FaHeadphones />, label: t("sidebar.adminListening", language), path: "/admin/listening" },
+    { icon: <FaMicrophoneAlt />, label: t("sidebar.adminSpeaking", language), path: "/admin/speaking" },
     { icon: <FaUserCog />, label: t("sidebar.adminAudit", language), path: "/admin/audit" },
   ], [language]);
 

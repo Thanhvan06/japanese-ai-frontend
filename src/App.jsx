@@ -32,6 +32,8 @@ import AdminGrammarExercises from "./pages/admin/AdminGrammarExercises.jsx";
 import AdminAudit from "./pages/admin/AdminAudit.jsx";
 import AdminManagers from "./pages/admin/AdminManagers.jsx";
 import AdminReading from "./pages/admin/AdminReading.jsx";
+import AdminListening from "./pages/admin/AdminListening.jsx";
+import AdminSpeaking from "./pages/admin/AdminSpeaking.jsx";
 import PersonalStudyRoom from "./pages/PersonalStudyRoom";
 import Reading from "./pages/Reading.jsx";
  
@@ -116,6 +118,22 @@ function App() {
           element={
             <AdminRoute>
               <AdminReading />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/listening"
+          element={
+            <AdminRoute>
+              <AdminListening />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/speaking"
+          element={
+            <AdminRoute>
+              <AdminSpeaking />
             </AdminRoute>
           }
         />
