@@ -32,8 +32,8 @@ import AdminGrammarExercises from "./pages/admin/AdminGrammarExercises.jsx";
 import AdminAudit from "./pages/admin/AdminAudit.jsx";
 import AdminManagers from "./pages/admin/AdminManagers.jsx";
 import PersonalStudyRoom from "./pages/PersonalStudyRoom";
-
-
+import Reading from "./pages/Reading.jsx";
+ 
 function App() {
   return (
     <Router>
@@ -125,8 +125,9 @@ function App() {
         <Route path="/grammar/:level" element={<GrammarLevel />} />
         <Route path="/grammar/:level/:grammarId" element={<GrammarDetail />} />
 
-        {/* --- Listening Routes --- */}
+        {/* --- Listening, Reading & Speaking Routes --- */}
         <Route path="/listening" element={<Listening />} />
+        <Route path="/reading" element={<Reading />} />
         <Route path="/speaking" element={<Speaking />} />
 
         {/* --- Diary Routes --- */}

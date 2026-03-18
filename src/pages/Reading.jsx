@@ -1,20 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { FaHeadphones } from "react-icons/fa";
+import { FaBook } from "react-icons/fa";
 import { api } from "../lib/api.js";
-import MultipleChoiceExercise from "../components/listening/MultipleChoiceExercise";
-import DictationExercise from "../components/listening/DictationExercise";
-import SentenceOrderingExercise from "../components/listening/SentenceOrderingExercise";
+import ReadingComprehensionExercise from "../components/reading/ReadingComprehensionExercise";
+import FillInTheBlankExercise from "../components/reading/FillInTheBlankExercise";
 
 const LEVELS = ["N5", "N4", "N3", "N2", "N1"];
 const EXERCISE_TYPES = [
-  { value: "multiple_choice", label: "Trắc nghiệm", description: "Nghe và chọn đáp án đúng", icon: "📝" },
-  { value: "dictation", label: "Nghe viết", description: "Nghe và viết lại nội dung", icon: "✍️" },
-  { value: "sentence_ordering", label: "Sắp xếp câu", description: "Nghe và sắp xếp các từ theo đúng thứ tự", icon: "🔤" },
+  { value: "reading_comprehension", label: "Đọc hiểu", description: "Đọc đoạn văn và trả lời câu hỏi", icon: "📖" },
+  { value: "fill_in_the_blank", label: "Điền từ", description: "Điền từ phù hợp vào chỗ trống", icon: "✏️" },
 ];
 
-export default function Listening() {
+export default function Reading() {
   const [step, setStep] = useState("level"); // "level" | "exerciseType" | "exercise"
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedExerciseType, setSelectedExerciseType] = useState(null);
@@ -45,15 +43,13 @@ export default function Listening() {
     setLoading(true);
     try {
       const response = await api(
-        `/api/listening?level=${selectedLevel}&exerciseType=${selectedExerciseType}`
+        `/api/reading?level=${selectedLevel}&exerciseType=${selectedExerciseType}`
       );
-      setExercises(response.exercises || []);
+      setExercises(response.exercises ?? []);
 
       try {
-        const progressRes = await api(
-          `/api/listening/progress?level=${selectedLevel}`
-        );
-        setProgressByItem(progressRes.byItem || {});
+        const progressRes = await api(`/api/reading/progress?level=${selectedLevel}`);
+        setProgressByItem(progressRes.byItem ?? {});
       } catch {
         setProgressByItem({});
       }
@@ -71,7 +67,7 @@ export default function Listening() {
     
     setLoadingDetail(true);
     try {
-      const detail = await api(`/api/listening/${exerciseId}`);
+      const detail = await api(`/api/reading/${exerciseId}`);
       setCurrentExercise(detail);
     } catch (error) {
       console.error("Error loading exercise detail:", error);
@@ -146,10 +142,8 @@ export default function Listening() {
   const refetchProgress = async () => {
     if (!selectedLevel) return;
     try {
-      const progressRes = await api(
-        `/api/listening/progress?level=${selectedLevel}`
-      );
-      setProgressByItem(progressRes.byItem || {});
+      const progressRes = await api(`/api/reading/progress?level=${selectedLevel}`);
+      setProgressByItem(progressRes.byItem ?? {});
     } catch {
       // ignore
     }
@@ -162,8 +156,8 @@ export default function Listening() {
         <Header />
         <main className="p-6">
           <div className="flex items-center gap-4 mb-8">
-            <FaHeadphones className="text-3xl text-[#4aa6e0]" />
-            <h1 className="text-2xl font-bold text-[#4aa6e0]">Luyện nghe</h1>
+            <FaBook className="text-3xl text-[#4aa6e0]" />
+            <h1 className="text-2xl font-bold text-[#4aa6e0]">Luyện đọc</h1>
           </div>
 
           {step === "level" && (
@@ -221,7 +215,7 @@ export default function Listening() {
                     ← Quay lại
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {EXERCISE_TYPES.map((type) => (
                     <button
                       key={type.value}
@@ -336,8 +330,8 @@ export default function Listening() {
                     </div>
                   </div>
 
-                  {selectedExerciseType === "multiple_choice" && (
-                    <MultipleChoiceExercise
+                  {selectedExerciseType === "reading_comprehension" && (
+                    <ReadingComprehensionExercise
                       exercise={currentExercise}
                       onNext={handleNextExercise}
                       onPrevious={handlePreviousExercise}
@@ -348,20 +342,8 @@ export default function Listening() {
                     />
                   )}
 
-                  {selectedExerciseType === "dictation" && (
-                    <DictationExercise
-                      exercise={currentExercise}
-                      onNext={handleNextExercise}
-                      onPrevious={handlePreviousExercise}
-                      canGoPrevious={currentExerciseIndex > 0}
-                      canGoNext={currentExerciseIndex < exercises.length - 1}
-                      onProgressUpdate={refetchProgress}
-                      onAnswerSubmit={handleAnswerSubmit}
-                    />
-                  )}
-
-                  {selectedExerciseType === "sentence_ordering" && (
-                    <SentenceOrderingExercise
+                  {selectedExerciseType === "fill_in_the_blank" && (
+                    <FillInTheBlankExercise
                       exercise={currentExercise}
                       onNext={handleNextExercise}
                       onPrevious={handlePreviousExercise}
@@ -380,3 +362,4 @@ export default function Listening() {
     </div>
   );
 }
+
