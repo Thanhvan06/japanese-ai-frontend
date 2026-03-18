@@ -73,9 +73,11 @@ const Sidebar = () => {
   const adminMenu = useMemo(() => [
     { icon: <FaHome />, label: t("sidebar.adminHome", language), path: "/admin" },
     { icon: <FaUserCog />, label: t("sidebar.adminUsers", language), path: "/admin/users" },
+    { icon: <FaUserCog />, label: t("sidebar.adminAdmins", language), path: "/admin/admins" },
     { icon: <FaBook />, label: t("sidebar.adminVocab", language), path: "/admin/vocab" },
     { icon: <FaPenNib />, label: t("sidebar.adminGrammar", language), path: "/admin/grammar" },
     { icon: <FaPenNib />, label: t("sidebar.adminGrammarExercises", language), path: "/admin/grammar-exercises" },
+    { icon: <FaUserCog />, label: t("sidebar.adminAudit", language), path: "/admin/audit" },
   ], [language]);
 
   const isAdminArea = location.pathname.startsWith("/admin");

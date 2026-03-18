@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
-import { FaEllipsisV, FaCheckCircle, FaTimesCircle, FaInfoCircle, FaUserShield, FaUserMinus, FaCrown } from "react-icons/fa";
+import {
+  FaEllipsisV,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaInfoCircle,
+  FaUserShield,
+  FaUserMinus,
+  FaTrash,
+} from "react-icons/fa";
 
 export default function AdminUsers() {
   const [allUsers, setAllUsers] = useState([]); // Tất cả users từ API
@@ -11,7 +19,6 @@ export default function AdminUsers() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
-  const [currentAdminRole, setCurrentAdminRole] = useState(null);
 
   // Fetch all users from API (load một lần)
   const fetchAllUsers = async () => {
@@ -30,28 +37,6 @@ export default function AdminUsers() {
     }
   };
 
-  // Get current admin role
-  useEffect(() => {
-    let mounted = true;
-    (async function getCurrentAdmin() {
-      try {
-        // Try to get current user info to check admin role
-        const res = await api("/api/auth/me").catch(() => null);
-        if (!mounted) return;
-        if (res?.user) {
-          // Fetch admin record to get role
-          const adminRes = await api(`/api/admin/users/${res.user.user_id}`).catch(() => null);
-          if (adminRes?.user?.adminRole) {
-            setCurrentAdminRole(adminRes.user.adminRole);
-          }
-        }
-      } catch (err) {
-        // Ignore errors
-      }
-    })();
-    return () => (mounted = false);
-  }, []);
-
   useEffect(() => {
     fetchAllUsers();
   }, []); // Initial load only
@@ -64,6 +49,7 @@ export default function AdminUsers() {
   const [reason, setReason] = useState("");
   const [selectedAdminRole, setSelectedAdminRole] = useState("content_manager");
   const [actionLoading, setActionLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // Đóng menu khi click bên ngoài
   useEffect(() => {
@@ -186,22 +172,62 @@ export default function AdminUsers() {
     }
   };
 
-  const isSuperAdmin = currentAdminRole === "super_admin";
   const getRoleDisplay = (user) => {
-    if (user.role === "admin" && user.adminRole) {
-      return user.adminRole === "super_admin" ? "Super Admin" : "Admin";
+    if (user.role === "admin") {
+      return "Admin";
     }
     return "Người dùng";
   };
 
   const getRoleBadgeColor = (user) => {
-    if (user.role === "admin" && user.adminRole === "super_admin") {
-      return { backgroundColor: "#FEF3C7", color: "#92400E" }; // Yellow for super admin
+    if (user.role === "admin") {
+      return { backgroundColor: "#E3F2FD", color: "#1976D2" };
     }
-    if (user.role === "admin" && user.adminRole === "content_manager") {
-      return { backgroundColor: "#E3F2FD", color: "#1976D2" }; // Blue for content manager
+    return { backgroundColor: "#F3F4F6", color: "#6B7280" };
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      setActionLoading(true);
+      await api(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      });
+      await fetchAllUsers();
+      setModalState({ open: false, type: null, user: null, details: null });
+    } catch (err) {
+      setError(err.message || "Không thể xóa người dùng");
+    } finally {
+      setActionLoading(false);
     }
-    return { backgroundColor: "#F3F4F6", color: "#6B7280" }; // Gray for user
+  };
+
+  const handleUploadAvatar = async (userId) => {
+    if (!avatarFile) {
+      setError("Vui lòng chọn file ảnh trước");
+      return;
+    }
+    try {
+      setActionLoading(true);
+      const formData = new FormData();
+      formData.append("avatar", avatarFile);
+      await api(`/api/admin/users/${userId}/avatar`, {
+        method: "POST",
+        body: formData,
+      });
+      await fetchAllUsers();
+      const details = await fetchUserDetails(userId);
+      if (details) {
+        setModalState((prev) => ({
+          ...prev,
+          details,
+        }));
+      }
+      setAvatarFile(null);
+    } catch (err) {
+      setError(err.message || "Không thể cập nhật ảnh đại diện");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // Tính số lượng cho mỗi filter option (dựa trên allUsers - chưa filter)
@@ -329,7 +355,6 @@ export default function AdminUsers() {
                             <div className="col-span-4 text-sm text-gray-600 truncate">{u.email}</div>
                             <div className="col-span-1">
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" style={getRoleBadgeColor(u)}>
-                                {u.adminRole === "super_admin" && <FaCrown className="mr-1" />}
                                 {getRoleDisplay(u)}
                               </span>
                             </div>
@@ -364,7 +389,7 @@ export default function AdminUsers() {
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-56 overflow-hidden">
-                                    {u.role !== "admin" && isSuperAdmin && (
+                                    {u.role !== "admin" && (
                                       <button
                                         className="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors duration-200 hover:bg-purple-50"
                                         style={{ 
@@ -381,7 +406,7 @@ export default function AdminUsers() {
                                         <span className="font-medium">Thăng cấp làm Admin</span>
                                       </button>
                                     )}
-                                    {u.role === "admin" && isSuperAdmin && (
+                                    {u.role === "admin" && (
                                       <button
                                         className="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors duration-200 hover:bg-orange-50"
                                         style={{ 
@@ -448,6 +473,24 @@ export default function AdminUsers() {
                                     >
                                       <FaInfoCircle className="text-blue-600" />
                                       <span className="font-medium whitespace-nowrap">Xem thông tin chi tiết</span>
+                                    </button>
+                                    <button
+                                      className="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors duration-200 hover:bg-red-50"
+                                      style={{
+                                        color: "#dc2626",
+                                      }}
+                                      onClick={() => {
+                                        setMenuOpenId(null);
+                                        setModalState({
+                                          open: true,
+                                          type: "delete_user",
+                                          user: u,
+                                          details: null,
+                                        });
+                                      }}
+                                    >
+                                      <FaTrash className="text-red-600" />
+                                      <span className="font-medium whitespace-nowrap">Xóa người dùng</span>
                                     </button>
                                   </div>
                                 </div>
@@ -527,6 +570,33 @@ export default function AdminUsers() {
                                       {modalState.details.display_name || modalState.details.name || "Chưa có tên"}
                                     </h4>
                                     <p className="text-gray-500 text-sm mt-1">{modalState.details.email}</p>
+                                    <div className="mt-4 flex flex-col items-center gap-2">
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null;
+                                          setAvatarFile(file);
+                                        }}
+                                        className="text-sm"
+                                      />
+                                      <button
+                                        type="button"
+                                        disabled={actionLoading || !avatarFile}
+                                        onClick={() => {
+                                          const targetId =
+                                            modalState.details.user_id ??
+                                            modalState.details.id;
+                                          if (!targetId) return;
+                                          handleUploadAvatar(targetId);
+                                        }}
+                                        className="px-4 py-1.5 text-xs rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
+                                      >
+                                        {actionLoading
+                                          ? "Đang cập nhật..."
+                                          : "Cập nhật ảnh đại diện"}
+                                      </button>
+                                    </div>
                                   </div>
 
                                   {/* Info Grid */}
@@ -535,7 +605,6 @@ export default function AdminUsers() {
                                       <div className="text-xs text-gray-500 mb-1">Vai trò</div>
                                       <div className="font-medium text-gray-900">
                                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" style={getRoleBadgeColor(modalState.details)}>
-                                          {modalState.details.adminRole === "super_admin" && <FaCrown className="mr-1" />}
                                           {getRoleDisplay(modalState.details)}
                                         </span>
                                       </div>

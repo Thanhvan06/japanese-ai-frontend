@@ -29,6 +29,8 @@ import AdminUsers from "./pages/admin/AdminUsers.jsx";
 import AdminVocab from "./pages/admin/AdminVocab.jsx";
 import AdminGrammar from "./pages/admin/AdminGrammar.jsx";
 import AdminGrammarExercises from "./pages/admin/AdminGrammarExercises.jsx";
+import AdminAudit from "./pages/admin/AdminAudit.jsx";
+import AdminManagers from "./pages/admin/AdminManagers.jsx";
 import PersonalStudyRoom from "./pages/PersonalStudyRoom";
 
 
@@ -89,6 +91,22 @@ function App() {
           element={
             <AdminRoute>
               <AdminGrammarExercises />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/audit"
+          element={
+            <AdminRoute>
+              <AdminAudit />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/admins"
+          element={
+            <AdminRoute>
+              <AdminManagers />
             </AdminRoute>
           }
         />
