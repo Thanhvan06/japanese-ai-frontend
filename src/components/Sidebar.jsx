@@ -77,6 +77,7 @@ const Sidebar = () => {
     { icon: <FaBook />, label: t("sidebar.adminVocab", language), path: "/admin/vocab" },
     { icon: <FaPenNib />, label: t("sidebar.adminGrammar", language), path: "/admin/grammar" },
     { icon: <FaPenNib />, label: t("sidebar.adminGrammarExercises", language), path: "/admin/grammar-exercises" },
+    { icon: <FaBook />, label: t("sidebar.adminReading", language), path: "/admin/reading" },
     { icon: <FaUserCog />, label: t("sidebar.adminAudit", language), path: "/admin/audit" },
   ], [language]);
 
