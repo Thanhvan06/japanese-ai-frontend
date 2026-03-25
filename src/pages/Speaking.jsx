@@ -7,6 +7,8 @@ import {
   getSpeakingStats,
   generatePhraseAudio,
 } from "../services/speakingService.js";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const tips = [
   "Nói chậm, rõ từng âm, chú ý trường âm và âm ngắt.",
@@ -22,14 +24,14 @@ const getScoreColor = (score) => {
   return "text-red-500";
 };
 
-const getScoreStatus = (score) => {
-  if (score >= 95) return "Xuất sắc";
-  if (score >= 85) return "Tốt";
-  if (score >= 70) return "Khá";
-  return "Cần luyện thêm";
+const getScoreStatus = (score, language) => {
+  if (score >= 95) return language === "vi" ? "Xuất sắc" : "Excellent";
+  if (score >= 85) return language === "vi" ? "Tốt" : "Good";
+  if (score >= 70) return language === "vi" ? "Khá" : "Fair";
+  return language === "vi" ? "Cần luyện thêm" : "Needs more practice";
 };
 
-const getTimeAgo = (date) => {
+const getTimeAgo = (date, language) => {
   const now = new Date();
   const diff = now - new Date(date);
   const seconds = Math.floor(diff / 1000);
@@ -37,17 +39,31 @@ const getTimeAgo = (date) => {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
+  if (language === "vi") {
+    if (days > 0) {
+      if (days === 1) return "Hôm qua";
+      if (days < 7) return `${days} ngày trước`;
+      return new Date(date).toLocaleDateString("vi-VN", {
+        day: "numeric",
+        month: "short",
+      });
+    }
+    if (hours > 0) return `${hours} giờ trước`;
+    if (minutes > 0) return `${minutes} phút trước`;
+    return "Vừa xong";
+  }
+
   if (days > 0) {
-    if (days === 1) return "Hôm qua";
-    if (days < 7) return `${days} ngày trước`;
-    return new Date(date).toLocaleDateString("vi-VN", {
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+    return new Date(date).toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
     });
   }
-  if (hours > 0) return `${hours} giờ trước`;
-  if (minutes > 0) return `${minutes} phút trước`;
-  return "Vừa xong";
+  if (hours > 0) return `${hours} hours ago`;
+  if (minutes > 0) return `${minutes} minutes ago`;
+  return "Just now";
 };
 
 const JLPT_LEVELS = [
@@ -59,6 +75,7 @@ const JLPT_LEVELS = [
 ];
 
 export default function Speaking() {
+  const { language } = useLanguage();
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [phrases, setPhrases] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -103,7 +120,7 @@ export default function Speaking() {
         setSelected(null);
       }
     } catch (err) {
-      setError(err.message || "Không thể tải danh sách câu mẫu");
+      setError(err.message || t("speaking.errors.loadPhrases", language));
       console.error("Error loading phrases:", err);
     } finally {
       setLoading(false);
@@ -164,7 +181,7 @@ export default function Speaking() {
       mediaRecorder.start();
       setRecording(true);
     } catch (err) {
-      setError("Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.");
+      setError(t("speaking.errors.microphoneAccess", language));
       console.error("Error accessing microphone:", err);
     }
   };
@@ -181,7 +198,7 @@ export default function Speaking() {
 
   const handleSubmit = async (audioBlob) => {
     if (!selected) {
-      setError("Vui lòng chọn một câu mẫu");
+      setError(t("speaking.errors.chooseSample", language));
       return;
     }
 
@@ -201,7 +218,7 @@ export default function Speaking() {
       // Reload stats if available
       await loadStats();
     } catch (err) {
-      setError(err.message || "Lỗi khi xử lý audio. Vui lòng thử lại.");
+      setError(err.message || t("speaking.errors.processAudio", language));
       console.error("Error practicing:", err);
     } finally {
       setProcessing(false);
@@ -232,7 +249,11 @@ export default function Speaking() {
               : p
           ));
         } catch (err) {
-          setError("Không thể generate audio mẫu. " + (err.message || ""));
+          setError(
+            `${t("speaking.errors.generateSampleAudio", language)} ${
+              err.message || ""
+            }`.trim()
+          );
           setGeneratingAudio(false);
           return;
         } finally {
@@ -255,7 +276,7 @@ export default function Speaking() {
         audioRef.current = null;
       };
       audio.onerror = () => {
-        setError("Không thể phát audio mẫu");
+        setError(t("speaking.errors.playSampleAudio", language));
         setAudioPlaying(false);
         audioRef.current = null;
       };
@@ -263,7 +284,7 @@ export default function Speaking() {
       await audio.play();
     } catch (err) {
       console.error("Error playing audio:", err);
-      setError("Không thể phát audio mẫu");
+      setError(t("speaking.errors.playSampleAudio", language));
       setAudioPlaying(false);
     }
   };
@@ -273,7 +294,7 @@ export default function Speaking() {
       const audio = new Audio(result.audioUrl);
       audio.play().catch((err) => {
         console.error("Error playing audio:", err);
-        setError("Không thể phát bản ghi âm");
+        setError(t("speaking.errors.playRecordingAudio", language));
       });
     }
   };
@@ -296,13 +317,13 @@ export default function Speaking() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                   <div className="text-sm font-semibold uppercase tracking-wide opacity-80">
-                    Luyện nói
+                    {t("speaking.title", language)}
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold mt-2">
-                    Phát âm chuẩn, tự tin giao tiếp
+                    {t("speaking.heroHeading", language)}
                   </h1>
                   <p className="mt-3 text-white/90 max-w-2xl">
-                    Thực hành phát âm theo mẫu, ghi âm và so sánh.
+                    {t("speaking.heroSubtitle", language)}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
@@ -317,14 +338,19 @@ export default function Speaking() {
                   </div>
                 </div>
                 <div className="bg-white/15 border border-white/25 rounded-2xl px-6 py-4 shadow-md">
-                  <div className="text-sm opacity-90">Hôm nay đã luyện</div>
+                  <div className="text-sm opacity-90">
+                    {t("speaking.todayLabel", language)}
+                  </div>
                   <div className="text-3xl font-bold">
-                    {stats?.todayAttempts ?? 0} câu
+                    {stats?.todayAttempts ?? 0}{" "}
+                    {t("speaking.attemptsUnit", language)}
                   </div>
                   <div className="mt-2 text-sm opacity-80">
                     {stats?.averageScore
-                      ? `Điểm trung bình: ${Math.round(stats.averageScore)}%`
-                      : "Bắt đầu luyện tập ngay!"}
+                      ? `${t("speaking.avgScoreLabelPrefix", language)} ${Math.round(
+                          stats.averageScore
+                        )}%`
+                      : t("speaking.avgScoreDefault", language)}
                   </div>
                 </div>
               </div>
@@ -342,10 +368,10 @@ export default function Speaking() {
               <div className="space-y-6">
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    Chọn cấp độ luyện tập
+                    {t("speaking.levelSelectTitle", language)}
                   </h2>
                   <p className="text-gray-600">
-                    Chọn cấp độ JLPT phù hợp với trình độ của bạn
+                    {t("speaking.levelSelectSubtitle", language)}
                   </p>
                 </div>
 
@@ -362,13 +388,16 @@ export default function Speaking() {
                           {jlpt.level}
                         </div>
                         <h3 className="text-xl font-bold text-gray-800 mb-2">
-                          {jlpt.name}
+                          {t(`speaking.levels.${jlpt.level}.name`, language)}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {jlpt.description}
+                          {t(
+                            `speaking.levels.${jlpt.level}.description`,
+                            language
+                          )}
                         </p>
                         <div className="mt-4 flex items-center text-[#77BEF0] font-semibold text-sm">
-                          <span>Bắt đầu luyện tập</span>
+                          <span>{t("speaking.startPractice", language)}</span>
                           <span className="ml-2">→</span>
                         </div>
                       </div>
@@ -387,30 +416,36 @@ export default function Speaking() {
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#E8F4FD] text-[#0F6DB0] font-semibold hover:border-[#77BEF0] transition"
                 >
                   <span>←</span>
-                  <span>Quay lại chọn cấp độ</span>
+                  <span>{t("speaking.backToLevels", language)}</span>
                 </button>
 
                 <div className="grid lg:grid-cols-3 gap-6">
                   {/* Phrase list */}
                   <div className="lg:col-span-1 space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="font-semibold text-gray-700">
-                        Câu mẫu - {selectedLevel}
+                        {t("speaking.phrasesTitlePrefix", language, {
+                          level: selectedLevel,
+                        })}
                       </div>
                       {phrases.length > 0 && (
                         <div className="text-xs text-gray-500">
-                          {phrases.length} câu
+                          {phrases.length} {t("speaking.phrasesCountUnit", language)}
                         </div>
                       )}
                     </div>
                 {loading ? (
                   <div className="text-center py-8 text-gray-500">
-                    Đang tải...
+                    {t("speaking.phrasesLoading", language)}
                   </div>
                 ) : phrases.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-2">📝</div>
-                    <div>Không có câu mẫu nào cho cấp độ {selectedLevel}</div>
+                    <div>
+                      {t("speaking.phrasesEmpty", language, {
+                        level: selectedLevel,
+                      })}
+                    </div>
                   </div>
                 ) : (
                   phrases.map((p) => (
@@ -428,7 +463,7 @@ export default function Speaking() {
                       }`}
                     >
                       <div className="text-sm text-[#77BEF0] font-semibold">
-                        {p.topic || "Không có chủ đề"}
+                        {p.topic || t("speaking.noTopic", language)}
                       </div>
                       <div className="text-lg font-bold text-gray-800 mt-1">
                         {p.jp}
@@ -466,7 +501,7 @@ export default function Speaking() {
                         >
                           {Math.round(result.score.accuracy)}%
                         </span>
-                        <span>{getScoreStatus(result.score.accuracy)}</span>
+                        <span>{getScoreStatus(result.score.accuracy, language)}</span>
                       </div>
                     )}
 
@@ -474,7 +509,7 @@ export default function Speaking() {
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                           <div className="text-sm text-gray-500">
-                            Speak the phrase
+                            {t("speaking.speakPhraseLabel", language)}
                           </div>
                           <div className="text-3xl font-bold text-gray-800 mt-1">
                             {selected.jp}
@@ -495,10 +530,10 @@ export default function Speaking() {
                             <span>{generatingAudio ? "⏳" : audioPlaying ? "🔊" : "🔊"}</span>
                             <span>
                               {generatingAudio
-                                ? "Đang tạo audio..."
+                                ? t("speaking.generateAudioLoading", language)
                                 : audioPlaying
-                                ? "Đang phát..."
-                                : "Nghe mẫu"}
+                                ? t("speaking.playingAudio", language)
+                                : t("speaking.playSample", language)}
                             </span>
                           </button>
                           {result?.audioUrl && (
@@ -507,7 +542,7 @@ export default function Speaking() {
                               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#E8F4FD] text-[#0F6DB0] font-semibold hover:border-[#77BEF0] transition"
                             >
                               <span>👤</span>
-                              <span>Nghe lại</span>
+                              <span>{t("speaking.listenAgain", language)}</span>
                             </button>
                           )}
                         </div>
@@ -517,17 +552,21 @@ export default function Speaking() {
                       {result && (
                         <div className="mt-5 p-4 rounded-lg bg-[#F6FBFF] border border-[#E8F4FD] space-y-3">
                           <div className="text-sm font-semibold text-gray-700">
-                            So sánh kết quả:
+                          {t("speaking.compareResultsLabel", language)}
                           </div>
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <div className="text-xs text-gray-500 mb-1">Câu mẫu:</div>
+                            <div className="text-xs text-gray-500 mb-1">
+                              {t("speaking.sampleLabel", language)}
+                            </div>
                               <div className="text-lg font-semibold text-gray-800 bg-white p-2 rounded border border-gray-200">
                                 {selected.jp}
                               </div>
                             </div>
                             <div>
-                              <div className="text-xs text-gray-500 mb-1">Bạn nói:</div>
+                            <div className="text-xs text-gray-500 mb-1">
+                              {t("speaking.yourAnswerLabel", language)}
+                            </div>
                               <div className={`text-lg font-semibold p-2 rounded border ${
                                 result.score.accuracy >= 95
                                   ? "bg-green-50 border-green-200 text-green-800"
@@ -549,7 +588,7 @@ export default function Speaking() {
                           <div className="flex items-center gap-2 text-gray-600">
                             <span className="text-xl">/</span>
                             <span className="text-lg font-semibold text-gray-800">
-                              Chưa có bản ghi âm
+                              {t("speaking.noRecordingYet", language)}
                             </span>
                           </div>
                         )}
@@ -563,10 +602,10 @@ export default function Speaking() {
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           {processing
-                            ? "Đang xử lý..."
+                            ? t("speaking.processingAudio", language)
                             : recording
-                            ? "Dừng ghi âm 🛑"
-                            : "Tap to Speak 🎙️"}
+                              ? t("speaking.stopRecordingLabel", language)
+                              : t("speaking.tapToSpeakLabel", language)}
                         </button>
                       </div>
                     </div>
@@ -574,8 +613,8 @@ export default function Speaking() {
                     {/* Visual meter */}
                     {result && (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm text-gray-600">
-                          <span>Độ chính xác</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-600">
+                          <span>{t("speaking.accuracyLabel", language)}</span>
                           <span
                             className={`font-semibold ${getScoreColor(
                               result.score.accuracy
@@ -612,26 +651,26 @@ export default function Speaking() {
                     <div className="grid md:grid-cols-3 gap-3 text-sm">
                       <div className="p-3 rounded-xl bg-[#F6FBFF] border border-[#E8F4FD]">
                         <div className="font-semibold text-gray-800">
-                          1. Nghe mẫu
+                          {t("speaking.steps.step1Title", language)}
                         </div>
                         <div className="text-gray-600 mt-1">
-                          Nghe chậm, chú ý trường âm / âm ngắt.
+                          {t("speaking.steps.step1Desc", language)}
                         </div>
                       </div>
                       <div className="p-3 rounded-xl bg-[#F6FBFF] border border-[#E8F4FD]">
                         <div className="font-semibold text-gray-800">
-                          2. Ghi âm
+                          {t("speaking.steps.step2Title", language)}
                         </div>
                         <div className="text-gray-600 mt-1">
-                          Nhấn mạnh trọng âm, giữ nhịp ổn định.
+                          {t("speaking.steps.step2Desc", language)}
                         </div>
                       </div>
                       <div className="p-3 rounded-xl bg-[#F6FBFF] border border-[#E8F4FD]">
                         <div className="font-semibold text-gray-800">
-                          3. So sánh
+                          {t("speaking.steps.step3Title", language)}
                         </div>
                         <div className="text-gray-600 mt-1">
-                          Xem kết quả và nhận feedback.
+                          {t("speaking.steps.step3Desc", language)}
                         </div>
                       </div>
                     </div>
@@ -639,8 +678,8 @@ export default function Speaking() {
                 ) : (
                   <div className="bg-white rounded-2xl border border-[#E8F4FD] shadow-md p-6 text-center text-gray-500">
                     {loading
-                      ? "Đang tải..."
-                      : "Vui lòng chọn một câu mẫu để bắt đầu"}
+                      ? t("speaking.phrasesLoading", language)
+                      : t("speaking.noSampleSelected", language)}
                   </div>
                 )}
                   </div>
@@ -653,31 +692,35 @@ export default function Speaking() {
               <div className="bg-white rounded-2xl border border-[#E8F4FD] shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="text-lg">💡</div>
-                  <div className="font-semibold text-gray-800">Mẹo luyện nói</div>
+                  <div className="font-semibold text-gray-800">
+                    {t("speaking.tipsTitle", language)}
+                  </div>
                 </div>
                 <ul className="space-y-3 text-gray-700">
-                  {tips.map((t, idx) => (
+                  {tips.map((tip, idx) => (
                     <li
                       key={idx}
                       className="p-3 rounded-lg bg-[#F6FBFF] border border-[#E8F4FD]"
                     >
-                      {t}
+                      {t(`speaking.tips.tip${idx + 1}`, language)}
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="bg-white rounded-2xl border border-[#E8F4FD] shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                   <div className="flex items-center gap-2">
                     <div className="text-lg">📈</div>
                     <div className="font-semibold text-gray-800">
-                      Tiến độ gần đây
+                        {t("speaking.recentProgressTitle", language)}
                     </div>
                   </div>
                   {stats?.totalAttempts > 0 && (
                     <div className="text-xs text-gray-500">
-                      Tổng: {stats.totalAttempts} lần
+                        {t("speaking.totalAttemptsLabel", language, {
+                          count: stats.totalAttempts,
+                        })}
                     </div>
                   )}
                 </div>
@@ -688,7 +731,7 @@ export default function Speaking() {
                     <div className="space-y-2 text-sm">
                       {stats.recentAttempts.slice(0, 5).map((attempt, idx) => {
                         const date = new Date(attempt.date);
-                        const timeAgo = getTimeAgo(date);
+                        const timeAgo = getTimeAgo(date, language);
                         
                         return (
                           <div
@@ -699,7 +742,8 @@ export default function Speaking() {
                               <div className="flex-1 min-w-0">
                                 {attempt.phrase && (
                                   <div className="text-xs text-gray-500 mb-1 truncate">
-                                    {attempt.phrase.topic || "Không có chủ đề"}
+                                    {attempt.phrase.topic ||
+                                      t("speaking.noTopic", language)}
                                   </div>
                                 )}
                                 {attempt.phrase && (
@@ -742,12 +786,13 @@ export default function Speaking() {
                     {stats?.dailyProgress && stats.dailyProgress.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-[#E8F4FD]">
                         <div className="text-xs font-semibold text-gray-600 mb-2">
-                          Tiến độ 7 ngày qua
+                          {t("speaking.last7DaysTitle", language)}
                         </div>
                         <div className="space-y-2">
                           {stats.dailyProgress.map((day, idx) => {
                             const date = new Date(day.date);
-                            const dayName = date.toLocaleDateString("vi-VN", {
+                            const locale = language === "vi" ? "vi-VN" : "en-US";
+                            const dayName = date.toLocaleDateString(locale, {
                               weekday: "short",
                             });
                             const dayNumber = date.getDate();
@@ -772,7 +817,7 @@ export default function Speaking() {
                                   />
                                 </div>
                                 <div className="text-xs text-gray-600 w-16 text-right">
-                                  {day.count} lần
+                                  {day.count} {t("speaking.attemptsUnit", language)}
                                 </div>
                               </div>
                             );
@@ -784,9 +829,9 @@ export default function Speaking() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-2">📝</div>
-                    <div>Chưa có lịch sử luyện tập</div>
+                    <div>{t("speaking.recentProgressEmptyTitle", language)}</div>
                     <div className="text-xs mt-2">
-                      Bắt đầu luyện tập để xem tiến độ!
+                      {t("speaking.recentProgressEmptyHint", language)}
                     </div>
                   </div>
                 )}

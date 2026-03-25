@@ -4,10 +4,13 @@ import Sidebar from "../components/Sidebar";
 import { FiTrash2, FiPlus, FiMic, FiSend } from "react-icons/fi";
 import { FaRobot } from "react-icons/fa";
 import axios from "axios";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const API_BASE = "http://localhost:4000/api/chat"; 
 
 const Chatbot = () => {
+  const { language } = useLanguage();
   const [input, setInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]); 
   const [selectedChat, setSelectedChat] = useState(null); 
@@ -119,7 +122,7 @@ const Chatbot = () => {
       console.error("Send message error:", err);
       const errorMsg = { 
         from: "bot", 
-        text: "❌ Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau." 
+        text: t("chatbot.sendError", language)
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -169,17 +172,17 @@ const Chatbot = () => {
         <Header />
         <div className="flex-1 flex overflow-hidden min-h-0">
           {isEmptyState ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="flex-1 flex flex-col items-center justify-center p-6 w-full min-w-0">
               <div className="max-w-2xl w-full text-center">
                 <div className="mb-8">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-[#4aa6e0] rounded-full mb-4">
                     <FaRobot className="text-white text-4xl" />
                   </div>
                   <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                    Chào mừng đến với Chatbot AI
+                    {t("chatbot.welcomeTitle", language)}
                   </h2>
                   <p className="text-gray-600">
-                    Hỏi tôi bất cứ điều gì về tiếng Nhật!
+                    {t("chatbot.welcomeSubtitle", language)}
                   </p>
                 </div>
 
@@ -189,7 +192,7 @@ const Chatbot = () => {
                     <input
                       ref={inputRef}
                       type="text"
-                      placeholder="Ví dụ: 'Cách sử dụng は và が?' hoặc 'Giải thích ngữ pháp N5'..."
+                      placeholder={t("chatbot.emptyInputPlaceholder", language)}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -205,22 +208,22 @@ const Chatbot = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput("Giải thích ngữ pháp N5")}>
-                    <h3 className="font-semibold text-gray-800 mb-2">💡 Ngữ pháp</h3>
-                    <p className="text-sm text-gray-600">Hỏi về ngữ pháp tiếng Nhật</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left w-full">
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput(t("chatbot.askGrammar", language))}>
+                    <h3 className="font-semibold text-gray-800 mb-2">💡 {t("chatbot.topicGrammar", language)}</h3>
+                    <p className="text-sm text-gray-600">{t("chatbot.topicGrammarDesc", language)}</p>
                   </div>
-                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput("Từ vựng về gia đình")}>
-                    <h3 className="font-semibold text-gray-800 mb-2">📚 Từ vựng</h3>
-                    <p className="text-sm text-gray-600">Học từ vựng theo chủ đề</p>
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput(t("chatbot.askVocab", language))}>
+                    <h3 className="font-semibold text-gray-800 mb-2">📚 {t("chatbot.topicVocab", language)}</h3>
+                    <p className="text-sm text-gray-600">{t("chatbot.topicVocabDesc", language)}</p>
                   </div>
-                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput("Cách phát âm は và わ")}>
-                    <h3 className="font-semibold text-gray-800 mb-2">🗣️ Phát âm</h3>
-                    <p className="text-sm text-gray-600">Cải thiện phát âm</p>
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput(t("chatbot.askPronunciation", language))}>
+                    <h3 className="font-semibold text-gray-800 mb-2">🗣️ {t("chatbot.topicPronunciation", language)}</h3>
+                    <p className="text-sm text-gray-600">{t("chatbot.topicPronunciationDesc", language)}</p>
                   </div>
-                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput("Bài tập luyện tập")}>
-                    <h3 className="font-semibold text-gray-800 mb-2">✏️ Luyện tập</h3>
-                    <p className="text-sm text-gray-600">Làm bài tập thực hành</p>
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setInput(t("chatbot.askPractice", language))}>
+                    <h3 className="font-semibold text-gray-800 mb-2">✏️ {t("chatbot.topicPractice", language)}</h3>
+                    <p className="text-sm text-gray-600">{t("chatbot.topicPracticeDesc", language)}</p>
                   </div>
                 </div>
               </div>
@@ -228,13 +231,13 @@ const Chatbot = () => {
           ) : (
             <>
               {/* Sidebar */}
-              <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+              <div className="w-64 bg-white border-r border-gray-200 flex flex-col hidden lg:flex">
                 <button
                   onClick={handleNewChat}
                   className="m-4 flex items-center gap-2 px-4 py-3 bg-[#4aa6e0] text-white rounded-lg hover:bg-[#3a8bc0] transition-colors font-medium"
                 >
                   <FiPlus className="text-lg" />
-                  <span>Cuộc trò chuyện mới</span>
+                  <span>{t("chatbot.newConversation", language)}</span>
                 </button>
 
                 <div className="flex-1 overflow-y-auto px-2 pb-4">
@@ -248,10 +251,10 @@ const Chatbot = () => {
                             : "hover:bg-gray-50"
                         }`}
                         onClick={() => handleSelectChat(chat.session_id)}
-                        title={chat.topic || "Cuộc trò chuyện mới"}
+                        title={chat.topic || t("chatbot.newConversation", language)}
                       >
                         <span className="flex-1 text-sm text-gray-700 truncate">
-                          {chat.topic || "Cuộc trò chuyện mới"}
+                          {chat.topic || t("chatbot.newConversation", language)}
                         </span>
                         <FiTrash2
                           className="ml-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity flex-shrink-0"
@@ -267,10 +270,10 @@ const Chatbot = () => {
               </div>
 
               {/* Chat area */}
-              <div className="flex-1 flex flex-col bg-white overflow-hidden min-h-0">
+              <div className="flex-1 flex flex-col bg-white overflow-hidden min-h-0 min-w-0">
                 {/* Messages area - scrollable */}
                 <div className="flex-1 overflow-y-auto min-h-0">
-                  <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+                  <div className="max-w-4xl mx-auto w-full px-4 py-6 space-y-6">
                     {messages.map((msg, idx) => (
                       <div
                         key={idx}
@@ -321,19 +324,19 @@ const Chatbot = () => {
 
                 {/* Input area - fixed at bottom */}
                 <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
-                  <div className="max-w-4xl mx-auto">
+                  <div className="max-w-4xl mx-auto w-full">
                     <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 shadow-sm">
                       <button
                         onClick={handleNewChat}
                         className="p-2 text-gray-400 hover:text-[#4aa6e0] transition-colors"
-                        title="Cuộc trò chuyện mới"
+                        title={t("chatbot.newConversation", language)}
                       >
                         <FiPlus className="text-xl" />
                       </button>
                       <input
                         ref={inputRef}
                         type="text"
-                        placeholder="Nhập câu hỏi của bạn..."
+                        placeholder={t("chatbot.inputPlaceholder", language)}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -344,7 +347,7 @@ const Chatbot = () => {
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
                         className="p-2 bg-[#4aa6e0] text-white rounded-lg hover:bg-[#3a8bc0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        title="Gửi (Enter)"
+                        title={t("chatbot.sendTitle", language)}
                       >
                         <FiSend />
                       </button>

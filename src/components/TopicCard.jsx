@@ -1,6 +1,10 @@
 import { FaFolderOpen } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function TopicCard({ topic, onClick }) {
+  const { language } = useLanguage();
+
   return (
     <button
       onClick={onClick}
@@ -25,7 +29,9 @@ export default function TopicCard({ topic, onClick }) {
         </div>
       </div>
 
-      <div className="mt-3 text-xs text-slate-500">Xem từ vựng của chủ đề này</div>
+      <div className="mt-3 text-xs text-slate-500">
+        {t("vocab.viewTopicVocabHint", language)}
+      </div>
     </button>
   );
 }

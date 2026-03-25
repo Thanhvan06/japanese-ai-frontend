@@ -33,7 +33,7 @@ export default function GrammarDetail() {
     return (
       <div className="flex min-h-screen bg-white">
         <Sidebar />
-        <div className="flex-1 ml-14">
+        <div className="flex-1 min-w-0">
           <Header />
           <main className="p-10">
             <p>{t("grammarDetail.loading", language)}</p>
@@ -47,7 +47,7 @@ export default function GrammarDetail() {
     return (
       <div className="flex min-h-screen bg-white">
         <Sidebar />
-        <div className="flex-1 ml-14">
+        <div className="flex-1 min-w-0">
           <Header />
           <main className="p-10">
             <p className="text-red-500">
@@ -62,7 +62,7 @@ export default function GrammarDetail() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1 ml-14">
+      <div className="flex-1 min-w-0">
         <Header />
         <main className="p-10">
           <h2 className="mb-6 text-4xl font-bold">

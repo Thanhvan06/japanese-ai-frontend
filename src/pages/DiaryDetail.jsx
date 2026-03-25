@@ -182,7 +182,7 @@ export default function DiaryDetail() {
     return (
       <div className="flex min-h-screen bg-white">
         <Sidebar />
-        <div className="flex-1 ml-14">
+        <div className="flex-1 min-w-0">
           <Header />
           <main className="p-6 flex items-center justify-center">
             <div className="text-gray-400">Đang tải...</div>
@@ -195,11 +195,11 @@ export default function DiaryDetail() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1 ml-14">
+      <div className="flex-1 min-w-0">
         <Header />
 
         <main className="p-6 max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <input
               value={diary.title}
               onChange={(e) => setDiary((p) => ({ ...p, title: e.target.value }))}

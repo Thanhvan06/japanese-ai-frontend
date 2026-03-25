@@ -6,15 +6,40 @@ import { api } from "../lib/api.js";
 import MultipleChoiceExercise from "../components/listening/MultipleChoiceExercise";
 import DictationExercise from "../components/listening/DictationExercise";
 import SentenceOrderingExercise from "../components/listening/SentenceOrderingExercise";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const LEVELS = ["N5", "N4", "N3", "N2", "N1"];
-const EXERCISE_TYPES = [
-  { value: "multiple_choice", label: "Trắc nghiệm", description: "Nghe và chọn đáp án đúng", icon: "📝" },
-  { value: "dictation", label: "Nghe viết", description: "Nghe và viết lại nội dung", icon: "✍️" },
-  { value: "sentence_ordering", label: "Sắp xếp câu", description: "Nghe và sắp xếp các từ theo đúng thứ tự", icon: "🔤" },
-];
 
 export default function Listening() {
+  const { language } = useLanguage();
+  const EXERCISE_TYPES = [
+    {
+      value: "multiple_choice",
+      label: t("listening.types.multiple_choice.label", language),
+      description: t(
+        "listening.types.multiple_choice.description",
+        language
+      ),
+      icon: "📝",
+    },
+    {
+      value: "dictation",
+      label: t("listening.types.dictation.label", language),
+      description: t("listening.types.dictation.description", language),
+      icon: "✍️",
+    },
+    {
+      value: "sentence_ordering",
+      label: t("listening.types.sentence_ordering.label", language),
+      description: t(
+        "listening.types.sentence_ordering.description",
+        language
+      ),
+      icon: "🔤",
+    },
+  ];
+
   const [step, setStep] = useState("level"); // "level" | "exerciseType" | "exercise"
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedExerciseType, setSelectedExerciseType] = useState(null);
@@ -59,7 +84,7 @@ export default function Listening() {
       }
     } catch (error) {
       console.error("Error loading exercises:", error);
-      alert("Không thể tải danh sách bài tập. Vui lòng thử lại.");
+      alert(t("listening.loadListError", language));
       setExercises([]);
     } finally {
       setLoading(false);
@@ -75,7 +100,7 @@ export default function Listening() {
       setCurrentExercise(detail);
     } catch (error) {
       console.error("Error loading exercise detail:", error);
-      alert("Không thể tải chi tiết bài tập. Vui lòng thử lại.");
+      alert(t("listening.loadDetailError", language));
       setCurrentExercise(null);
     } finally {
       setLoadingDetail(false);
@@ -163,7 +188,9 @@ export default function Listening() {
         <main className="p-6">
           <div className="flex items-center gap-4 mb-8">
             <FaHeadphones className="text-3xl text-[#4aa6e0]" />
-            <h1 className="text-2xl font-bold text-[#4aa6e0]">Luyện nghe</h1>
+            <h1 className="text-2xl font-bold text-[#4aa6e0]">
+              {t("listening.title", language)}
+            </h1>
           </div>
 
           {step === "level" && (
@@ -171,10 +198,10 @@ export default function Listening() {
               <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl border-2 border-[#4aa6e0]/20 p-10">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-[#4aa6e0] mb-3">
-                    Chọn cấp độ JLPT
+                    {t("listening.levelSelectTitle", language)}
                   </h2>
                   <p className="text-gray-600">
-                    Chọn cấp độ phù hợp với trình độ của bạn
+                    {t("listening.levelSelectSubtitle", language)}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -189,7 +216,7 @@ export default function Listening() {
                           {level}
                         </span>
                         <span className="text-xs text-gray-500 group-hover:text-[#4aa6e0] transition-colors">
-                          Cấp độ {level}
+                          {t("listening.levelCardLabel", language, { level })}
                         </span>
                       </div>
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -205,20 +232,23 @@ export default function Listening() {
           {step === "exerciseType" && (
             <div className="max-w-3xl mx-auto">
               <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl border-2 border-[#4aa6e0]/20 p-10">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                   <div>
                     <h2 className="text-3xl font-bold text-[#4aa6e0] mb-2">
-                      Chọn loại bài tập
+                      {t("listening.exerciseTypeTitle", language)}
                     </h2>
                     <p className="text-gray-600">
-                      Cấp độ: <span className="font-semibold text-[#4aa6e0]">{selectedLevel}</span>
+                      {t("listening.exerciseTypeLevelPrefix", language)}{" "}
+                      <span className="font-semibold text-[#4aa6e0]">
+                        {selectedLevel}
+                      </span>
                     </p>
                   </div>
                   <button
                     onClick={handleBackToLevel}
-                    className="px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
+                    className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
                   >
-                    ← Quay lại
+                    ← {t("listening.backToLevel", language)}
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -256,15 +286,17 @@ export default function Listening() {
                   <div className="mb-8">
                     <div className="text-7xl mb-4 animate-bounce">🎉</div>
                     <h2 className="text-3xl font-bold text-[#4aa6e0] mb-3">
-                      Chúc mừng bạn đã hoàn thành bài tập!
+                      {t("listening.summaryTitle", language)}
                     </h2>
                     <p className="text-gray-600">
-                      Bạn đã hoàn thành tất cả các câu hỏi
+                      {t("listening.summarySubtitle", language)}
                     </p>
                   </div>
                   
                   <div className="bg-gradient-to-br from-[#4aa6e0]/10 to-blue-100 rounded-2xl p-8 mb-8 border-2 border-[#4aa6e0]/30">
-                    <p className="text-gray-700 mb-3 font-semibold text-lg">Số câu đúng</p>
+                    <p className="text-gray-700 mb-3 font-semibold text-lg">
+                      {t("listening.correctCountLabel", language)}
+                    </p>
                     <p className="text-5xl font-bold text-[#4aa6e0] mb-2">
                       {Object.values(scores).filter(Boolean).length}/{exercises.length}
                     </p>
@@ -275,7 +307,7 @@ export default function Listening() {
                               (Object.values(scores).filter(Boolean).length / exercises.length) * 100
                             )
                           : 0}
-                        % đúng
+                        {t("listening.correctPercentSuffix", language)}
                       </p>
                     </div>
                   </div>
@@ -285,43 +317,46 @@ export default function Listening() {
                       onClick={handleRetryExercise}
                       className="px-8 py-4 rounded-xl font-semibold bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-lg"
                     >
-                      🔄 Làm lại một lần nữa
+                      {t("listening.retryButton", language)}
                     </button>
                     <button
                       onClick={handleBackToExerciseType}
                       className="px-8 py-4 rounded-xl font-semibold bg-white border-2 border-[#4aa6e0]/30 text-[#4aa6e0] hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-lg"
                     >
-                      ← Quay lại
+                      ← {t("listening.backToExerciseType", language)}
                     </button>
                   </div>
                 </div>
               ) : loading ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">Đang tải bài tập...</p>
+                  <p className="text-gray-600">{t("listening.loadingExercises", language)}</p>
                 </div>
               ) : exercises.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600 mb-4">
-                    Chưa có bài tập nào cho loại này.
+                    {t("listening.noExercisesForType", language)}
                   </p>
                   <button
                     onClick={handleBackToExerciseType}
                     className="px-6 py-3 bg-[#4aa6e0] text-white rounded-lg hover:bg-[#3a8bc0] transition-colors"
                   >
-                    Chọn loại khác
+                    {t("listening.chooseOtherType", language)}
                   </button>
                 </div>
               ) : loadingDetail ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">Đang tải chi tiết bài tập...</p>
+                  <p className="text-gray-600">{t("listening.loadingExerciseDetail", language)}</p>
                 </div>
               ) : currentExercise ? (
                 <div>
                   <div className="bg-gradient-to-r from-[#4aa6e0]/10 to-blue-50 rounded-2xl p-6 mb-6 border-2 border-[#4aa6e0]/20">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <h2 className="text-2xl font-bold text-[#4aa6e0] mb-1">
-                          Bài tập {currentExerciseIndex + 1}/{exercises.length}
+                          {t("listening.exerciseHeader", language, {
+                            current: currentExerciseIndex + 1,
+                            total: exercises.length,
+                          })}
                         </h2>
                         <p className="text-sm text-gray-600">
                           <span className="font-semibold text-[#4aa6e0]">{selectedLevel}</span> - {EXERCISE_TYPES.find(t => t.value === selectedExerciseType)?.label}
@@ -329,9 +364,9 @@ export default function Listening() {
                       </div>
                       <button
                         onClick={handleBackToExerciseType}
-                        className="px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
+                        className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
                       >
-                        ← Quay lại
+                        ← {t("listening.backToExerciseType", language)}
                       </button>
                     </div>
                   </div>

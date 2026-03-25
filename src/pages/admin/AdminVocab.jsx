@@ -226,13 +226,13 @@ export default function AdminVocab() {
   return (
     <AdminLayout title="Quản Lý Từ Vựng">
       <div className="space-y-6 mx-auto max-w-7xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
           <h2 className="text-2xl font-bold" style={{ color: "#77BEF0" }}>
             Quản Lý Từ Vựng
           </h2>
           <button
             onClick={handleCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors w-full sm:w-auto"
           >
             <FaPlus />
             <span>Thêm từ vựng</span>
@@ -253,7 +253,10 @@ export default function AdminVocab() {
 
         {/* Search Bar */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <form onSubmit={handleSearch} className="flex items-center gap-3">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col sm:flex-row sm:items-center gap-3"
+          >
             <div className="flex-1">
               <input
                 type="text"
@@ -266,7 +269,7 @@ export default function AdminVocab() {
             <button
               type="submit"
               disabled={searchLoading}
-              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
               {searchLoading ? "Đang tìm..." : "Tìm kiếm"}
             </button>
@@ -274,7 +277,7 @@ export default function AdminVocab() {
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors w-full sm:w-auto"
               >
                 Xóa
               </button>

@@ -136,7 +136,7 @@ export default function Diary() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1 ml-14">
+      <div className="flex-1 min-w-0">
         <Header />
 
         <main className="p-6">
@@ -163,13 +163,13 @@ export default function Diary() {
           )}
 
           {/* Top bar */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
               <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
                 disabled={selectionMode}
-                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white"
+                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white w-full sm:w-auto"
               >
                 <option value="">{t("diary.allMonths", language)}</option>
                 {[...Array(12)].map((_, i) => (
@@ -183,7 +183,7 @@ export default function Diary() {
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
                 disabled={selectionMode}
-                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white"
+                className="px-4 py-2 rounded-lg bg-[#77BEF0] text-white w-full sm:w-auto"
               >
                 <option value="">{t("diary.allYears", language)}</option>
                 {years.map((y) => (
@@ -200,7 +200,7 @@ export default function Diary() {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 justify-end w-full sm:w-auto">
               {selectionMode ? (
                 <>
                   <button
@@ -224,13 +224,13 @@ export default function Diary() {
                 <>
                   <button
                     onClick={() => setSelectionMode(true)}
-                    className="w-12 h-12 bg-red-500 text-white rounded-full"
+                    className="w-12 h-12 bg-red-500 text-white rounded-full flex items-center justify-center text-sm leading-none"
                   >
                     {t("diary.deleteButton", language)}
                   </button>
                   <button
                     onClick={() => navigate("/diary/new")}
-                    className="w-12 h-12 bg-[#77BEF0] text-white rounded-full text-2xl"
+                    className="w-12 h-12 bg-[#77BEF0] text-white rounded-full flex items-center justify-center text-2xl leading-none"
                   >
                     +
                   </button>

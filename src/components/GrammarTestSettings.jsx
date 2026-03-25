@@ -1,21 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getGrammarByLevel, getGrammarExercises } from "../services/grammarService";
-
-const TIMER_OPTIONS = [
-  { value: 0, label: "Không giới hạn" },
-  { value: 300, label: "5 phút" },
-  { value: 600, label: "10 phút" },
-  { value: 900, label: "15 phút" },
-  { value: 1200, label: "20 phút" },
-];
-
-const QUESTION_TYPES = [
-  { value: "multiple_choice", label: "Trắc nghiệm" },
-  { value: "sentence_arrangement", label: "Sắp xếp câu" },
-];
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function GrammarTestSettings({ onSubmit, initialLevel }) {
+  const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const initialQuestionType = searchParams.get("questionType") || "multiple_choice";
   const [questionType, setQuestionType] = useState(initialQuestionType);
@@ -27,6 +17,39 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
   const [grammars, setGrammars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [maxQuestions, setMaxQuestions] = useState(20);
+  const TIMER_OPTIONS = [
+    {
+      value: 0,
+      label: t("grammarTestSettings.timerOptions.unlimited", language),
+    },
+    {
+      value: 300,
+      label: t("grammarTestSettings.timerOptions.minutes5", language),
+    },
+    {
+      value: 600,
+      label: t("grammarTestSettings.timerOptions.minutes10", language),
+    },
+    {
+      value: 900,
+      label: t("grammarTestSettings.timerOptions.minutes15", language),
+    },
+    {
+      value: 1200,
+      label: t("grammarTestSettings.timerOptions.minutes20", language),
+    },
+  ];
+
+  const QUESTION_TYPES = [
+    {
+      value: "multiple_choice",
+      label: t("grammarTestSettings.questionTypes.multipleChoice", language),
+    },
+    {
+      value: "sentence_arrangement",
+      label: t("grammarTestSettings.questionTypes.sentenceArrangement", language),
+    },
+  ];
 
   useEffect(() => {
     const fetchGrammars = async () => {
@@ -104,7 +127,7 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
     e.preventDefault();
     
     if (!selectAll && selectedGrammars.length === 0) {
-      alert("Vui lòng chọn ít nhất một mẫu ngữ pháp");
+      alert(t("grammarTestSettings.alerts.selectAtLeastOneGrammar", language));
       return;
     }
 
@@ -121,13 +144,15 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-[#4aa6e0] mb-6">Cài đặt bài kiểm tra ngữ pháp</h2>
+      <h2 className="text-2xl font-bold text-[#4aa6e0] mb-6">
+        {t("grammarTestSettings.title", language)}
+      </h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Question Type */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-3">
-            Loại bài tập
+            {t("grammarTestSettings.labels.exerciseType", language)}
           </label>
           <div className="space-y-2">
             {QUESTION_TYPES.map((type) => (
@@ -152,7 +177,7 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
         {/* Level Selection */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Cấp độ JLPT
+            {t("grammarTestSettings.labels.jlptLevel", language)}
           </label>
           <select
             value={level}
@@ -174,7 +199,7 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
         <div>
           <div className="flex items-center justify-between mb-3">
             <label className="block text-sm font-medium text-slate-700">
-              Chọn mẫu ngữ pháp
+              {t("grammarTestSettings.labels.selectGrammarPatterns", language)}
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -183,14 +208,20 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
                 onChange={handleSelectAllToggle}
                 className="w-4 h-4 text-[#4aa6e0]"
               />
-              <span className="text-sm">Chọn tất cả</span>
+              <span className="text-sm">
+                {t("grammarTestSettings.selectAll", language)}
+              </span>
             </label>
           </div>
 
           {loading ? (
-            <p className="text-sm text-slate-500">Đang tải...</p>
+            <p className="text-sm text-slate-500">
+              {t("grammarTestSettings.loading", language)}
+            </p>
           ) : grammars.length === 0 ? (
-            <p className="text-sm text-slate-500">Không có mẫu ngữ pháp nào</p>
+            <p className="text-sm text-slate-500">
+              {t("grammarTestSettings.noGrammarPatterns", language)}
+            </p>
           ) : (
             <div className="border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto">
               <div className="space-y-2">
@@ -219,7 +250,7 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
         {/* Question Count */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Số câu hỏi (tối đa: {maxQuestions})
+            {t("grammarTestSettings.questionCount", language, { maxQuestions })}
           </label>
           <input
             type="number"
@@ -234,7 +265,7 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
         {/* Timer */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Thời gian
+            {t("grammarTestSettings.labels.timer", language)}
           </label>
           <select
             value={timer}
@@ -254,7 +285,7 @@ export default function GrammarTestSettings({ onSubmit, initialLevel }) {
           type="submit"
           className="w-full rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-4 py-3 font-semibold transition-colors"
         >
-          Bắt đầu kiểm tra
+          {t("grammarTestSettings.startTestButton", language)}
         </button>
       </form>
     </div>

@@ -177,7 +177,7 @@ const SearchPage = () => {
 
             {/* Results Header */}
             {q && (
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="text-sm text-gray-600">
                   {loading ? (
                     <span className="flex items-center gap-2">

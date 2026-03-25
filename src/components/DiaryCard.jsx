@@ -1,8 +1,11 @@
 import React from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function DiaryCard({ id, title, images, created_at, onClick, selectionMode = false, isSelected = false, onToggleSelection }) {
+  const { language } = useLanguage();
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -19,8 +22,18 @@ export default function DiaryCard({ id, title, images, created_at, onClick, sele
     : null;
   
   const monthNames = [
-    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+    t("diaryCard.months.1", language),
+    t("diaryCard.months.2", language),
+    t("diaryCard.months.3", language),
+    t("diaryCard.months.4", language),
+    t("diaryCard.months.5", language),
+    t("diaryCard.months.6", language),
+    t("diaryCard.months.7", language),
+    t("diaryCard.months.8", language),
+    t("diaryCard.months.9", language),
+    t("diaryCard.months.10", language),
+    t("diaryCard.months.11", language),
+    t("diaryCard.months.12", language),
   ];
 
   const handleClick = (e) => {
@@ -59,7 +72,7 @@ export default function DiaryCard({ id, title, images, created_at, onClick, sele
         {imageUrl ? (
           <img 
             src={imageUrl} 
-            alt={title || "Diary"} 
+            alt={title || t("diaryCard.fallbackImageAlt", language)}
             className="w-full h-full object-cover" 
           />
         ) : (
@@ -76,7 +89,7 @@ export default function DiaryCard({ id, title, images, created_at, onClick, sele
           {dateInfo.day && `${dateInfo.day} - ${monthNames[dateInfo.month - 1]} - ${dateInfo.year}`}
         </div>
         <div className="text-sm font-semibold text-gray-800 line-clamp-2">
-          {title || "Nhật ký không có tiêu đề"}
+          {title || t("diaryCard.untitled", language)}
         </div>
       </div>
     </div>

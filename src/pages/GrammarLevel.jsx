@@ -33,7 +33,7 @@ export default function GrammarLevel() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1 ml-14">
+      <div className="flex-1 min-w-0">
         <Header />
         <main className="p-6">
           <h2 className="mb-6 text-3xl font-bold">{level}</h2>
@@ -47,7 +47,7 @@ export default function GrammarLevel() {
                 <Link
                   to={`/grammar/${level}/${item.grammar_id}`}
                   key={item.grammar_id}
-                  className="flex items-center justify-between px-4 py-3 font-semibold text-white transition-transform rounded-md bg-sky-400 hover:scale-105"
+                  className="flex items-center px-4 py-3 font-semibold text-white transition-transform rounded-md bg-sky-400 hover:scale-105"
                 >
                   <span>{item.grammar_structure}</span>
                 </Link>

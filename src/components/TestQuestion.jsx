@@ -1,3 +1,6 @@
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
+
 export default function TestQuestion({
   question,
   selectedIndex,
@@ -5,6 +8,7 @@ export default function TestQuestion({
   showResult,
   correctIndex,
 }) {
+  const { language } = useLanguage();
   const isAnswered = selectedIndex !== null && selectedIndex !== undefined;
   const isCorrect = isAnswered && selectedIndex === correctIndex;
   const showCorrect = showResult && isCorrect;
@@ -24,7 +28,7 @@ export default function TestQuestion({
               }}
             />
             <p className="text-lg font-semibold text-slate-700">
-              Chọn từ tiếng Nhật phù hợp với hình ảnh
+              {t("testQuestion.prompts.image", language)}
             </p>
           </div>
         );
@@ -36,7 +40,7 @@ export default function TestQuestion({
               {question.question}
             </p>
             <p className="text-lg font-semibold text-slate-700">
-              Chọn cách đọc Hiragana đúng
+              {t("testQuestion.prompts.kanjiHiragana", language)}
             </p>
           </div>
         );
@@ -48,7 +52,7 @@ export default function TestQuestion({
               {question.question}
             </p>
             <p className="text-lg font-semibold text-slate-700">
-              Chọn chữ Kanji đúng
+              {t("testQuestion.prompts.hiraganaKanji", language)}
             </p>
           </div>
         );
@@ -65,7 +69,7 @@ export default function TestQuestion({
               </p>
             )}
             <p className="text-lg font-semibold text-slate-700">
-              Chọn nghĩa đúng
+              {t("testQuestion.prompts.wordMeaning", language)}
             </p>
           </div>
         );
@@ -117,10 +121,14 @@ export default function TestQuestion({
                 </span>
                 <div className="font-medium">{option}</div>
                 {showAsCorrect && (
-                  <span className="ml-auto text-green-600 font-semibold">✓ Đúng</span>
+                  <span className="ml-auto text-green-600 font-semibold">
+                    ✓ {t("testQuestion.correctBadge", language)}
+                  </span>
                 )}
                 {showAsIncorrect && (
-                  <span className="ml-auto text-red-600 font-semibold">✗ Sai</span>
+                  <span className="ml-auto text-red-600 font-semibold">
+                    ✗ {t("testQuestion.wrongBadge", language)}
+                  </span>
                 )}
               </div>
             </button>

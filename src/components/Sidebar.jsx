@@ -116,7 +116,9 @@ const Sidebar = () => {
               }}
             >
               {item.icon}
-              {isOpen && <span>{item.label}</span>}
+              {isOpen && (
+                <span className={styles.menuLabel}>{item.label}</span>
+              )}
             </li>
           ))}
         </ul>
@@ -129,11 +131,19 @@ const Sidebar = () => {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => navigate("/settings")}>
                 <FaCog />
-                {isOpen && <span style={{ marginLeft: 8 }}>{t("sidebar.settings", language)}</span>}
+                {isOpen && (
+                  <span className={styles.menuLabel}>
+                    {t("sidebar.settings", language)}
+                  </span>
+                )}
               </li>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => navigate("/help")}>
                 <FaQuestionCircle />
-                {isOpen && <span style={{ marginLeft: 8 }}>{t("sidebar.help", language)}</span>}
+                {isOpen && (
+                  <span className={styles.menuLabel}>
+                    {t("sidebar.help", language)}
+                  </span>
+                )}
               </li>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => {
                 localStorage.removeItem("token");
@@ -141,7 +151,11 @@ const Sidebar = () => {
                 navigate("/signin");
               }}>
                 <FaSignOutAlt />
-                {isOpen && <span style={{ marginLeft: 8 }}>{t("header.signOut", language)}</span>}
+                {isOpen && (
+                  <span className={styles.menuLabel}>
+                    {t("header.signOut", language)}
+                  </span>
+                )}
               </li>
             </ul>
           </div>

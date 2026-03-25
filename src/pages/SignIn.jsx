@@ -105,7 +105,7 @@ export default function SignIn() {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#77BEF0] flex items-center justify-center">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#77BEF0] flex items-center justify-center px-4 py-6">
       {/* Cloud layers */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="clouds cloud1"></div>
@@ -114,7 +114,7 @@ export default function SignIn() {
       </div>
 
       {/* Auth Card */}
-      <div className="relative z-10 bg-white bg-opacity-90 rounded-2xl shadow-xl p-8 w-[350px] text-center animate-fadeIn">
+      <div className="relative z-10 bg-white bg-opacity-90 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-[350px] text-center animate-fadeIn">
         <h1 className="text-2xl font-bold mb-4 text-[#77BEF0]">
           {isSignUp ? "Đăng ký" : "Đăng nhập"}
         </h1>

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
 import { FaEdit, FaEye, FaEyeSlash, FaPlus, FaTrash } from "react-icons/fa";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 const JLPT_LEVELS = ["N5", "N4", "N3", "N2", "N1"];
 const EXERCISE_TYPES = [
@@ -18,6 +20,7 @@ function safeJsonParse(text, fallback) {
 }
 
 export default function AdminReading() {
+  const { language } = useLanguage();
   const [tab, setTab] = useState("sets"); // sets | items
 
   // Sets state
@@ -307,13 +310,13 @@ export default function AdminReading() {
   };
 
   return (
-    <AdminLayout title="Quản Lý Luyện Đọc">
+    <AdminLayout title={t("adminReading.pageTitle", language)}>
       <div className="space-y-6 mx-auto max-w-7xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-2xl font-bold" style={{ color: "#77BEF0" }}>
-            Quản Lý Luyện Đọc
+            {t("adminReading.pageTitle", language)}
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => setTab("sets")}
               className={`px-4 py-2 rounded-lg border ${
@@ -322,7 +325,7 @@ export default function AdminReading() {
                   : "bg-white text-gray-700 border-gray-200"
               }`}
             >
-              Bộ bài đọc
+              {t("adminReading.tabs.sets", language)}
             </button>
             <button
               onClick={() => setTab("items")}
@@ -332,7 +335,7 @@ export default function AdminReading() {
                   : "bg-white text-gray-700 border-gray-200"
               }`}
             >
-              Bài đọc
+              {t("adminReading.tabs.items", language)}
             </button>
           </div>
         </div>
@@ -362,7 +365,7 @@ export default function AdminReading() {
               </div>
               <div className="flex-1">
                 <label className="block text-sm text-gray-600 mb-1">
-                  Trạng thái
+                  {t("adminReading.filters.statusLabel", language)}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg"
@@ -372,9 +375,13 @@ export default function AdminReading() {
                     setFilterPublished(e.target.value);
                   }}
                 >
-                  <option value="">Tất cả</option>
-                  <option value="true">Đang publish</option>
-                  <option value="false">Chưa publish</option>
+                  <option value="">{t("adminReading.filters.all", language)}</option>
+                  <option value="true">
+                    {t("adminReading.filters.published", language)}
+                  </option>
+                  <option value="false">
+                    {t("adminReading.filters.unpublished", language)}
+                  </option>
                 </select>
               </div>
               <div className="flex-1 flex gap-2 justify-end">

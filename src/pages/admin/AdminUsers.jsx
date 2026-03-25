@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 import {
   FaEllipsisV,
   FaCheckCircle,
@@ -12,6 +14,7 @@ import {
 } from "react-icons/fa";
 
 export default function AdminUsers() {
+  const { language } = useLanguage();
   const [allUsers, setAllUsers] = useState([]); // Tất cả users từ API
   const [users, setUsers] = useState([]); // Users đã được filter
   const [loading, setLoading] = useState(true);
@@ -246,7 +249,7 @@ export default function AdminUsers() {
   return (
     <AdminLayout title="">
       <div className="space-y-6 mx-auto max-w-6xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-2xl font-bold" style={{ color: "#77BEF0" }}>Quản Lý Người Dùng</h2>
         </div>
 
@@ -262,9 +265,9 @@ export default function AdminUsers() {
           </div>
         )}
 
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
+            <div className="w-full lg:flex-1">
               <input
                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="Tìm kiếm theo tên, email..."
@@ -272,10 +275,10 @@ export default function AdminUsers() {
                 onChange={(e) => { setQuery(e.target.value); }}
               />
             </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
+              <div className="relative w-full">
                 <select 
-                  className="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-400"
+                  className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-400"
                   value={filterRole} 
                   onChange={(e) => setFilterRole(e.target.value)}
                 >
@@ -289,9 +292,9 @@ export default function AdminUsers() {
                   </svg>
                 </div>
               </div>
-              <div className="relative">
+              <div className="relative w-full">
                 <select 
-                  className="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-400"
+                  className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-400"
                   value={filterStatus} 
                   onChange={(e) => setFilterStatus(e.target.value)}
                 >
@@ -309,7 +312,9 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm" style={{ overflow: 'visible' }}>
+        <div className="bg-white rounded-lg shadow-sm" style={{ overflow: "visible" }}>
+          <div className="overflow-x-auto">
+            <div className="min-w-[980px]">
           {/* Table Header */}
           <div className="bg-gray-50 border-b border-gray-200">
             <div className="grid grid-cols-12 gap-4 px-6 py-4 text-sm font-semibold text-gray-700">
@@ -764,7 +769,9 @@ export default function AdminUsers() {
                                     }}
                                     disabled={actionLoading}
                                   >
-                                    {actionLoading ? "Đang xử lý..." : "Xác nhận"}
+                                    {actionLoading
+                                      ? t("adminUsers.actionProcessing", language)
+                                      : t("adminUsers.confirmButton", language)}
                                   </button>
                                 </div>
                               </>
@@ -804,7 +811,9 @@ export default function AdminUsers() {
                                     }}
                                     disabled={actionLoading}
                                   >
-                                    {actionLoading ? "Đang xử lý..." : "Xác nhận"}
+                                    {actionLoading
+                                      ? t("adminUsers.actionProcessing", language)
+                                      : t("adminUsers.confirmButton", language)}
                                   </button>
                                 </div>
                               </>
@@ -846,7 +855,9 @@ export default function AdminUsers() {
                                     }}
                                     disabled={actionLoading}
                                   >
-                                    {actionLoading ? "Đang xử lý..." : "Xác nhận"}
+                                    {actionLoading
+                                      ? t("adminUsers.actionProcessing", language)
+                                      : t("adminUsers.confirmButton", language)}
                                   </button>
                                 </div>
                               </>
@@ -860,6 +871,8 @@ export default function AdminUsers() {
               </div>
             </>
           )}
+            </div>
+          </div>
         </div>
       </div>
     </AdminLayout>

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FaCog } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function PomodoroTimer({
   defaultMinutes = 25,
@@ -8,6 +10,7 @@ export default function PomodoroTimer({
   isActive = false,  // [MỚI] Trạng thái kích hoạt từ TodoList
   onComplete         // [MỚI] Hàm gọi khi chạy xong
 }) {
+  const { language } = useLanguage();
   const [totalSeconds, setTotalSeconds] = useState(defaultMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -220,16 +223,18 @@ export default function PomodoroTimer({
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-sm mx-4">
             <div className="text-6xl mb-4">⏰</div>
             <h3 className="text-2xl font-bold mb-2" style={{ color: panelColor }}>
-              Hết giờ!
+              {t("pomodoroTimer.timeUpTitle", language)}
             </h3>
-            <p className="text-gray-600 mb-6">Đã hoàn thành phiên Pomodoro</p>
+            <p className="text-gray-600 mb-6">
+              {t("pomodoroTimer.sessionCompleted", language)}
+            </p>
             <button
               onClick={stopAlarm}
               className="px-8 py-3 text-white rounded-full font-semibold text-lg
                 hover:opacity-90 transition-opacity shadow-lg"
               style={{ backgroundColor: panelColor }}
             >
-              Dừng chuông
+              {t("pomodoroTimer.stopAlarmButton", language)}
             </button>
           </div>
         </div>
@@ -273,7 +278,11 @@ export default function PomodoroTimer({
               {formatTime(minutes, seconds)}
             </div>
             <div className="text-sm text-gray-500">
-              {isRunning ? "Đang chạy" : isPaused ? "Tạm dừng" : "Sẵn sàng"}
+              {isRunning
+                ? t("pomodoroTimer.status.running", language)
+                : isPaused
+                ? t("pomodoroTimer.status.paused", language)
+                : t("pomodoroTimer.status.ready", language)}
             </div>
           </div>
         </div>
@@ -288,7 +297,7 @@ export default function PomodoroTimer({
               hover:opacity-90 transition-opacity shadow-lg"
             style={{ backgroundColor: panelColor }}
           >
-            Bắt đầu
+            {t("pomodoroTimer.startButton", language)}
           </button>
         ) : (
           <button
@@ -296,7 +305,7 @@ export default function PomodoroTimer({
             className="px-8 py-3 bg-gray-600 text-white rounded-full font-semibold
               hover:bg-gray-700 transition-colors shadow-lg"
           >
-            Tạm dừng
+            {t("pomodoroTimer.pauseButton", language)}
           </button>
         )}
         <button
@@ -304,7 +313,7 @@ export default function PomodoroTimer({
           className="px-6 py-3 bg-gray-200 text-gray-700 rounded-full font-semibold
             hover:bg-gray-300 transition-colors"
         >
-          Đặt lại
+          {t("pomodoroTimer.resetButton", language)}
         </button>
       </div>
 
@@ -318,7 +327,7 @@ export default function PomodoroTimer({
               className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-gray-900 transition-all font-medium text-amber-500"
             >
               <FaCog className="w-4 h-4" />
-              <span>Tùy chỉnh thời gian</span>
+              <span>{t("pomodoroTimer.customizeTimeButton", language)}</span>
             </button>
 
 
@@ -336,7 +345,9 @@ export default function PomodoroTimer({
                   style={{ focusRingColor: panelColor }}
                   placeholder="25"
                 />
-                <span className="text-gray-600">phút</span>
+                <span className="text-gray-600">
+                  {t("pomodoroTimer.minutesLabel", language)}
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <button
@@ -345,7 +356,7 @@ export default function PomodoroTimer({
                     hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: panelColor }}
                 >
-                  Áp dụng
+                  {t("pomodoroTimer.applyButton", language)}
                 </button>
                 <button
                   onClick={() => {
@@ -355,7 +366,7 @@ export default function PomodoroTimer({
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium
                     hover:bg-gray-300 transition-colors"
                 >
-                  Hủy
+                  {t("pomodoroTimer.cancelButton", language)}
                 </button>
               </div>
             </div>

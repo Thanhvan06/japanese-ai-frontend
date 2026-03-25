@@ -17,13 +17,13 @@ export default function Grammar() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <Header />
-        <main className="p-6">
+        <main className="p-4 sm:p-6">
           <h2 className="text-2xl font-bold text-[#4aa6e0] mb-6">{t("grammar.title", language)}</h2>
           
           {/* Practice Cards */}
-          <div className="grid grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
             <div
               onClick={() => handlePracticeClick("multiple_choice")}
               className="rounded-2xl border-2 border-[#4aa6e0] bg-white p-6 shadow-lg 
@@ -45,7 +45,7 @@ export default function Grammar() {
 
           {/* Level Cards */}
           <h3 className="text-2xl font-bold text-[#4aa6e0] mb-6">{t("grammar.jlpt", language)}</h3>
-          <div className="grid grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
             {levels.map((level) => (
               <LevelCard key={level} level={level} type="grammar" />
             ))}

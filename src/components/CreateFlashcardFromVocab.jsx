@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { createSetFromVocab } from "../services/flashcardService";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function CreateFlashcardFromVocab({
   isOpen,
@@ -10,6 +12,7 @@ export default function CreateFlashcardFromVocab({
   sourceId,
   vocabList = [],
 }) {
+  const { language } = useLanguage();
   const [setName, setSetName] = useState("");
   const [selectedVocabIds, setSelectedVocabIds] = useState(new Set());
   const [loading, setLoading] = useState(false);
@@ -46,7 +49,7 @@ export default function CreateFlashcardFromVocab({
       }
     } catch (err) {
       console.error("Fetch vocab error:", err);
-      alert("Không thể tải từ vựng");
+      alert(t("createFlashcardFromVocab.alerts.loadVocabError", language));
     } finally {
       setFetchingVocab(false);
     }
@@ -78,12 +81,12 @@ export default function CreateFlashcardFromVocab({
     e.preventDefault();
     
     if (!setName.trim()) {
-      alert("Vui lòng nhập tên flashcard set");
+      alert(t("createFlashcardFromVocab.alerts.setNameRequired", language));
       return;
     }
 
     if (selectedVocabIds.size === 0) {
-      alert("Vui lòng chọn ít nhất 1 từ vựng");
+      alert(t("createFlashcardFromVocab.alerts.selectAtLeastOneVocab", language));
       return;
     }
 
@@ -97,7 +100,11 @@ export default function CreateFlashcardFromVocab({
         source: sourceType,
       });
 
-      alert(`Tạo flashcard set thành công với ${vocabIdsArray.length} thẻ!`);
+      alert(
+        t("createFlashcardFromVocab.alerts.createSuccess", language, {
+          count: vocabIdsArray.length,
+        })
+      );
       setSetName("");
       setSelectedVocabIds(new Set());
       setSelectAll(false);
@@ -108,7 +115,9 @@ export default function CreateFlashcardFromVocab({
       onClose();
     } catch (err) {
       console.error("Create flashcard set error:", err);
-      alert(err.message || "Không thể tạo flashcard set");
+      alert(
+        err.message || t("createFlashcardFromVocab.alerts.createError", language)
+      );
     } finally {
       setLoading(false);
     }
@@ -123,7 +132,7 @@ export default function CreateFlashcardFromVocab({
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-[#4aa6e0]">
-              Tạo flashcard từ từ vựng
+              {t("createFlashcardFromVocab.title", language)}
             </h2>
             <button
               onClick={onClose}
@@ -140,13 +149,16 @@ export default function CreateFlashcardFromVocab({
             {/* Set Name */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Tên flashcard set *
+                {t("createFlashcardFromVocab.setNameLabel", language)} *
               </label>
               <input
                 type="text"
                 value={setName}
                 onChange={(e) => setSetName(e.target.value)}
-                placeholder="Ví dụ: Từ vựng N5 chủ đề Gia đình"
+                placeholder={t(
+                  "createFlashcardFromVocab.setNamePlaceholder",
+                  language
+                )}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#4aa6e0]"
                 required
               />
@@ -162,7 +174,10 @@ export default function CreateFlashcardFromVocab({
                   className="w-5 h-5 text-[#4aa6e0] rounded"
                 />
                 <span className="text-sm font-medium text-slate-700">
-                  Chọn tất cả ({selectedVocabIds.size}/{vocabs.length})
+                  {t("createFlashcardFromVocab.selectAll", language, {
+                    selected: selectedVocabIds.size,
+                    total: vocabs.length,
+                  })}
                 </span>
               </label>
             </div>
@@ -170,11 +185,11 @@ export default function CreateFlashcardFromVocab({
             {/* Vocab List */}
             {fetchingVocab ? (
               <p className="text-sm text-slate-500 text-center py-8">
-                Đang tải từ vựng...
+                {t("createFlashcardFromVocab.loadingVocabs", language)}
               </p>
             ) : vocabs.length === 0 ? (
               <p className="text-sm text-slate-500 text-center py-8">
-                Không có từ vựng nào
+                {t("createFlashcardFromVocab.emptyVocabs", language)}
               </p>
             ) : (
               <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
@@ -224,14 +239,18 @@ export default function CreateFlashcardFromVocab({
               onClick={onClose}
               className="flex-1 rounded-lg border-2 border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 font-semibold transition-colors"
             >
-              Hủy
+              {t("createFlashcardFromVocab.cancelButton", language)}
             </button>
             <button
               type="submit"
               disabled={loading || selectedVocabIds.size === 0}
               className="flex-1 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-4 py-2 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Đang tạo..." : `Tạo flashcard (${selectedVocabIds.size} thẻ)`}
+              {loading
+                ? t("createFlashcardFromVocab.creating", language)
+                : t("createFlashcardFromVocab.createButton", language, {
+                    count: selectedVocabIds.size,
+                  })}
             </button>
           </div>
         </form>

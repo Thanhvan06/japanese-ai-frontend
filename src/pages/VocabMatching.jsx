@@ -4,8 +4,11 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import Timer from "../components/Timer";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function VocabMatching() {
+  const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const level = searchParams.get("level") || "N5";
@@ -99,10 +102,10 @@ export default function VocabMatching() {
     return (
       <div className="flex min-h-screen bg-white">
         <Sidebar />
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <Header />
-          <main className="p-6">
-            <p>Đang tải...</p>
+          <main className="p-4 sm:p-6">
+            <p>{t("vocabMatching.loading", language)}</p>
           </main>
         </div>
       </div>
@@ -112,50 +115,56 @@ export default function VocabMatching() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <Header />
-        <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
+        <main className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <button
               onClick={() => navigate("/vocab")}
               className="text-sm text-slate-500 hover:text-slate-700"
             >
-              ← Quay lại
+              ← {t("vocabMatching.backButton", language)}
             </button>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <Timer isActive={!completed} />
               <div className="text-lg font-semibold text-[#4aa6e0]">
-                Điểm: {score}/{pairs.length}
+                {t("vocabMatching.scoreLabel", language, {
+                  score,
+                  total: pairs.length,
+                })}
               </div>
             </div>
           </div>
 
           <h1 className="text-2xl font-bold text-[#4aa6e0] mb-6">
-            Matching Cards - {level}
+            {t("vocabMatching.title", language, { level })}
           </h1>
 
           {completed ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">🎉</div>
               <h2 className="text-2xl font-bold text-[#4aa6e0] mb-2">
-                Hoàn thành!
+                {t("vocabMatching.completedTitle", language)}
               </h2>
               <p className="text-slate-600 mb-6">
-                Bạn đã ghép đúng {score}/{pairs.length} cặp
+                {t("vocabMatching.completedDescription", language, {
+                  score,
+                  total: pairs.length,
+                })}
               </p>
               <button
                 onClick={() => navigate("/vocab")}
                 className="rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-6 py-2 font-semibold"
               >
-                Quay lại
+                {t("vocabMatching.backButton", language)}
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Words Column */}
               <div>
                 <h2 className="text-lg font-semibold mb-4 text-slate-700">
-                  Từ tiếng Nhật
+                  {t("vocabMatching.wordsColumnTitle", language)}
                 </h2>
                 <div className="space-y-3">
                   {allWords.map((item) => {
@@ -188,7 +197,7 @@ export default function VocabMatching() {
               {/* Meanings Column */}
               <div>
                 <h2 className="text-lg font-semibold mb-4 text-slate-700">
-                  Nghĩa
+                  {t("vocabMatching.meaningsColumnTitle", language)}
                 </h2>
                 <div className="space-y-3">
                   {allMeanings.map((item) => {

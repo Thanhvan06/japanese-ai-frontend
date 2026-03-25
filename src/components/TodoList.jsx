@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlay, FaCheck, FaTimes } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function TodoList({ onStartTask }) {
+  const { language } = useLanguage();
   const [todos, setTodos] = useState([]);
   
   // State cho thêm mới
@@ -97,7 +100,7 @@ export default function TodoList({ onStartTask }) {
 
   return (
     <div>
-      <h4 className="font-semibold mb-4">Danh sách công việc</h4>
+      <h4 className="font-semibold mb-4">{t("todoList.title", language)}</h4>
 
       {/* Input thêm task mới */}
       <div className="flex gap-2 mb-4">
@@ -107,14 +110,14 @@ export default function TodoList({ onStartTask }) {
             value={newTodoText}
             onChange={(e) => setNewTodoText(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddTodo()}
-            placeholder="Tên công việc..."
+            placeholder={t("todoList.placeholders.taskName", language)}
             className="flex-1 py-2 bg-transparent text-sm text-black placeholder-black placeholder-opacity-50 focus:outline-none"
             />
             <input 
                 type="number"
                 value={newTodoTime}
                 onChange={(e) => setNewTodoTime(e.target.value)}
-                placeholder="Phút"
+                placeholder={t("todoList.placeholders.minutes", language)}
                 className="w-16 py-2 bg-transparent text-sm text-black placeholder-black placeholder-opacity-50 focus:outline-none text-right border-l border-gray-400 border-opacity-30"
             />
         </div>
@@ -122,7 +125,7 @@ export default function TodoList({ onStartTask }) {
           onClick={handleAddTodo}
           className="px-4 py-2 bg-[#50B0FA] hover:bg-[#238ACC] rounded text-sm font-medium text-white transition-colors"
         >
-          Thêm
+          {t("todoList.addButton", language)}
         </button>
       </div>
 
@@ -151,7 +154,7 @@ export default function TodoList({ onStartTask }) {
                     type="number"
                     value={editTime}
                     onChange={(e) => setEditTime(e.target.value)}
-                    placeholder="Min"
+                    placeholder={t("todoList.placeholders.minShort", language)}
                     className="w-12 px-1 py-1 bg-white bg-opacity-80 rounded text-sm text-black focus:outline-none text-center"
                 />
                 <button onClick={() => handleSaveEdit(todo.id)} className="p-1 text-green-600 bg-white rounded hover:bg-green-100">
@@ -179,7 +182,7 @@ export default function TodoList({ onStartTask }) {
                     {todo.duration > 0 && (
                         <button 
                             onClick={() => handlePlayTask(todo)}
-                            title="Bắt đầu làm task này"
+                            title={t("todoList.playTitle", language)}
                             className="p-1.5 hover:bg-blue-500 hover:text-white rounded-full transition-colors text-[#50B0FA]"
                         >
                             <FaPlay className="w-3 h-3" />
@@ -203,7 +206,9 @@ export default function TodoList({ onStartTask }) {
        {/* Completed Todos */}
        {completedTodos.length > 0 && (
           <div className="mt-4 pt-4 border-t border-white border-opacity-20">
-            <div className="text-xs text-green-500 text-opacity-60 mb-2">Hoàn thành</div>
+            <div className="text-xs text-green-500 text-opacity-60 mb-2">
+              {t("todoList.completedLabel", language)}
+            </div>
             {completedTodos.map((todo) => (
               <div
                 key={todo.id}
@@ -221,7 +226,7 @@ export default function TodoList({ onStartTask }) {
                 <button
                   onClick={() => handleDelete(todo.id)}
                   className="p-1 hover:bg-gray-200 hover:bg-opacity-20 rounded transition-colors"
-                  aria-label="Delete"
+                  aria-label={t("todoList.deleteAriaLabel", language)}
                 >
                   <FaTrash className="w-3 h-3 text-red-600" />
                 </button>

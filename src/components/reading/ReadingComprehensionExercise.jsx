@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api.js";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -19,6 +21,7 @@ export default function ReadingComprehensionExercise({
   onProgressUpdate,
   onAnswerSubmit,
 }) {
+  const { language } = useLanguage();
   const [userAnswer, setUserAnswer] = useState("");
   const [showAnswer, setShowAnswer] = useState(false);
   const [submitFeedback, setSubmitFeedback] = useState(null);
@@ -28,7 +31,9 @@ export default function ReadingComprehensionExercise({
   if (!exercise) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Đang tải bài tập...</p>
+        <p className="text-gray-600">
+          {t("reading.readingComprehensionExercise.loading", language)}
+        </p>
       </div>
     );
   }
@@ -51,8 +56,15 @@ export default function ReadingComprehensionExercise({
     setIsCorrect(correct);
     setSubmitFeedback(
       correct
-        ? "Chính xác!"
-        : `Sai. Đáp án đúng: ${exercise.correctAnswer || "Không có đáp án"}`
+        ? t("reading.readingComprehensionExercise.feedbackCorrect", language)
+        : t("reading.readingComprehensionExercise.feedbackWrong", language, {
+            answer:
+              exercise.correctAnswer ||
+              t(
+                "reading.readingComprehensionExercise.noAnswerFallback",
+                language
+              ),
+          })
     );
     setShowAnswer(true);
 
@@ -77,10 +89,13 @@ export default function ReadingComprehensionExercise({
     <div className="bg-white rounded-2xl shadow-lg border-2 border-[#4aa6e0]/20 p-8">
       {/* Passage */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">Đoạn văn</h3>
+        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+          {t("reading.readingComprehensionExercise.passageTitle", language)}
+        </h3>
         <div className="bg-blue-50 rounded-xl p-6 border-2 border-[#4aa6e0]/20">
           <div className="text-lg leading-relaxed text-[#2e3856] whitespace-pre-wrap">
-            {exercise.passage || "Không có đoạn văn"}
+            {exercise.passage ||
+              t("reading.readingComprehensionExercise.noPassage", language)}
           </div>
         </div>
       </div>
@@ -88,7 +103,9 @@ export default function ReadingComprehensionExercise({
       {/* Question */}
       {exercise.question && (
         <div className="mb-6">
-          <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">Câu hỏi</h3>
+          <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+            {t("reading.readingComprehensionExercise.questionTitle", language)}
+          </h3>
           <div className="text-lg text-[#2e3856] leading-relaxed">
             {exercise.question}
           </div>
@@ -97,7 +114,9 @@ export default function ReadingComprehensionExercise({
 
       {/* Options */}
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">Chọn đáp án</h3>
+        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+          {t("reading.readingComprehensionExercise.chooseAnswerTitle", language)}
+        </h3>
         <div className="space-y-3">
           {options.map((option, index) => {
             const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
@@ -175,7 +194,7 @@ export default function ReadingComprehensionExercise({
             onClick={onPrevious}
             className="px-6 py-3 rounded-lg text-base font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
           >
-            ← Bài trước
+            ← {t("reading.readingComprehensionExercise.prevButton", language)}
           </button>
         )}
         <button
@@ -187,14 +206,16 @@ export default function ReadingComprehensionExercise({
               : "bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] hover:-translate-y-0.5 hover:shadow-lg"
           }`}
         >
-          {showAnswer ? "Đã trả lời" : "Nộp bài"}
+          {showAnswer
+            ? t("reading.readingComprehensionExercise.answeredButton", language)
+            : t("reading.readingComprehensionExercise.submitButton", language)}
         </button>
         {showAnswer && canGoNext && (
           <button
             onClick={onNext}
             className="px-8 py-3 rounded-lg text-base font-semibold bg-green-500 text-white hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-lg transition-colors"
           >
-            Bài tiếp theo →
+            {t("reading.readingComprehensionExercise.nextButton", language)} →
           </button>
         )}
       </div>

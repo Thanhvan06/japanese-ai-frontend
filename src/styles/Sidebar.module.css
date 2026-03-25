@@ -1,5 +1,5 @@
 .sidebar {
-  width: 260px;
+  width: 300px;
   background-color: white;
   /* remove dark border and use subtle separation */
   border-right: none;
@@ -8,6 +8,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  z-index: 40;
 }
 
 .closed {
@@ -48,6 +49,10 @@
 }
 
 .menuItem:hover svg {
+  color: white;
+}
+
+.menuItem:hover .menuLabel {
   color: white;
 }
 
@@ -124,6 +129,10 @@
   text-overflow: ellipsis;
 }
 
+.menuItem.active .menuLabel {
+  color: white;
+}
+
 .menuItem:hover .iconBox {
   background: rgba(119,190,240,0.12);
 }
@@ -140,16 +149,19 @@
 
 /* Open state explicit */
 .open {
-  width: 260px;
+  width: 300px;
 }
 
 /* Labels fade/slide animation */
 .menuLabel {
   display: inline-block;
+  max-width: 100%;
   transition: opacity 0.18s ease, transform 0.18s ease;
   opacity: 1;
   transform: translateX(0);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .closed .menuLabel {
@@ -160,4 +172,31 @@
 
 .menuItem {
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .open {
+    width: 240px;
+  }
+
+  .closed {
+    width: 56px;
+  }
+
+  .toggleBtn {
+    display: none;
+  }
+
+  .menuItem {
+    justify-content: center;
+    /* Mobile: reduce left/right margin so background matches icon column */
+    margin: 4px 4px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .menuItem > svg {
+    width: 18px;
+    height: 18px;
+  }
 }

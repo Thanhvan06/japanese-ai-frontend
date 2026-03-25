@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 // Protect admin routes: call /api/auth/me and verify role === 'admin'
 export default function AdminRoute({ children }) {
+  const { language } = useLanguage();
   const [status, setStatus] = useState("loading"); // loading | ok | denied | not_logged_in
   const location = useLocation();
 
@@ -45,7 +48,9 @@ export default function AdminRoute({ children }) {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Đang kiểm tra quyền truy cập...</div>
+        <div className="text-gray-500">
+          {t("adminRoute.checkingAccess", language)}
+        </div>
       </div>
     );
   }

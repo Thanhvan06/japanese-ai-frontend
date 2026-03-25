@@ -1,34 +1,35 @@
 import { useState } from "react";
-import { 
-  FaClock, 
-  FaMusic, 
-  FaVolumeUp, 
-  FaCheckSquare, 
-  FaStickyNote, 
-  FaYoutube,
+import {
+  FaClock,
+  FaMusic,
+  FaVolumeUp,
+  FaCheckSquare,
+  FaStickyNote,
   FaPalette,
   FaChevronUp,
   FaChevronDown,
-  FaExpand, 
-  FaCompress
+  FaExpand,
+  FaCompress,
 } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
-export default function StudyRoomTabBar({ 
-  onWindowToggle, 
+export default function StudyRoomTabBar({
+  onWindowToggle,
   windows,
   onToggleFullscreen,
-  isFullscreen
+  isFullscreen,
 }) {
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(true);
 
   const tabs = [
-    { id: "timer", icon: FaClock, label: "Timer" },
-    { id: "music", icon: FaMusic, label: "Music" },
-    { id: "ambient", icon: FaVolumeUp, label: "Sound" },
-    { id: "todo", icon: FaCheckSquare, label: "Todo" },
-    { id: "notes", icon: FaStickyNote, label: "Note" },
-    { id: "theme", icon: FaPalette, label: "Theme" },
-    //{ id: "video", icon: FaYoutube, label: "YouTube" },
+    { id: "timer", icon: FaClock, label: t("studyRoomTabBar.tabs.timer", language) },
+    { id: "music", icon: FaMusic, label: t("studyRoomTabBar.tabs.music", language) },
+    { id: "ambient", icon: FaVolumeUp, label: t("studyRoomTabBar.tabs.ambient", language) },
+    { id: "todo", icon: FaCheckSquare, label: t("studyRoomTabBar.tabs.todo", language) },
+    { id: "notes", icon: FaStickyNote, label: t("studyRoomTabBar.tabs.notes", language) },
+    { id: "theme", icon: FaPalette, label: t("studyRoomTabBar.tabs.theme", language) },
   ];
 
   return (
@@ -70,8 +71,12 @@ export default function StudyRoomTabBar({
                   }`}
                 title={
                   isActive
-                    ? `Close ${tab.label}`
-                    : `Open ${tab.label}`
+                    ? t("studyRoomTabBar.closeTabTitle", language, {
+                        label: tab.label,
+                      })
+                    : t("studyRoomTabBar.openTabTitle", language, {
+                        label: tab.label,
+                      })
                 }
               >
                 <Icon className="w-5 h-5" />
@@ -88,7 +93,11 @@ export default function StudyRoomTabBar({
             onClick={onToggleFullscreen}
             className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all
               bg-transparent text-gray-600 hover:bg-gray-100"
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            title={
+              isFullscreen
+                ? t("studyRoomTabBar.exitFullscreenTitle", language)
+                : t("studyRoomTabBar.fullscreenTitle", language)
+            }
           >
             {isFullscreen ? (
               <FaCompress className="w-5 h-5" />
@@ -96,7 +105,9 @@ export default function StudyRoomTabBar({
               <FaExpand className="w-5 h-5" />
             )}
             <span className="text-xs font-medium">
-              {isFullscreen ? "Exit" : "Full"}
+              {isFullscreen
+                ? t("studyRoomTabBar.exitButton", language)
+                : t("studyRoomTabBar.fullButton", language)}
             </span>
           </button>
         </div>

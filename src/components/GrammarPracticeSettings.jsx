@@ -1,16 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getGrammarByLevel, getGrammarExercises } from "../services/grammarService";
-
-const TIMER_OPTIONS = [
-  { value: 0, label: "Không giới hạn" },
-  { value: 300, label: "5 phút" },
-  { value: 600, label: "10 phút" },
-  { value: 900, label: "15 phút" },
-  { value: 1200, label: "20 phút" },
-];
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function GrammarPracticeSettings({ practiceType, onClose }) {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [level, setLevel] = useState("N5");
   const [selectedGrammars, setSelectedGrammars] = useState([]);
@@ -20,6 +15,28 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
   const [grammars, setGrammars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [maxQuestions, setMaxQuestions] = useState(20);
+  const TIMER_OPTIONS = [
+    {
+      value: 0,
+      label: t("grammarPracticeSettings.timerOptions.unlimited", language),
+    },
+    {
+      value: 300,
+      label: t("grammarPracticeSettings.timerOptions.minutes5", language),
+    },
+    {
+      value: 600,
+      label: t("grammarPracticeSettings.timerOptions.minutes10", language),
+    },
+    {
+      value: 900,
+      label: t("grammarPracticeSettings.timerOptions.minutes15", language),
+    },
+    {
+      value: 1200,
+      label: t("grammarPracticeSettings.timerOptions.minutes20", language),
+    },
+  ];
 
   useEffect(() => {
     const fetchGrammars = async () => {
@@ -95,7 +112,9 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
 
   const handleStart = async () => {
     if (!selectAll && selectedGrammars.length === 0) {
-      alert("Vui lòng chọn ít nhất một mẫu ngữ pháp");
+      alert(
+        t("grammarPracticeSettings.alerts.selectAtLeastOneGrammar", language)
+      );
       return;
     }
 
@@ -116,7 +135,7 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
       <div className="bg-white rounded-2xl p-8 shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-[#4aa6e0]">
-            Cài đặt luyện tập
+            {t("grammarPracticeSettings.title", language)}
           </h2>
           <button
             onClick={onClose}
@@ -130,7 +149,7 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
           {/* Level Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Cấp độ JLPT
+              {t("grammarPracticeSettings.labels.jlptLevel", language)}
             </label>
             <select
               value={level}
@@ -152,7 +171,7 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="block text-sm font-medium text-slate-700">
-                Chọn mẫu ngữ pháp
+                {t("grammarPracticeSettings.labels.selectGrammarPatterns", language)}
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -161,14 +180,20 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
                   onChange={handleSelectAllToggle}
                   className="w-4 h-4 text-[#4aa6e0]"
                 />
-                <span className="text-sm">Chọn tất cả</span>
+                <span className="text-sm">
+                  {t("grammarPracticeSettings.selectAll", language)}
+                </span>
               </label>
             </div>
 
             {loading ? (
-              <p className="text-sm text-slate-500">Đang tải...</p>
+              <p className="text-sm text-slate-500">
+                {t("grammarPracticeSettings.loading", language)}
+              </p>
             ) : grammars.length === 0 ? (
-              <p className="text-sm text-slate-500">Không có mẫu ngữ pháp nào</p>
+              <p className="text-sm text-slate-500">
+                {t("grammarPracticeSettings.noGrammarPatterns", language)}
+              </p>
             ) : (
               <div className="border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto">
                 <div className="space-y-2">
@@ -197,7 +222,9 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
           {/* Question Count */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Số câu hỏi (tối đa: {maxQuestions})
+              {t("grammarPracticeSettings.questionCount", language, {
+                maxQuestions,
+              })}
             </label>
             <input
               type="number"
@@ -212,7 +239,7 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
           {/* Timer Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Thời gian
+              {t("grammarPracticeSettings.labels.timer", language)}
             </label>
             <select
               value={timer}
@@ -233,14 +260,14 @@ export default function GrammarPracticeSettings({ practiceType, onClose }) {
               onClick={onClose}
               className="flex-1 rounded-lg border-2 border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-3 font-semibold transition-colors"
             >
-              Hủy
+              {t("grammarPracticeSettings.cancelButton", language)}
             </button>
             <button
               onClick={handleStart}
               disabled={loading || (!selectAll && selectedGrammars.length === 0)}
               className="flex-1 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-4 py-3 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Bắt đầu
+              {t("grammarPracticeSettings.startButton", language)}
             </button>
           </div>
         </div>

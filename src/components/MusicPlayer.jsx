@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { FaStepBackward, FaStepForward, FaPlay, FaPause, FaVolumeUp, FaVolumeMute, FaVolumeDown, FaTimes } from "react-icons/fa";
+import { FaStepBackward, FaStepForward, FaPlay, FaPause, FaTimes } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 // System default playlist - BẠN CÓ THỂ CHỈNH Ở ĐÂY
 const SYSTEM_PLAYLIST = [
@@ -41,6 +43,7 @@ const SYSTEM_PLAYLIST = [
 ];
 
 export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, playlist = [], onPlaylistChange }) {
+  const { language } = useLanguage();
   const [userPlaylist, setUserPlaylist] = useState(playlist);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -346,7 +349,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
   const handleAddYoutubeLink = () => {
     const trimmedLink = youtubeLink.trim();
     if (!trimmedLink) {
-      alert("Vui lòng nhập link YouTube!");
+      alert(t("musicPlayer.alerts.emptyYoutubeLink", language));
       return;
     }
 
@@ -354,8 +357,8 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
     if (videoId) {
       const newTrack = {
         id: `user-${Date.now()}`,
-        title: `YouTube: ${videoId}`,
-        artist: "Custom",
+        title: t("musicPlayer.customTrackTitle", language, { videoId }),
+        artist: t("musicPlayer.customArtist", language),
         youtubeId: videoId,
         isSystem: false
       };
@@ -373,7 +376,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
         setPlayerReady(false);
       }
     } else {
-      alert("Link YouTube không hợp lệ!\nVí dụ: https://youtube.com/watch?v=jfKfPfyJRdk\nHoặc chỉ ID: jfKfPfyJRdk");
+      alert(t("musicPlayer.alerts.invalidYoutubeLink", language));
     }
   };
 
@@ -427,7 +430,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold"> Nhạc nền</h4>
+        <h4 className="font-semibold">{t("musicPlayer.title", language)}</h4>
         <div className="flex gap-2">
           <button
             onClick={() => {
@@ -440,21 +443,29 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
             className={`text-xs px-2 py-1 rounded hover:bg-opacity-30 transition-colors ${
               showVideo ? "bg-blue-500 text-white" : "bg-white/10 bg-opacity-20"
             }`}
-            title={showVideo ? "Ẩn video" : "Hiện video"}
+            title={
+              showVideo
+                ? t("musicPlayer.hideVideoButton", language)
+                : t("musicPlayer.showVideoButton", language)
+            }
           >
-            {showVideo ? "Hiện video" : "Ẩn video"}
+            {showVideo
+              ? t("musicPlayer.showVideoButton", language)
+              : t("musicPlayer.hideVideoButton", language)}
           </button>
           <button
             onClick={() => setShowPlaylistSelector(!showPlaylistSelector)}
             className="text-xs px-2 py-1 bg-white/10 bg-opacity-20 rounded hover:bg-opacity-30 transition-colors"
           >
-             {activePlaylist === "system" ? "Hệ thống" : "Của tôi"}
+            {activePlaylist === "system"
+              ? t("musicPlayer.systemButton", language)
+              : t("musicPlayer.mineButton", language)}
           </button>
           <button
             onClick={() => setShowYoutubeInput(!showYoutubeInput)}
             className="text-xs px-2 py-1 bg-white/10 bg-opacity-20 rounded hover:bg-opacity-30 transition-colors"
           >
-            + YouTube
+            {t("musicPlayer.addYoutubeButton", language)}
           </button>
         </div>
       </div>
@@ -469,7 +480,9 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
                 : "bg-white/10 bg-opacity-20 hover:bg-opacity-30"
             }`}
           >
-             Playlist hệ thống ({systemPlaylist.length} bài)
+            {t("musicPlayer.systemPlaylistCount", language, {
+              count: systemPlaylist.length,
+            })}
           </button>
           <button
             onClick={() => switchPlaylist("user")}
@@ -480,7 +493,9 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
             }`}
             disabled={userPlaylist.length === 0}
           >
-             Playlist của tôi ({userPlaylist.length} bài)
+            {t("musicPlayer.userPlaylistCount", language, {
+              count: userPlaylist.length,
+            })}
           </button>
         </div>
       )}
@@ -488,7 +503,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
       {showYoutubeInput && (
         <div className="mb-4 p-3 bg-white/10 bg-opacity-10 rounded-lg">
           <label className="text-xs text-black text-opacity-70 mb-2 block">
-            Link YouTube:
+            {t("musicPlayer.youtubeLinkLabel", language)}
           </label>
           <input
             type="text"
@@ -507,7 +522,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
               onClick={handleAddYoutubeLink}
               className="flex-1 px-3 py-1.5 bg-[#50B0FA] hover:bg-[#238ACC] text-white bg-opacity-30 rounded text-xs font-medium hover:bg-opacity-40 transition-colors"
             >
-              Thêm vào playlist
+              {t("musicPlayer.addToPlaylistButton", language)}
             </button>
             <button
               onClick={() => {
@@ -516,7 +531,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
               }}
               className="px-3 py-1.5 bg-red-400 hover:bg-red-600 text-white bg-opacity-20 rounded text-xs font-medium hover:bg-opacity-30 transition-colors"
             >
-              Hủy
+              {t("musicPlayer.cancelButton", language)}
             </button>
           </div>
         </div>
@@ -533,7 +548,9 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
           <div className="text-sm font-medium mb-1 truncate">{currentTrack.title}</div>
           <div className="text-xs text-black text-opacity-70 truncate">{currentTrack.artist}</div>
           <div className="text-xs text-black text-opacity-50 mt-1">
-            {activePlaylist === "system" ? "Playlist hệ thống" : "Playlist của tôi"}
+            {activePlaylist === "system"
+              ? t("musicPlayer.systemPlaylistLabel", language)
+              : t("musicPlayer.userPlaylistLabel", language)}
           </div>
         </div>
       )}
@@ -565,7 +582,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
           <button
             onClick={handlePrevious}
             className="p-2 rounded-full bg-white/10 bg-opacity-20 hover:bg-opacity-30 transition-colors disabled:opacity-50"
-            aria-label="Previous"
+            aria-label={t("musicPlayer.aria.previous", language)}
             disabled={currentPlaylist.length === 0}
           >
             <FaStepBackward className="w-4 h-4" />
@@ -575,7 +592,11 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
             onClick={handlePlayPause}
             className="p-3 rounded-full transition-colors disabled:opacity-50"
             style={{ backgroundColor: isPlaying ? `${panelColor}80` : "rgba(255, 255, 255, 0.3)" }}
-            aria-label={isPlaying ? "Pause" : "Play"}
+            aria-label={
+              isPlaying
+                ? t("musicPlayer.aria.pause", language)
+                : t("musicPlayer.aria.play", language)
+            }
             disabled={!currentTrack || !playerReady}
           >
             {isPlaying ? (
@@ -588,7 +609,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
           <button
             onClick={handleNext}
             className="p-2 rounded-full bg-white/10 bg-opacity-20 hover:bg-opacity-30 transition-colors disabled:opacity-50"
-            aria-label="Next"
+            aria-label={t("musicPlayer.aria.next", language)}
             disabled={currentPlaylist.length === 0}
           >
             <FaStepForward className="w-4 h-4" />
@@ -599,7 +620,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
             <button
               onClick={() => setShowVolumeSlider(!showVolumeSlider)}
               className="p-2 rounded-full bg-white/10 bg-opacity-20 hover:bg-opacity-30 transition-colors"
-              aria-label="Volume"
+              aria-label={t("musicPlayer.aria.volume", language)}
             >
               <svg className="w-4 h-4 text-white text-opacity-70" fill="currentColor" viewBox="0 0 20 20">
                 {volume === 0 ? (
@@ -642,7 +663,9 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
       {currentPlaylist.length > 0 && (
         <div className="mt-4">
           <div className="text-xs text-white text-opacity-70 mb-2 font-medium">
-            {activePlaylist === "system" ? "Playlist hệ thống" : "Playlist của tôi"}
+            {activePlaylist === "system"
+              ? t("musicPlayer.systemPlaylistLabel", language)
+              : t("musicPlayer.userPlaylistLabel", language)}
           </div>
           <div className="max-h-40 overflow-y-auto space-y-1">
             {currentPlaylist.map((track, index) => (
@@ -665,7 +688,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
                   <button
                     onClick={() => handleRemoveTrack(track.id)}
                     className="ml-2 p-1 hover:bg-white/10 hover:bg-opacity-20 rounded transition-colors"
-                    aria-label="Remove track"
+                    aria-label={t("musicPlayer.aria.removeTrack", language)}
                   >
                     <FaTimes className="w-3 h-3" />
                   </button>
@@ -679,7 +702,7 @@ export default function MusicPlayer({ panelColor = "#4aa6e0", onVideoToggle, pla
       {userPlaylist.length === 0 && activePlaylist === "user" && (
         <div className="mt-4 p-4 bg-white/10 bg-opacity-10 rounded-lg text-center">
           <p className="text-sm text-white text-opacity-70">
-            Chưa có bài hát nào. Thêm link YouTube để tạo playlist riêng!
+            {t("musicPlayer.emptyUserPlaylist", language)}
           </p>
         </div>
       )}

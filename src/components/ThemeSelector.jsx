@@ -1,5 +1,7 @@
-import { useState} from "react";
+import { useState } from "react";
 import { FaCheck } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 // 30 unique predefined themes - removed duplicates
 const PREDEFINED_THEMES = [
@@ -40,6 +42,7 @@ export default function ThemeSelector({
   onThemeSelect,
   currentTheme 
 }) {
+  const { language } = useLanguage();
   const [uploadedImage, setUploadedImage] = useState(null);
   const [uploadedColor, setUploadedColor] = useState("#50B0FA");
   const [urlInput, setUrlInput] = useState("");
@@ -63,7 +66,7 @@ export default function ThemeSelector({
       setUploadedImage(url);
       setUploadedColor("#50B0FA");
     } else if (url) {
-      alert('Vui lòng nhập URL hợp lệ (bắt đầu bằng http:// hoặc https://)');
+      alert(t("themeSelector.alerts.invalidUrl", language));
     }
   };
 
@@ -84,7 +87,7 @@ export default function ThemeSelector({
         type: "uploaded",
         image: uploadedImage,
         color: uploadedColor,
-        name: "Custom Upload"
+        name: t("themeSelector.customUploadName", language),
       };
       onThemeSelect(themeData);
       // Reset preview after applying
@@ -100,19 +103,21 @@ export default function ThemeSelector({
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Chọn giao diện</h2>
+          <h2 className="text-2xl font-bold text-gray-800">
+            {t("themeSelector.title", language)}
+          </h2>
         </div>
 
         {/* Upload Section */}
         <div className="mb-8 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            Tải lên hình ảnh/GIF của bạn
+            {t("themeSelector.uploadSectionTitle", language)}
           </h3>
           <div className="space-y-3">
             {/* URL Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dán URL hình ảnh/GIF:
+                {t("themeSelector.urlLabel", language)}
               </label>
               <div className="flex gap-2">
                 <input
@@ -133,7 +138,7 @@ export default function ThemeSelector({
                     active:bg-[#2a8ad3] transition-all duration-200 text-sm font-medium 
                     shadow-sm hover:shadow-md transform hover:scale-105"
                 >
-                  Tải
+                  {t("themeSelector.loadButton", language)}
                 </button>
               </div>
             </div>
@@ -150,7 +155,7 @@ export default function ThemeSelector({
                 <div className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg 
                   text-center text-sm font-medium text-gray-700 transition-colors 
                   border border-gray-300">
-                  Chọn file từ máy
+                  {t("themeSelector.chooseFileButton", language)}
                 </div>
               </label>
               {uploadedImage && (
@@ -162,7 +167,7 @@ export default function ThemeSelector({
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.style.display = 'none';
-                        alert('Không thể tải hình ảnh từ URL này');
+                        alert(t("themeSelector.alerts.loadImageError", language));
                         setUploadedImage(null);
                       }}
                     />
@@ -173,7 +178,7 @@ export default function ThemeSelector({
                       hover:bg-[#3d9de6] active:bg-[#2a8ad3] transition-all duration-200 
                       text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105"
                   >
-                    Áp dụng
+                    {t("themeSelector.applyButton", language)}
                   </button>
                 </>
               )}
@@ -184,7 +189,7 @@ export default function ThemeSelector({
         {/* Predefined Themes Grid */}
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Giao diện có sẵn (30 chủ đề)
+            {t("themeSelector.predefinedSectionTitle", language)}
           </h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
             {PREDEFINED_THEMES.map((theme) => (
