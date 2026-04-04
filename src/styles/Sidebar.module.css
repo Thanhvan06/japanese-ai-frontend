@@ -1,13 +1,16 @@
 .sidebar {
-  width: 260px;
+  width: 304px;
+  flex-shrink: 0;
   background-color: white;
   /* remove dark border and use subtle separation */
   border-right: none;
   transition: width 0.3s ease;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: sticky;
   top: 0;
   height: 100vh;
+  box-sizing: border-box;
 }
 
 .closed {
@@ -55,10 +58,6 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-}
-
-.menuItem span {
-  display: inline-block;
 }
 
 .active {
@@ -118,10 +117,7 @@
 .menuItem .menuLabel {
   font-size: 16px;
   color: #111827;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 400;
 }
 
 .menuItem:hover .iconBox {
@@ -140,24 +136,32 @@
 
 /* Open state explicit */
 .open {
-  width: 260px;
+  width: 304px;
 }
 
 /* Labels fade/slide animation */
 .menuLabel {
-  display: inline-block;
+  display: block;
+  flex: 1;
+  min-width: 0;
   transition: opacity 0.18s ease, transform 0.18s ease;
   opacity: 1;
   transform: translateX(0);
-  white-space: nowrap;
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.35;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .closed .menuLabel {
   opacity: 0;
   transform: translateX(-6px);
   pointer-events: none;
-}
-
-.menuItem {
+  max-width: 0;
+  flex: 0 0 0;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  white-space: nowrap;
 }

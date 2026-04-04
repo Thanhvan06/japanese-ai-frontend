@@ -7,6 +7,7 @@ import {
   getSpeakingStats,
   generatePhraseAudio,
 } from "../services/speakingService.js";
+import { buildTranscriptDiffSegments } from "../utils/speakingTranscriptDiff.js";
 
 const tips = [
   "Nói chậm, rõ từng âm, chú ý trường âm và âm ngắt.",
@@ -528,16 +529,40 @@ export default function Speaking() {
                             </div>
                             <div>
                               <div className="text-xs text-gray-500 mb-1">Bạn nói:</div>
-                              <div className={`text-lg font-semibold p-2 rounded border ${
-                                result.score.accuracy >= 95
-                                  ? "bg-green-50 border-green-200 text-green-800"
-                                  : result.score.accuracy >= 85
-                                  ? "bg-blue-50 border-blue-200 text-blue-800"
-                                  : result.score.accuracy >= 70
-                                  ? "bg-orange-50 border-orange-200 text-orange-800"
-                                  : "bg-red-50 border-red-200 text-red-800"
-                              }`}>
-                                {result.transcribedText || "..."}
+                              <div className="text-lg p-2 rounded border border-gray-200 bg-white leading-relaxed">
+                                {(() => {
+                                  const raw = result.transcribedText?.trim();
+                                  if (!raw) {
+                                    return (
+                                      <span className="text-gray-400 font-medium">
+                                        ...
+                                      </span>
+                                    );
+                                  }
+                                  const { segments } = buildTranscriptDiffSegments(
+                                    selected.jp,
+                                    raw
+                                  );
+                                  if (segments.length === 0) {
+                                    return (
+                                      <span className="text-gray-800 font-semibold">
+                                        {raw}
+                                      </span>
+                                    );
+                                  }
+                                  return segments.map((seg, idx) => (
+                                    <span
+                                      key={idx}
+                                      className={
+                                        seg.match
+                                          ? "text-green-700 font-semibold"
+                                          : "text-red-600 underline decoration-red-500 decoration-2 underline-offset-2 font-semibold"
+                                      }
+                                    >
+                                      {seg.text}
+                                    </span>
+                                  ));
+                                })()}
                               </div>
                             </div>
                           </div>

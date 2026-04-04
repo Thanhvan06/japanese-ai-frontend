@@ -34,8 +34,10 @@ import AdminManagers from "./pages/admin/AdminManagers.jsx";
 import AdminReading from "./pages/admin/AdminReading.jsx";
 import AdminListening from "./pages/admin/AdminListening.jsx";
 import AdminSpeaking from "./pages/admin/AdminSpeaking.jsx";
+import AdminProgress from "./pages/admin/AdminProgress.jsx";
 import PersonalStudyRoom from "./pages/PersonalStudyRoom";
 import Reading from "./pages/Reading.jsx";
+import MyProgress from "./pages/MyProgress.jsx";
  
 function App() {
   return (
@@ -137,6 +139,14 @@ function App() {
             </AdminRoute>
           }
         />
+        <Route
+          path="/admin/progress"
+          element={
+            <AdminRoute>
+              <AdminProgress />
+            </AdminRoute>
+          }
+        />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         {/* --- Vocab Routes --- */}
@@ -156,6 +166,7 @@ function App() {
         <Route path="/listening" element={<Listening />} />
         <Route path="/reading" element={<Reading />} />
         <Route path="/speaking" element={<Speaking />} />
+        <Route path="/progress" element={<MyProgress />} />
 
         {/* --- Diary Routes --- */}
         <Route path="/diary" element={<Diary />} />

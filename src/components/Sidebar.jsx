@@ -15,6 +15,8 @@ import {
   FaQuestionCircle,
   FaSignOutAlt,
   FaUser,
+  FaBookOpen,
+  FaChartLine,
 } from "react-icons/fa";
 import styles from "../styles/Sidebar.module.css";
 import { useSidebar } from "../context/SidebarContext";
@@ -38,7 +40,9 @@ const Sidebar = () => {
     { icon: <FaClone />, label: t("sidebar.flashcard", language), path: "/flashcard" },
     { icon: <FaUser />, label: t("sidebar.personalRoom", language), path: "/personal-study-room" },
     { icon: <FaHeadphones />, label: t("sidebar.listening", language), path: "/listening" },
+    { icon: <FaBookOpen />, label: t("sidebar.reading", language), path: "/reading" },
     { icon: <FaMicrophoneAlt />, label: t("sidebar.speaking", language), path: "/speaking" },
+    { icon: <FaChartLine />, label: t("sidebar.myProgress", language), path: "/progress" },
     { icon: <FaRobot />, label: t("sidebar.chatbot", language), path: "/chatbot" },  
   ], [language]);
 
@@ -80,6 +84,7 @@ const Sidebar = () => {
     { icon: <FaBook />, label: t("sidebar.adminReading", language), path: "/admin/reading" },
     { icon: <FaHeadphones />, label: t("sidebar.adminListening", language), path: "/admin/listening" },
     { icon: <FaMicrophoneAlt />, label: t("sidebar.adminSpeaking", language), path: "/admin/speaking" },
+    { icon: <FaChartLine />, label: t("sidebar.adminProgress", language), path: "/admin/progress" },
     { icon: <FaUserCog />, label: t("sidebar.adminAudit", language), path: "/admin/audit" },
   ], [language]);
 
@@ -116,7 +121,9 @@ const Sidebar = () => {
               }}
             >
               {item.icon}
-              {isOpen && <span>{item.label}</span>}
+              {isOpen && (
+                <span className={styles.menuLabel}>{item.label}</span>
+              )}
             </li>
           ))}
         </ul>
@@ -129,11 +136,25 @@ const Sidebar = () => {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => navigate("/settings")}>
                 <FaCog />
-                {isOpen && <span style={{ marginLeft: 8 }}>{t("sidebar.settings", language)}</span>}
+                {isOpen && (
+                  <span
+                    className={styles.menuLabel}
+                    style={{ marginLeft: 8 }}
+                  >
+                    {t("sidebar.settings", language)}
+                  </span>
+                )}
               </li>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => navigate("/help")}>
                 <FaQuestionCircle />
-                {isOpen && <span style={{ marginLeft: 8 }}>{t("sidebar.help", language)}</span>}
+                {isOpen && (
+                  <span
+                    className={styles.menuLabel}
+                    style={{ marginLeft: 8 }}
+                  >
+                    {t("sidebar.help", language)}
+                  </span>
+                )}
               </li>
               <li className={styles.menuItem} style={{ margin: "6px 8px" }} onClick={() => {
                 localStorage.removeItem("token");
@@ -141,7 +162,14 @@ const Sidebar = () => {
                 navigate("/signin");
               }}>
                 <FaSignOutAlt />
-                {isOpen && <span style={{ marginLeft: 8 }}>{t("header.signOut", language)}</span>}
+                {isOpen && (
+                  <span
+                    className={styles.menuLabel}
+                    style={{ marginLeft: 8 }}
+                  >
+                    {t("header.signOut", language)}
+                  </span>
+                )}
               </li>
             </ul>
           </div>

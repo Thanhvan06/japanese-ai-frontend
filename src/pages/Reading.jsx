@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { FaBook } from "react-icons/fa";
-import { api } from "../lib/api.js";
+import { api, apiErrorHint } from "../lib/api.js";
 import ReadingComprehensionExercise from "../components/reading/ReadingComprehensionExercise";
 import FillInTheBlankExercise from "../components/reading/FillInTheBlankExercise";
 
@@ -55,7 +55,7 @@ export default function Reading() {
       }
     } catch (error) {
       console.error("Error loading exercises:", error);
-      alert("Không thể tải danh sách bài tập. Vui lòng thử lại.");
+      alert(`Không thể tải danh sách bài tập.\n\n${apiErrorHint(error)}`);
       setExercises([]);
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export default function Reading() {
       setCurrentExercise(detail);
     } catch (error) {
       console.error("Error loading exercise detail:", error);
-      alert("Không thể tải chi tiết bài tập. Vui lòng thử lại.");
+      alert(`Không thể tải chi tiết bài tập.\n\n${apiErrorHint(error)}`);
       setCurrentExercise(null);
     } finally {
       setLoadingDetail(false);
