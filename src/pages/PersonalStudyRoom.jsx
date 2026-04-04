@@ -229,10 +229,7 @@ export default function PersonalStudyRoom({ panelColor = "#4aa6e0" }) {
   return (
     <div className="flex min-h-screen bg-white">
       {!isFullscreen && <Sidebar />}
-      <div
-        className={`flex-1 relative overflow-hidden ${isFullscreen ? "" : "ml-14"
-          }`}
-      >
+      <div className="flex-1 relative overflow-hidden min-w-0">
         {!isFullscreen && <Header />}
         <div
           className="absolute inset-0"

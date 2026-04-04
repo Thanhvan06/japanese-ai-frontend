@@ -199,7 +199,7 @@ export default function Reading() {
           {step === "exerciseType" && (
             <div className="max-w-3xl mx-auto">
               <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl border-2 border-[#4aa6e0]/20 p-10">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                   <div>
                     <h2 className="text-3xl font-bold text-[#4aa6e0] mb-2">
                       Chọn loại bài tập
@@ -210,7 +210,7 @@ export default function Reading() {
                   </div>
                   <button
                     onClick={handleBackToLevel}
-                    className="px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
+                    className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
                   >
                     ← Quay lại
                   </button>
@@ -312,7 +312,7 @@ export default function Reading() {
               ) : currentExercise ? (
                 <div>
                   <div className="bg-gradient-to-r from-[#4aa6e0]/10 to-blue-50 rounded-2xl p-6 mb-6 border-2 border-[#4aa6e0]/20">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <h2 className="text-2xl font-bold text-[#4aa6e0] mb-1">
                           Bài tập {currentExerciseIndex + 1}/{exercises.length}
@@ -323,7 +323,7 @@ export default function Reading() {
                       </div>
                       <button
                         onClick={handleBackToExerciseType}
-                        className="px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
+                        className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
                       >
                         ← Quay lại
                       </button>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const NOTE_COLORS = [
   "bg-yellow-200",
@@ -10,6 +12,7 @@ const NOTE_COLORS = [
 ];
 
 export default function NotePad({ onNotesChange }) {
+  const { language } = useLanguage();
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
 
@@ -70,14 +73,17 @@ export default function NotePad({ onNotesChange }) {
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <h4 className="font-semibold mb-3 text-lg">Ghi chú</h4>
+      <h4 className="font-semibold mb-3 text-lg">
+        {t("notePad.title", language)}
+      </h4>
+
   
       {/* Input Area mới - Dùng textarea rộng hơn */}
       <div className="flex flex-col gap-3 mb-6 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
         <textarea
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Thêm ghi chú mới..."
+          placeholder={t("notePad.newNotePlaceholder", language)}
           className="w-full px-4 py-3 rounded-lg text-sm focus:outline-none border focus:ring-2 focus:ring-[#50B0FA] transition-all"
           rows={3}
         />
@@ -86,7 +92,7 @@ export default function NotePad({ onNotesChange }) {
             onClick={addNote}
             className="px-8 py-2 text-sm font-medium rounded-full bg-[#50B0FA] hover:bg-[#238ACC] text-white shadow-sm transition-all active:scale-95"
           >
-            Thêm ghi chú
+            {t("notePad.addButton", language)}
           </button>
         </div>
       </div>
@@ -103,7 +109,7 @@ export default function NotePad({ onNotesChange }) {
               value={note.content}
               onChange={(e) => updateNote(note.id, e.target.value)}
               className="w-full bg-transparent text-sm resize-none focus:outline-none flex-1 leading-relaxed"
-              placeholder="Nội dung ghi chú..."
+              placeholder={t("notePad.contentPlaceholder", language)}
             />
   
             {/* Actions - Căn giữa phía dưới */}
@@ -123,7 +129,7 @@ export default function NotePad({ onNotesChange }) {
               <button
                 onClick={() => deleteNote(note.id)}
                 className="p-2 rounded-full bg-white/40 hover:bg-red-100 hover:text-red-600 transition-colors text-black/60"
-                title="Xóa ghi chú"
+                title={t("notePad.deleteTitle", language)}
               >
                 <FaTimes size={14} />
               </button>

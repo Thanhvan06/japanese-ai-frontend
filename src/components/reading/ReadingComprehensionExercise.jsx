@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../../lib/api.js";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -27,6 +29,7 @@ export default function ReadingComprehensionExercise({
   onProgressUpdate,
   onAnswerSubmit,
 }) {
+  const { language } = useLanguage();
   const [userAnswer, setUserAnswer] = useState("");
   const [showAnswer, setShowAnswer] = useState(false);
   const [submitFeedback, setSubmitFeedback] = useState(null);
@@ -50,7 +53,9 @@ export default function ReadingComprehensionExercise({
   if (!exercise) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Đang tải bài tập...</p>
+        <p className="text-gray-600">
+          {t("reading.readingComprehensionExercise.loading", language)}
+        </p>
       </div>
     );
   }
@@ -100,8 +105,15 @@ export default function ReadingComprehensionExercise({
     setIsCorrect(correct);
     setSubmitFeedback(
       correct
-        ? "Chính xác!"
-        : `Sai. Đáp án đúng: ${correctLabel || "Không có đáp án"}`
+        ? t("reading.readingComprehensionExercise.feedbackCorrect", language)
+        : t("reading.readingComprehensionExercise.feedbackWrong", language, {
+            answer:
+              correctLabel ||
+              t(
+                "reading.readingComprehensionExercise.noAnswerFallback",
+                language
+              ),
+          })
     );
     setShowAnswer(true);
 
@@ -229,12 +241,13 @@ export default function ReadingComprehensionExercise({
 
       {!isBilingual && (
         <div className="mb-8">
-          <h3 className="text-lg text-[#4aa6e0] font-medium mb-3">
-            Đoạn văn
+          <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+            {t("reading.readingComprehensionExercise.passageTitle", language)}
           </h3>
-          <div className="bg-blue-50 rounded-xl p-5 border border-[#4aa6e0]/20 max-h-[min(70vh,32rem)] overflow-y-auto">
-            <div className="text-base leading-relaxed text-[#2e3856] whitespace-pre-wrap">
-              {exercise.passage || "Không có đoạn văn"}
+          <div className="bg-blue-50 rounded-xl p-6 border-2 border-[#4aa6e0]/20 max-h-[min(70vh,32rem)] overflow-y-auto">
+            <div className="text-lg leading-relaxed text-[#2e3856] whitespace-pre-wrap">
+              {exercise.passage ||
+                t("reading.readingComprehensionExercise.noPassage", language)}
             </div>
           </div>
         </div>
@@ -242,8 +255,8 @@ export default function ReadingComprehensionExercise({
 
       {(isBilingual ? currentQuestion : exercise.question) && (
         <div className="mb-6">
-          <h3 className="text-lg text-[#4aa6e0] font-medium mb-3">
-            Câu hỏi
+          <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+            {t("reading.readingComprehensionExercise.questionTitle", language)}
             {isBilingual && totalQuestions > 1 && (
               <span className="text-gray-500 font-normal text-base ml-2">
                 ({qIndex + 1}/{totalQuestions})
@@ -262,8 +275,8 @@ export default function ReadingComprehensionExercise({
       )}
 
       <div className="mb-6">
-        <h3 className="text-lg text-[#4aa6e0] font-medium mb-3">
-          Chọn đáp án
+        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+          {t("reading.readingComprehensionExercise.chooseAnswerTitle", language)}
         </h3>
         <div className="space-y-3">
           {options.map((option, index) => {
@@ -367,7 +380,7 @@ export default function ReadingComprehensionExercise({
             onClick={onPrevious}
             className="px-6 py-3 rounded-lg text-base font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
           >
-            ← Bài trước
+            ← {t("reading.readingComprehensionExercise.prevButton", language)}
           </button>
         )}
         {isBilingual &&
@@ -392,7 +405,9 @@ export default function ReadingComprehensionExercise({
               : "bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] hover:-translate-y-0.5 hover:shadow-lg"
           }`}
         >
-          {showAnswer ? "Đã trả lời" : "Nộp bài"}
+          {showAnswer
+            ? t("reading.readingComprehensionExercise.answeredButton", language)
+            : t("reading.readingComprehensionExercise.submitButton", language)}
         </button>
         {isBilingual && showAnswer && isLastQuestion && canGoNext && (
           <button
@@ -409,7 +424,7 @@ export default function ReadingComprehensionExercise({
             onClick={onNext}
             className="px-8 py-3 rounded-lg text-base font-medium bg-green-500 text-white hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-lg transition-colors"
           >
-            Bài tiếp theo →
+            {t("reading.readingComprehensionExercise.nextButton", language)} →
           </button>
         )}
       </div>

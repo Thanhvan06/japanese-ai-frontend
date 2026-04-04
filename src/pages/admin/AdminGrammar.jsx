@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
 import { FaEdit, FaTrash, FaPlus, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 export default function AdminGrammar() {
+  const { language } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -199,18 +202,18 @@ export default function AdminGrammar() {
   };
 
   return (
-    <AdminLayout title="Quản Lý Ngữ Pháp">
+    <AdminLayout title={t("adminGrammar.pageTitle", language)}>
       <div className="space-y-6 mx-auto max-w-7xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-2xl font-bold" style={{ color: "#77BEF0" }}>
-            Quản Lý Ngữ Pháp
+            {t("adminGrammar.pageTitle", language)}
           </h2>
           <button
             onClick={handleCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors w-full sm:w-auto"
           >
             <FaPlus />
-            <span>Thêm ngữ pháp</span>
+            <span>{t("adminGrammar.createButton", language)}</span>
           </button>
         </div>
 
@@ -228,12 +231,15 @@ export default function AdminGrammar() {
 
         {/* Search Bar */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <form onSubmit={handleSearch} className="flex items-center gap-3">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col sm:flex-row sm:items-center gap-3"
+          >
             <div className="flex-1">
               <input
                 type="text"
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Tìm kiếm ngữ pháp (cấu trúc, giải thích, ví dụ)..."
+                placeholder={t("adminGrammar.search.placeholder", language)}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -241,17 +247,17 @@ export default function AdminGrammar() {
             <button
               type="submit"
               disabled={searchLoading}
-              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
-              {searchLoading ? "Đang tìm..." : "Tìm kiếm"}
+              {searchLoading ? t("adminGrammar.search.loading", language) : t("adminGrammar.search.button", language)}
             </button>
             {searchQuery && (
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors w-full sm:w-auto"
               >
-                Xóa
+                {t("adminGrammar.search.clear", language)}
               </button>
             )}
           </form>
@@ -262,7 +268,7 @@ export default function AdminGrammar() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cấp độ JLPT
+                {t("adminGrammar.filters.levelLabel", language)}
               </label>
               <select
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -272,7 +278,7 @@ export default function AdminGrammar() {
                   setPage(1);
                 }}
               >
-                <option value="">Tất cả</option>
+                <option value="">{t("adminGrammar.filters.all", language)}</option>
                 <option value="N5">N5</option>
                 <option value="N4">N4</option>
                 <option value="N3">N3</option>
@@ -283,7 +289,7 @@ export default function AdminGrammar() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Trạng thái
+                {t("adminGrammar.filters.statusLabel", language)}
               </label>
               <select
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -293,9 +299,9 @@ export default function AdminGrammar() {
                   setPage(1);
                 }}
               >
-                <option value="">Tất cả</option>
-                <option value="true">Đã xuất bản</option>
-                <option value="false">Chưa xuất bản</option>
+                <option value="">{t("adminGrammar.filters.all", language)}</option>
+                <option value="true">{t("adminGrammar.filters.published", language)}</option>
+                <option value="false">{t("adminGrammar.filters.unpublished", language)}</option>
               </select>
             </div>
           </div>
@@ -308,25 +314,25 @@ export default function AdminGrammar() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    ID
+                    {t("adminGrammar.table.id", language)}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    Cấu trúc
+                    {t("adminGrammar.table.structure", language)}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    Giải thích
+                    {t("adminGrammar.table.explanation", language)}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    Ví dụ JP
+                    {t("adminGrammar.table.exampleJp", language)}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    Cấp độ
+                    {t("adminGrammar.table.level", language)}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    Trạng thái
+                    {t("adminGrammar.table.status", language)}
                   </th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
-                    Thao tác
+                    {t("adminGrammar.table.actions", language)}
                   </th>
                 </tr>
               </thead>
@@ -335,13 +341,13 @@ export default function AdminGrammar() {
                   searchLoading ? (
                     <tr>
                       <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                        Đang tìm kiếm...
+                        {t("adminGrammar.table.searchLoading", language)}
                       </td>
                     </tr>
                   ) : searchResults.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                        Không tìm thấy kết quả
+                        {t("adminGrammar.table.searchEmpty", language)}
                       </td>
                     </tr>
                   ) : (
@@ -366,7 +372,9 @@ export default function AdminGrammar() {
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {item.is_published ? "Đã xuất bản" : "Chưa xuất bản"}
+                            {item.is_published
+                              ? t("adminGrammar.table.published", language)
+                              : t("adminGrammar.table.unpublished", language)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-right">
@@ -378,7 +386,17 @@ export default function AdminGrammar() {
                               }}
                               disabled={submitting}
                               className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
-                              title="Xuất bản/Ẩn"
+                              title={
+                                item.is_published
+                                  ? t(
+                                      "adminGrammar.table.publishHideTitleHidden",
+                                      language
+                                    )
+                                  : t(
+                                      "adminGrammar.table.publishHideTitlePublished",
+                                      language
+                                    )
+                              }
                             >
                               {item.is_published ? (
                                 <FaEyeSlash />
@@ -389,14 +407,14 @@ export default function AdminGrammar() {
                             <button
                               onClick={() => handleEdit(item)}
                               className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
-                              title="Chỉnh sửa"
+                              title={t("adminGrammar.table.editTitle", language)}
                             >
                               <FaEdit />
                             </button>
                             <button
                               onClick={() => handleDelete(item)}
                               className="p-2 text-gray-600 hover:text-red-600 transition-colors"
-                              title="Xóa"
+                              title={t("adminGrammar.table.deleteTitle", language)}
                             >
                               <FaTrash />
                             </button>
@@ -408,13 +426,13 @@ export default function AdminGrammar() {
                 ) : loading ? (
                   <tr>
                     <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                      Đang tải...
+                      {t("adminGrammar.table.loading", language)}
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                      Không có ngữ pháp nào
+                      {t("adminGrammar.table.empty", language)}
                     </td>
                   </tr>
                 ) : (
@@ -440,11 +458,11 @@ export default function AdminGrammar() {
                       <td className="px-6 py-4 text-sm">
                         {item.is_published ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Đã xuất bản
+                            {t("adminGrammar.table.published", language)}
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            Chưa xuất bản
+                            {t("adminGrammar.table.unpublished", language)}
                           </span>
                         )}
                       </td>
@@ -456,8 +474,14 @@ export default function AdminGrammar() {
                             className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
                             title={
                               item.is_published
-                                ? "Ẩn khỏi công khai"
-                                : "Xuất bản"
+                                ? t(
+                                    "adminGrammar.table.publishHideTitleHidden",
+                                    language
+                                  )
+                                : t(
+                                    "adminGrammar.table.publishHideTitlePublished",
+                                    language
+                                  )
                             }
                           >
                             {item.is_published ? (
@@ -469,14 +493,14 @@ export default function AdminGrammar() {
                           <button
                             onClick={() => handleEdit(item)}
                             className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
-                            title="Chỉnh sửa"
+                            title={t("adminGrammar.table.editTitle", language)}
                           >
                             <FaEdit />
                           </button>
                           <button
                             onClick={() => handleDelete(item)}
                             className="p-2 text-gray-600 hover:text-red-600 transition-colors"
-                            title="Xóa"
+                            title={t("adminGrammar.table.deleteTitle", language)}
                           >
                             <FaTrash />
                           </button>
@@ -493,8 +517,11 @@ export default function AdminGrammar() {
           {!searchQuery && total > limit && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, total)}{" "}
-                trong tổng số {total} ngữ pháp
+                {t("adminGrammar.pagination.showing", language, {
+                  start: (page - 1) * limit + 1,
+                  end: Math.min(page * limit, total),
+                  total,
+                })}
               </div>
               <div className="flex gap-2">
                 <button
@@ -502,14 +529,14 @@ export default function AdminGrammar() {
                   onClick={() => setPage(page - 1)}
                   className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >
-                  Trước
+                  {t("adminGrammar.pagination.prev", language)}
                 </button>
                 <button
                   disabled={page * limit >= total}
                   onClick={() => setPage(page + 1)}
                   className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >
-                  Sau
+                  {t("adminGrammar.pagination.next", language)}
                 </button>
               </div>
             </div>
@@ -530,7 +557,9 @@ export default function AdminGrammar() {
             {/* Header */}
             <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
               <h3 className="text-xl font-bold" style={{ color: "#77BEF0" }}>
-                {modalState.type === "create" ? "Thêm ngữ pháp" : "Chỉnh sửa ngữ pháp"}
+                {modalState.type === "create"
+                  ? t("adminGrammar.modal.createTitle", language)
+                  : t("adminGrammar.modal.editTitle", language)}
               </h3>
               <button
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -565,7 +594,8 @@ export default function AdminGrammar() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cấu trúc ngữ pháp <span className="text-red-500">*</span>
+                    {t("adminGrammar.modal.fields.grammarStructure", language)}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -587,7 +617,8 @@ export default function AdminGrammar() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Giải thích <span className="text-red-500">*</span>
+                    {t("adminGrammar.modal.fields.explanation", language)}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     className={`w-full px-4 py-2 rounded-lg border ${
@@ -611,7 +642,8 @@ export default function AdminGrammar() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ví dụ tiếng Nhật <span className="text-red-500">*</span>
+                    {t("adminGrammar.modal.fields.exampleJp", language)}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     className={`w-full px-4 py-2 rounded-lg border ${
@@ -633,7 +665,7 @@ export default function AdminGrammar() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ví dụ tiếng Việt
+                    {t("adminGrammar.modal.fields.exampleViet", language)}
                   </label>
                   <textarea
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -647,7 +679,8 @@ export default function AdminGrammar() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cấp độ JLPT <span className="text-red-500">*</span>
+                    {t("adminGrammar.modal.fields.jlptLevel", language)}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <select
                     className={`w-full px-4 py-2 rounded-lg border ${
@@ -688,7 +721,7 @@ export default function AdminGrammar() {
                       }
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      Xuất bản
+                      {t("adminGrammar.modal.fields.publish", language)}
                     </span>
                   </label>
                 </div>
@@ -705,7 +738,7 @@ export default function AdminGrammar() {
                 }
                 disabled={submitting}
               >
-                Hủy
+                {t("adminGrammar.modal.actions.cancel", language)}
               </button>
               <button
                 type="submit"
@@ -714,10 +747,10 @@ export default function AdminGrammar() {
                 disabled={submitting}
               >
                 {submitting
-                  ? "Đang xử lý..."
+                  ? t("adminGrammar.modal.actions.processing", language)
                   : modalState.type === "create"
-                  ? "Thêm"
-                  : "Cập nhật"}
+                  ? t("adminGrammar.modal.actions.create", language)
+                  : t("adminGrammar.modal.actions.update", language)}
               </button>
             </div>
           </div>
@@ -736,7 +769,7 @@ export default function AdminGrammar() {
           <div className="bg-white rounded-xl shadow-2xl z-60 max-w-md w-full">
             <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
               <h3 className="text-xl font-bold" style={{ color: "#77BEF0" }}>
-                Xóa ngữ pháp
+                {t("adminGrammar.deleteModal.title", language)}
               </h3>
               <button
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -761,9 +794,9 @@ export default function AdminGrammar() {
             </div>
             <div className="p-6">
               <p className="text-sm text-gray-700 mb-4">
-                Bạn có chắc muốn xóa ngữ pháp{" "}
-                <strong>{modalState.item?.grammar_structure}</strong>? Hành động này không
-                thể hoàn tác.
+                {t("adminGrammar.deleteModal.confirmText", language, {
+                  grammar: modalState.item?.grammar_structure || "",
+                })}
               </p>
             </div>
             <div className="flex-shrink-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end gap-2 rounded-b-xl">
@@ -774,14 +807,16 @@ export default function AdminGrammar() {
                 }
                 disabled={submitting}
               >
-                Hủy
+                {t("adminGrammar.deleteModal.cancel", language)}
               </button>
               <button
                 className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 font-medium disabled:opacity-50"
                 onClick={handleDeleteConfirm}
                 disabled={submitting}
               >
-                {submitting ? "Đang xóa..." : "Xóa"}
+                {submitting
+                  ? t("adminGrammar.deleteModal.deleting", language)
+                  : t("adminGrammar.deleteModal.delete", language)}
               </button>
             </div>
           </div>

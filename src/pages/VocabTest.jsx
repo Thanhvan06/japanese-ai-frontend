@@ -7,8 +7,11 @@ import TestQuestion from "../components/TestQuestion";
 import TestTimer from "../components/TestTimer";
 import TestResult from "../components/TestResult";
 import { api } from "../lib/api";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function VocabTest() {
+  const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
@@ -42,7 +45,7 @@ export default function VocabTest() {
       setCompleted(false);
     } catch (err) {
       console.error("Fetch test error:", err);
-      alert(err.message || "Không thể tải bài kiểm tra");
+      alert(err.message || t("vocabTest.loadTestError", language));
       setShowSettings(true);
     } finally {
       setLoading(false);
@@ -99,12 +102,12 @@ export default function VocabTest() {
         <div className="flex-1">
           <Header />
           <main className="p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <button
                 onClick={() => navigate("/vocab")}
-                className="text-sm text-slate-500 hover:text-slate-700"
+                className="w-full sm:w-auto text-sm text-slate-500 hover:text-slate-700"
               >
-                ← Quay lại
+                ← {t("vocabTest.backButton", language)}
               </button>
             </div>
             <TestSettings
@@ -125,7 +128,7 @@ export default function VocabTest() {
         <div className="flex-1">
           <Header />
           <main className="p-6">
-            <p>Đang tải...</p>
+            <p>{t("vocabTest.loading", language)}</p>
           </main>
         </div>
       </div>
@@ -139,12 +142,12 @@ export default function VocabTest() {
         <div className="flex-1">
           <Header />
           <main className="p-6">
-            <p className="text-red-500">Không có câu hỏi nào.</p>
+            <p className="text-red-500">{t("vocabTest.noQuestions", language)}</p>
             <button
               onClick={() => setShowSettings(true)}
               className="mt-4 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-6 py-2"
             >
-              Quay lại cài đặt
+              {t("vocabTest.backToSettingsButton", language)}
             </button>
           </main>
         </div>
@@ -162,12 +165,12 @@ export default function VocabTest() {
       <div className="flex-1">
         <Header />
         <main className="p-6 max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <button
               onClick={() => navigate("/vocab")}
-              className="text-sm text-slate-500 hover:text-slate-700"
+              className="w-full sm:w-auto text-sm text-slate-500 hover:text-slate-700"
             >
-              ← Quay lại
+              ← {t("vocabTest.backButton", language)}
             </button>
             <div className="flex items-center gap-4">
               {settings?.timer > 0 && (
@@ -201,13 +204,13 @@ export default function VocabTest() {
               />
 
               {/* Navigation */}
-              <div className="flex items-center justify-between mt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between mt-6">
                 <button
                   onClick={handlePrev}
                   disabled={currentIndex === 0}
-                  className="px-4 py-2 rounded-lg border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
                 >
-                  ← Trước
+                  ← {t("vocabTest.prevButton", language)}
                 </button>
 
                 <div className="flex gap-2">
@@ -228,9 +231,11 @@ export default function VocabTest() {
                 <button
                   onClick={handleNext}
                   disabled={!isAnswered && currentIndex === questions.length - 1}
-                  className="px-4 py-2 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {currentIndex === questions.length - 1 ? "Nộp bài" : "Tiếp theo →"}
+                  {currentIndex === questions.length - 1
+                    ? t("vocabTest.submitButton", language)
+                    : `${t("vocabTest.nextButton", language)} →`}
                 </button>
               </div>
             </>

@@ -120,10 +120,10 @@ export default function GrammarPractice() {
         <div className="flex-1">
           <Header />
           <main className="p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <button
                 onClick={() => navigate("/grammar")}
-                className="text-sm text-slate-500 hover:text-slate-700"
+                className="w-full sm:w-auto text-sm text-slate-500 hover:text-slate-700"
               >
                 ← Quay lại
               </button>
@@ -186,10 +186,10 @@ export default function GrammarPractice() {
       <div className="flex-1">
         <Header />
         <main className="p-6 max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <button
               onClick={() => navigate("/grammar")}
-              className="text-sm text-slate-500 hover:text-slate-700"
+              className="w-full sm:w-auto text-sm text-slate-500 hover:text-slate-700"
             >
               ← Quay lại
             </button>
@@ -374,16 +374,19 @@ export default function GrammarPractice() {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
             <button
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className="px-4 py-2 rounded-lg border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
             >
               ← Trước
             </button>
 
-            <div className="flex gap-2 overflow-x-auto max-w-full" style={{ scrollbarWidth: 'thin' }}>
+            <div
+              className="flex gap-2 overflow-x-auto max-w-full w-full sm:w-auto"
+              style={{ scrollbarWidth: "thin" }}
+            >
               {exercises.map((_, idx) => (
                 <div
                   key={idx}
@@ -401,7 +404,7 @@ export default function GrammarPractice() {
             <button
               onClick={handleNext}
               disabled={userAnswer === undefined && currentIndex === exercises.length - 1}
-              className="px-4 py-2 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {currentIndex === exercises.length - 1 ? "Nộp bài" : "Tiếp theo →"}
             </button>
@@ -737,7 +740,7 @@ function GrammarPracticeResult({ exercises, answers, onRestart }) {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => navigate("/grammar")}
                 className="flex-1 rounded-lg border-2 border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-3 font-semibold transition-colors"

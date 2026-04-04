@@ -11,6 +11,7 @@
   top: 0;
   height: 100vh;
   box-sizing: border-box;
+  z-index: 40;
 }
 
 .closed {
@@ -51,6 +52,10 @@
 }
 
 .menuItem:hover svg {
+  color: white;
+}
+
+.menuItem:hover .menuLabel {
   color: white;
 }
 
@@ -120,6 +125,10 @@
   font-weight: 400;
 }
 
+.menuItem.active .menuLabel {
+  color: white;
+}
+
 .menuItem:hover .iconBox {
   background: rgba(119,190,240,0.12);
 }
@@ -164,4 +173,31 @@
   padding: 0;
   overflow: hidden;
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .open {
+    width: 240px;
+  }
+
+  .closed {
+    width: 56px;
+  }
+
+  .toggleBtn {
+    display: none;
+  }
+
+  .menuItem {
+    justify-content: center;
+    /* Mobile: reduce left/right margin so background matches icon column */
+    margin: 4px 4px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .menuItem > svg {
+    width: 18px;
+    height: 18px;
+  }
 }

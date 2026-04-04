@@ -5,6 +5,8 @@ import { FaTrashAlt } from "react-icons/fa";
 import { FiImage } from "react-icons/fi";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 import {
   listFolders,
   createSet,
@@ -28,6 +30,7 @@ const createEmptyCard = (overrides = {}) => ({
 });
 
 const CreateFlashcard = () => {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const { setId } = useParams();
   const editingId = setId ? Number(setId) : null;
@@ -162,12 +165,12 @@ const CreateFlashcard = () => {
   const handleSubmit = async () => {
     setMessage("");
     if (!title.trim()) {
-      setMessage("Vui lòng nhập tiêu đề học phần");
+      setMessage(t("createFlashcardPage.messages.requireTitle", language));
       return;
     }
 
     if (!cardPayloads.length) {
-      setMessage("Cần ít nhất 1 thẻ hợp lệ");
+      setMessage(t("createFlashcardPage.messages.requireValidCard", language));
       return;
     }
 
@@ -199,14 +202,14 @@ const CreateFlashcard = () => {
           }
         }
 
-        setMessage("Đã cập nhật học phần! Đang chuyển...");
+        setMessage(t("createFlashcardPage.messages.updatedSuccess", language));
         setTimeout(() => navigate(`/flashcard/vocab-practice/${editingId}`), 800);
       } else {
         const res = await createSet(title.trim(), folderId);
         for (const card of cardPayloads) {
           await createCard(res.set.set_id, card.payload);
         }
-        setMessage("Tạo học phần thành công! Đang chuyển...");
+        setMessage(t("createFlashcardPage.messages.createdSuccess", language));
         setTimeout(() => navigate(`/flashcard/vocab-practice/${res.set.set_id}`), 800);
       }
     } catch (err) {
@@ -223,11 +226,13 @@ const CreateFlashcard = () => {
         <Header />
         <div className={styles.container}>
           <h1 className={styles.title}>
-            {editingId ? "Chỉnh sửa học phần" : "Tạo thẻ flashcard mới"}
+            {editingId
+              ? t("createFlashcardPage.titleEdit", language)
+              : t("createFlashcardPage.titleCreate", language)}
           </h1>
           <input
             className={styles.inputTitle}
-            placeholder="Tiêu đề học phần"
+            placeholder={t("createFlashcardPage.placeholders.setTitle", language)}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -237,7 +242,9 @@ const CreateFlashcard = () => {
             value={selectedFolder}
             onChange={(e) => setSelectedFolder(e.target.value)}
           >
-            <option value="">Không thuộc thư mục</option>
+            <option value="">
+              {t("createFlashcardPage.unassignedFolderOption", language)}
+            </option>
             {folders.map(folder => (
               <option key={folder.folder_id} value={folder.folder_id}>
                 {folder.folder_name}
@@ -251,14 +258,14 @@ const CreateFlashcard = () => {
               <div className={styles.cardGroup}>
                 <input
                   type="text"
-                  placeholder="Tiếng Nhật"
+                  placeholder={t("createFlashcardPage.placeholders.japanese", language)}
                   value={card.vocab}
                   onChange={(e) => handleChange(index, "vocab", e.target.value)}
                   className={styles.input}
                 />
                 <input
                   type="text"
-                  placeholder="Tiếng Việt"
+                  placeholder={t("createFlashcardPage.placeholders.vietnamese", language)}
                   value={card.mean}
                   onChange={(e) => handleChange(index, "mean", e.target.value)}
                   className={styles.input}
@@ -268,7 +275,7 @@ const CreateFlashcard = () => {
                     <div style={{ position: "relative", marginBottom: "8px" }}>
                       <img
                         src={card.imagePreview}
-                        alt="preview"
+                        alt={t("createFlashcardPage.imagePreviewAlt", language)}
                         className={styles.preview}
                         onClick={() => toggleImageOptions(index)}
                         style={{ cursor: "pointer" }}
@@ -292,7 +299,7 @@ const CreateFlashcard = () => {
                         }}>
                           <input
                             type="text"
-                            placeholder="Dán URL ảnh"
+                            placeholder={t("createFlashcardPage.placeholders.imageUrl", language)}
                             value={card.tempImageUrl || ""}
                             onChange={(e) => {
                               const updated = [...flashcards];
@@ -327,7 +334,7 @@ const CreateFlashcard = () => {
                               width: "100%"
                             }}
                           >
-                            Tải lên ghi chú
+                            {t("createFlashcardPage.uploadButton", language)}
                           </button>
                         </div>
                       )}
@@ -338,7 +345,7 @@ const CreateFlashcard = () => {
                         className={styles.icon}
                         onClick={() => toggleImageOptions(index)}
                         style={{ cursor: "pointer" }}
-                        title="Thêm ảnh"
+                        title={t("createFlashcardPage.addImageTitle", language)}
                       />
                       {card.showImageOptions && (
                         <div style={{
@@ -359,7 +366,7 @@ const CreateFlashcard = () => {
                         }}>
                           <input
                             type="text"
-                            placeholder="Dán URL ảnh"
+                            placeholder={t("createFlashcardPage.placeholders.imageUrl", language)}
                             value={card.tempImageUrl || ""}
                             onChange={(e) => {
                               const updated = [...flashcards];
@@ -394,7 +401,7 @@ const CreateFlashcard = () => {
                               width: "100%"
                             }}
                           >
-                            Tải lên ghi chú
+                            {t("createFlashcardPage.uploadButton", language)}
                           </button>
                         </div>
                       )}
@@ -410,7 +417,11 @@ const CreateFlashcard = () => {
 
           <button className={styles.addButton} onClick={addFlashcard}>+</button>
           <button className={styles.createButton} disabled={loading} onClick={handleSubmit}>
-            {loading ? "Đang lưu..." : editingId ? "Lưu thay đổi" : "Tạo học phần"}
+            {loading
+              ? t("createFlashcardPage.savingButton", language)
+              : editingId
+              ? t("createFlashcardPage.saveChangesButton", language)
+              : t("createFlashcardPage.createSetButton", language)}
           </button>
         </div>
       </div>

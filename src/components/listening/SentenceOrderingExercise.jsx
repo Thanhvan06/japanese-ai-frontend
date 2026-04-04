@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { FaPlay, FaPause, FaRedo, FaVolumeUp, FaGripVertical } from "react-icons/fa";
 import { api } from "../../lib/api.js";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -20,6 +22,7 @@ export default function SentenceOrderingExercise({
   onProgressUpdate,
   onAnswerSubmit,
 }) {
+  const { language } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [availableWords, setAvailableWords] = useState([]);
   const [orderedWords, setOrderedWords] = useState([]);
@@ -33,7 +36,7 @@ export default function SentenceOrderingExercise({
   if (!exercise) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Đang tải bài tập...</p>
+        <p className="text-gray-600">{t("listening.sentenceOrderingExercise.loading", language)}</p>
       </div>
     );
   }
@@ -79,7 +82,7 @@ export default function SentenceOrderingExercise({
 
   const handlePlayPause = () => {
     if (!exercise?.audioUrl) {
-      alert("Không có audio cho bài tập này.");
+      alert(t("listening.sentenceOrderingExercise.noAudio", language));
       return;
     }
 
@@ -97,7 +100,7 @@ export default function SentenceOrderingExercise({
         }
       });
       audioRef.current.addEventListener("error", () => {
-        alert("Không thể phát audio. Vui lòng kiểm tra đường dẫn audio.");
+        alert(t("listening.sentenceOrderingExercise.audioPathError", language));
         setIsPlaying(false);
         setAudioProgress(0);
       });
@@ -109,7 +112,7 @@ export default function SentenceOrderingExercise({
     } else {
       audioRef.current.play().catch((error) => {
         console.error("Error playing audio:", error);
-        alert("Không thể phát audio.");
+        alert(t("listening.sentenceOrderingExercise.playAudioError", language));
         setIsPlaying(false);
       });
       setIsPlaying(true);
@@ -205,7 +208,7 @@ export default function SentenceOrderingExercise({
 
   const handleSubmitAnswer = async () => {
     if (orderedWords.length === 0) {
-      alert("Vui lòng sắp xếp các từ để tạo thành câu.");
+      alert(t("listening.sentenceOrderingExercise.submitWordsRequired", language));
       return;
     }
 
@@ -235,7 +238,7 @@ export default function SentenceOrderingExercise({
       }
     } catch (error) {
       console.error("Error checking sentence ordering:", error);
-      alert("Không thể kiểm tra đáp án. Vui lòng thử lại.");
+      alert(t("listening.sentenceOrderingExercise.checkAnswerError", language));
     }
   };
 
@@ -253,14 +256,16 @@ export default function SentenceOrderingExercise({
             onClick={handleReplay}
             disabled={!exercise?.audioUrl}
             className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Nghe lại"
+            title={t("listening.sentenceOrderingExercise.replayTitle", language)}
           >
             <FaRedo />
           </button>
           <div className="flex items-center flex-1">
             <FaVolumeUp className="text-gray-500" />
             <span className="text-gray-600 ml-2">
-              {isPlaying ? "Đang phát..." : "Nhấn để phát audio"}
+              {isPlaying
+                ? t("listening.sentenceOrderingExercise.playing", language)
+                : t("listening.sentenceOrderingExercise.tapToPlay", language)}
             </span>
           </div>
         </div>
@@ -274,12 +279,12 @@ export default function SentenceOrderingExercise({
 
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-[#4aa6e0] mb-4">
-          Drag and drop để sắp xếp câu đúng
+          {t("listening.sentenceOrderingExercise.heading", language)}
         </h3>
 
         <div className="mb-6">
           <h4 className="text-sm font-semibold text-gray-600 mb-3">
-            Câu đã sắp xếp:
+            {t("listening.sentenceOrderingExercise.orderedLabel", language)}
           </h4>
           <div
             className="min-h-[80px] p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-wrap gap-2"
@@ -288,7 +293,7 @@ export default function SentenceOrderingExercise({
           >
             {orderedWords.length === 0 ? (
               <p className="text-gray-400 text-sm w-full text-center">
-                Kéo các từ từ bên dưới vào đây
+                {t("listening.sentenceOrderingExercise.dragHintEmpty", language)}
               </p>
             ) : (
               orderedWords.map((word, index) => (
@@ -319,11 +324,13 @@ export default function SentenceOrderingExercise({
 
         <div>
           <h4 className="text-sm font-semibold text-gray-600 mb-3">
-            Các từ có sẵn:
+            {t("listening.sentenceOrderingExercise.availableLabel", language)}
           </h4>
           <div className="flex flex-wrap gap-2">
             {availableWords.length === 0 ? (
-              <p className="text-gray-400 text-sm">Đã sử dụng hết các từ</p>
+              <p className="text-gray-400 text-sm">
+                {t("listening.sentenceOrderingExercise.availableEmpty", language)}
+              </p>
             ) : (
               availableWords.map((word, index) => (
                 <div
@@ -348,7 +355,7 @@ export default function SentenceOrderingExercise({
             onClick={handleReset}
             className="mt-4 px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Reset
+            {t("listening.sentenceOrderingExercise.resetButton", language)}
           </button>
         )}
       </div>
@@ -363,23 +370,32 @@ export default function SentenceOrderingExercise({
             }`}
           >
             {result.isCorrect ? (
-              <div className="text-xl font-bold">Chính xác!</div>
+              <div className="text-xl font-bold">
+                {t("listening.sentenceOrderingExercise.correctTitle", language)}
+              </div>
             ) : (
-              <div className="text-xl font-bold">Chưa chính xác</div>
+              <div className="text-xl font-bold">
+                {t(
+                  "listening.sentenceOrderingExercise.incorrectTitle",
+                  language
+                )}
+              </div>
             )}
           </div>
 
           {!result.isCorrect && (
             <div className="bg-blue-50 border-2 border-[#4aa6e0] rounded-xl p-6">
               <h4 className="text-lg font-semibold text-[#4aa6e0] mb-2">
-                Đáp án đúng:
+                {t("listening.sentenceOrderingExercise.correctAnswerTitle", language)}
               </h4>
               <div className="mb-3 leading-relaxed text-[#2e3856] text-lg font-medium">
 {result.correctAnswer}
               </div>
               {exercise.translation && (
                 <p className="leading-relaxed text-[#2e3856]">
-                  <strong className="text-[#4aa6e0] mr-2">Dịch:</strong>{" "}
+                  <strong className="text-[#4aa6e0] mr-2">
+                    {t("listening.sentenceOrderingExercise.translationLabel", language)}
+                  </strong>{" "}
                   {exercise.translation}
                 </p>
               )}
@@ -394,7 +410,7 @@ export default function SentenceOrderingExercise({
             onClick={onPrevious}
             className="px-6 py-3 rounded-lg text-base font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
           >
-            ← Bài trước
+            ← {t("listening.sentenceOrderingExercise.prevButton", language)}
           </button>
         )}
         <button
@@ -406,14 +422,16 @@ export default function SentenceOrderingExercise({
               : "bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] hover:-translate-y-0.5 hover:shadow-lg"
           }`}
         >
-          {showResult ? "Đã nộp bài" : "Nộp bài"}
+          {showResult
+            ? t("listening.sentenceOrderingExercise.submittedButton", language)
+            : t("listening.sentenceOrderingExercise.submitButton", language)}
         </button>
         {showResult && canGoNext && (
           <button
             onClick={onNext}
             className="px-8 py-3 rounded-lg text-base font-semibold bg-green-500 text-white hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-lg transition-colors"
           >
-            Bài tiếp theo →
+            {t("listening.sentenceOrderingExercise.nextButton", language)} →
           </button>
         )}
       </div>

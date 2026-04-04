@@ -57,9 +57,9 @@ export default function Vocab() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <Header />
-        <main className="p-6">
+        <main className="p-4 sm:p-6">
           {/* ===== LUYỆN TẬP TỪ VỰNG ===== */}
           <div className="flex items-center gap-4 mb-6">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
@@ -67,7 +67,7 @@ export default function Vocab() {
             </h1>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 mb-10">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-10">
             {/* Matching Cards Card */}
             <div className="rounded-2xl border-2 border-[#4aa6e0] bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
               <h2 className="text-xl font-bold text-[#4aa6e0] mb-4">
@@ -97,14 +97,14 @@ export default function Vocab() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Chủ đề (tùy chọn)
+                    {t("vocab.topic", language)}
                   </label>
                   <select
                     value={selectedTopic}
                     onChange={(e) => setSelectedTopic(e.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#4aa6e0]"
                   >
-                    <option value="">Tất cả chủ đề</option>
+                    <option value="">{t("vocab.allTopics", language)}</option>
                     {topics
                       .filter((topic) => topic._count?.vocabitems > 0)
                       .map((topic) => (
@@ -188,14 +188,14 @@ export default function Vocab() {
             </h1>
           </div>
 
-          <div className="grid grid-cols-5 gap-6 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-10">
             {levels.map((level) => (
               <LevelCard key={level} level={level} type="vocab" />
             ))}
           </div>
 
           {/* =====  TỪ VỰNG THEO CHỦ ĐỀ ===== */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
               {t("vocab.vocabByTopic", language)}
             </h1>
@@ -207,7 +207,7 @@ export default function Vocab() {
             ) : topics.length === 0 ? (
               <p className="text-sm text-slate-500">{t("vocab.noTopics", language)}</p>
             ) : (
-              <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {topics
                   .filter((topic) => topic._count?.vocabitems > 0)
                   .map((topic) => (

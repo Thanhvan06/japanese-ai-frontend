@@ -1,23 +1,11 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import axios from "axios";
-
-const TEST_TYPES = [
-  { value: "image", label: "Hình ảnh → Từ" },
-  { value: "kanji-hiragana", label: "Kanji → Hiragana" },
-  { value: "hiragana-kanji", label: "Hiragana → Kanji" },
-  { value: "word-meaning", label: "Từ → Nghĩa" },
-];
-
-const TIMER_OPTIONS = [
-  { value: 0, label: "Không giới hạn" },
-  { value: 300, label: "5 phút" },
-  { value: 600, label: "10 phút" },
-  { value: 900, label: "15 phút" },
-  { value: 1200, label: "20 phút" },
-];
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
+  const { language } = useLanguage();
   const [testType, setTestType] = useState("image");
   const [sourceType, setSourceType] = useState(initialTopic ? "topic" : "level"); // level, topic, flashcard
   const [level, setLevel] = useState(initialLevel || "N5");
@@ -31,6 +19,35 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [loadingFlashcards, setLoadingFlashcards] = useState(false);
   const [maxQuestions, setMaxQuestions] = useState(10);
+  const TEST_TYPES = [
+    {
+      value: "image",
+      label: t("testSettings.testTypes.image", language),
+    },
+    {
+      value: "kanji-hiragana",
+      label: t("testSettings.testTypes.kanjiHiragana", language),
+    },
+    {
+      value: "hiragana-kanji",
+      label: t("testSettings.testTypes.hiraganaKanji", language),
+    },
+    {
+      value: "word-meaning",
+      label: t("testSettings.testTypes.wordMeaning", language),
+    },
+  ];
+
+  const TIMER_OPTIONS = [
+    {
+      value: 0,
+      label: t("testSettings.timerOptions.unlimited", language),
+    },
+    { value: 300, label: t("testSettings.timerOptions.minutes5", language) },
+    { value: 600, label: t("testSettings.timerOptions.minutes10", language) },
+    { value: 900, label: t("testSettings.timerOptions.minutes15", language) },
+    { value: 1200, label: t("testSettings.timerOptions.minutes20", language) },
+  ];
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -106,12 +123,12 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
     e.preventDefault();
     
     if (sourceType === "topic" && !topic) {
-      alert("Vui lòng chọn chủ đề");
+      alert(t("testSettings.alerts.selectTopic", language));
       return;
     }
     
     if (sourceType === "flashcard" && !flashcardSetId) {
-      alert("Vui lòng chọn flashcard set");
+      alert(t("testSettings.alerts.selectFlashcardSet", language));
       return;
     }
 
@@ -129,13 +146,15 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-[#4aa6e0] mb-6">Cài đặt bài kiểm tra</h2>
+      <h2 className="text-2xl font-bold text-[#4aa6e0] mb-6">
+        {t("testSettings.title", language)}
+      </h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Test Type */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-3">
-            Loại bài tập
+            {t("testSettings.labels.testType", language)}
           </label>
           <div className="space-y-2">
             {TEST_TYPES.map((type) => (
@@ -160,7 +179,7 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
         {/* Source Type */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-3">
-            Nguồn từ vựng
+            {t("testSettings.labels.vocabSource", language)}
           </label>
           <div className="space-y-2">
             <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
@@ -172,7 +191,9 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
                 onChange={(e) => setSourceType(e.target.value)}
                 className="w-4 h-4 text-[#4aa6e0]"
               />
-              <span className="text-sm">Theo cấp độ</span>
+              <span className="text-sm">
+                {t("testSettings.sourceOptions.level", language)}
+              </span>
             </label>
             <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
               <input
@@ -183,7 +204,9 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
                 onChange={(e) => setSourceType(e.target.value)}
                 className="w-4 h-4 text-[#4aa6e0]"
               />
-              <span className="text-sm">Theo chủ đề</span>
+              <span className="text-sm">
+                {t("testSettings.sourceOptions.topic", language)}
+              </span>
             </label>
             <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
               <input
@@ -194,7 +217,9 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
                 onChange={(e) => setSourceType(e.target.value)}
                 className="w-4 h-4 text-[#4aa6e0]"
               />
-              <span className="text-sm">Từ flashcard set</span>
+              <span className="text-sm">
+                {t("testSettings.sourceOptions.flashcard", language)}
+              </span>
             </label>
           </div>
         </div>
@@ -203,7 +228,7 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
         {sourceType === "level" && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Cấp độ
+              {t("testSettings.labels.level", language)}
             </label>
             <select
               value={level}
@@ -223,17 +248,21 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
         {sourceType === "topic" && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Chủ đề
+              {t("testSettings.labels.topic", language)}
             </label>
             {loadingTopics ? (
-              <p className="text-sm text-slate-500">Đang tải...</p>
+              <p className="text-sm text-slate-500">
+                {t("testSettings.loading", language)}
+              </p>
             ) : (
               <select
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#4aa6e0]"
               >
-                <option value="">Chọn chủ đề</option>
+                <option value="">
+                  {t("testSettings.placeholders.selectTopic", language)}
+                </option>
                 {topics
                   .filter((t) => t._count?.vocabitems > 0)
                   .map((t) => (
@@ -250,22 +279,31 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
         {sourceType === "flashcard" && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Flashcard Set
+              {t("testSettings.labels.flashcardSet", language)}
             </label>
             {loadingFlashcards ? (
-              <p className="text-sm text-slate-500">Đang tải...</p>
+              <p className="text-sm text-slate-500">
+                {t("testSettings.loading", language)}
+              </p>
             ) : flashcardSets.length === 0 ? (
-              <p className="text-sm text-slate-500">Bạn chưa có flashcard set nào</p>
+              <p className="text-sm text-slate-500">
+                {t("testSettings.emptyFlashcardSets", language)}
+              </p>
             ) : (
               <select
                 value={flashcardSetId}
                 onChange={(e) => setFlashcardSetId(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#4aa6e0]"
               >
-                <option value="">Chọn flashcard set</option>
+                <option value="">
+                  {t("testSettings.placeholders.selectFlashcardSet", language)}
+                </option>
                 {flashcardSets.map((set) => (
                   <option key={set.set_id} value={set.set_id}>
-                    {set.set_name} ({set.card_count || 0} thẻ)
+                    {set.set_name}{" "}
+                    {t("testSettings.flashcardCardCount", language, {
+                      count: set.card_count || 0,
+                    })}
                   </option>
                 ))}
               </select>
@@ -276,7 +314,7 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
         {/* Question Count */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Số câu hỏi (tối đa: {maxQuestions})
+            {t("testSettings.questionCount", language, { maxQuestions })}
           </label>
           <input
             type="number"
@@ -291,7 +329,7 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
         {/* Timer */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Thời gian
+            {t("testSettings.labels.timer", language)}
           </label>
           <select
             value={timer}
@@ -311,7 +349,7 @@ export default function TestSettings({ onSubmit, initialLevel, initialTopic }) {
           type="submit"
           className="w-full rounded-lg bg-[#4aa6e0] hover:bg-[#3a8bc0] text-white px-4 py-3 font-semibold transition-colors"
         >
-          Bắt đầu kiểm tra
+          {t("testSettings.startTestButton", language)}
         </button>
       </form>
     </div>

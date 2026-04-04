@@ -151,8 +151,6 @@
   color: #fff;
 }
 
-.tabPanel {}
-
 .folderBanner { margin: 8px 0 6px; }
 .folderTitle {
   margin: 0;
@@ -258,6 +256,34 @@
 
 .listText { flex: 1; }
 .listTitle { margin: 0 0 6px; font-size: 20px; font-weight: 700; color: #111; }
+
+@media (max-width: 768px) {
+  .libraryContainer {
+    padding: 20px 16px;
+    margin-left: 0;
+    min-height: calc(100vh - 60px);
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .libraryTitle {
+    font-size: 22px;
+  }
+
+  .cardGrid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .cardThumb {
+    height: 80px;
+  }
+}
 .listSubtitle { margin: 0; font-size: 14px; color: #555; font-weight: 600; }
 
 /* Section list (demo) */

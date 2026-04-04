@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 export default function AdminDashboard() {
+  const { language } = useLanguage();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -28,19 +31,25 @@ export default function AdminDashboard() {
   const totalCourses = 105; // placeholder — replace with real endpoint if available
 
   return (
-    <AdminLayout title="Trang chủ">
+    <AdminLayout title={t("adminDashboard.pageTitle", language)}>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-sm text-gray-500">Tổng số người dùng</div>
+            <div className="text-sm text-gray-500">
+              {t("adminDashboard.totalUsersLabel", language)}
+            </div>
             <div className="mt-6 text-3xl font-bold text-gray-800">{loading ? "--" : totalUsers}</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-sm text-gray-500">Tổng số người online</div>
+            <div className="text-sm text-gray-500">
+              {t("adminDashboard.totalOnlineLabel", language)}
+            </div>
             <div className="mt-6 text-3xl font-bold text-gray-800">{loading ? "--" : onlineUsers}</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-sm text-gray-500">Tổng số học phần</div>
+            <div className="text-sm text-gray-500">
+              {t("adminDashboard.totalCoursesLabel", language)}
+            </div>
             <div className="mt-6 text-3xl font-bold text-gray-800">{totalCourses}</div>
           </div>
         </div>
@@ -54,11 +63,16 @@ export default function AdminDashboard() {
             </div>
             <input
               className="flex-1 px-4 py-2 rounded-lg bg-gray-50 border border-gray-100"
-              placeholder="Tìm kiếm"
+              placeholder={t("adminDashboard.searchPlaceholder", language)}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <button className="px-4 py-2 text-white rounded-lg" style={{ background: "#77BEF0" }}>Tìm kiếm</button>
+            <button
+              className="px-4 py-2 text-white rounded-lg"
+              style={{ background: "#77BEF0" }}
+            >
+              {t("adminDashboard.searchButton", language)}
+            </button>
           </div>
         </div>
       </div>

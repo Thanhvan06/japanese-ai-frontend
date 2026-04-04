@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api.js";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 export default function FillInTheBlankExercise({
   exercise,
@@ -10,6 +12,7 @@ export default function FillInTheBlankExercise({
   onProgressUpdate,
   onAnswerSubmit,
 }) {
+  const { language } = useLanguage();
   const [userAnswers, setUserAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState(null);
@@ -18,7 +21,9 @@ export default function FillInTheBlankExercise({
   if (!exercise) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Đang tải bài tập...</p>
+        <p className="text-gray-600">
+          {t("reading.fillInTheBlankExercise.loading", language)}
+        </p>
       </div>
     );
   }
@@ -44,7 +49,7 @@ export default function FillInTheBlankExercise({
     // Check if all blanks are filled
     const allFilled = blanks.every((blank) => userAnswers[blank.position] !== undefined);
     if (!allFilled) {
-      alert("Vui lòng điền tất cả các chỗ trống.");
+      alert(t("reading.fillInTheBlankExercise.fillAllRequired", language));
       return;
     }
 
@@ -71,12 +76,15 @@ export default function FillInTheBlankExercise({
       }
     } catch (error) {
       console.error("Error checking fill in the blank:", error);
-      alert("Không thể kiểm tra đáp án. Vui lòng thử lại.");
+      alert(
+        t("reading.fillInTheBlankExercise.checkAnswerError", language)
+      );
     }
   };
 
   const renderPassage = () => {
-    if (!exercise.passage) return "Không có đoạn văn";
+    if (!exercise.passage)
+      return t("reading.fillInTheBlankExercise.noPassage", language);
 
     let passage = exercise.passage;
     const blankPositions = blanks.map((b) => b.position).sort((a, b) => b - a);
@@ -118,7 +126,9 @@ export default function FillInTheBlankExercise({
     <div className="bg-white rounded-2xl shadow-lg border-2 border-[#4aa6e0]/20 p-8">
       {/* Passage */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">Đoạn văn</h3>
+        <h3 className="text-xl font-bold text-[#4aa6e0] mb-4">
+          {t("reading.fillInTheBlankExercise.passageTitle", language)}
+        </h3>
         <div className="bg-blue-50 rounded-xl p-6 border-2 border-[#4aa6e0]/20">
           <div className="text-lg leading-relaxed text-[#2e3856]">
             {renderPassage()}
@@ -197,10 +207,20 @@ export default function FillInTheBlankExercise({
                 result.isCorrect ? "text-green-800" : "text-red-800"
               }`}
             >
-              {result.isCorrect ? "✓ Chính xác!" : `✗ Sai rồi!`}
+              {result.isCorrect
+                ? `✓ ${t(
+                    "reading.fillInTheBlankExercise.resultCorrectText",
+                    language
+                  )}`
+                : `✗ ${t(
+                    "reading.fillInTheBlankExercise.resultIncorrectText",
+                    language
+                  )}`}
             </p>
             <p className="text-lg font-semibold text-[#4aa6e0]">
-              Điểm: {result.score}
+              {t("reading.fillInTheBlankExercise.scoreLabel", language, {
+                score: result.score,
+              })}
             </p>
           </div>
           {exercise.explain_viet && (
@@ -216,7 +236,7 @@ export default function FillInTheBlankExercise({
             onClick={onPrevious}
             className="px-6 py-3 rounded-lg text-base font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
           >
-            ← Bài trước
+            ← {t("reading.fillInTheBlankExercise.prevButton", language)}
           </button>
         )}
         <button
@@ -228,14 +248,16 @@ export default function FillInTheBlankExercise({
               : "bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] hover:-translate-y-0.5 hover:shadow-lg"
           }`}
         >
-          {showResult ? "Đã nộp bài" : "Nộp bài"}
+          {showResult
+            ? t("reading.fillInTheBlankExercise.submittedButton", language)
+            : t("reading.fillInTheBlankExercise.submitButton", language)}
         </button>
         {showResult && canGoNext && (
           <button
             onClick={onNext}
             className="px-8 py-3 rounded-lg text-base font-semibold bg-green-500 text-white hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-lg transition-colors"
           >
-            Bài tiếp theo →
+            {t("reading.fillInTheBlankExercise.nextButton", language)} →
           </button>
         )}
       </div>

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FaStickyNote, FaTimes } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const NOTE_COLORS = [
   "bg-yellow-200",
@@ -10,6 +12,7 @@ const NOTE_COLORS = [
 ];
 
 export default function DraggableNote({ note, onUpdate, onDelete, onColorChange }) {
+  const { language } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: note.x || 0, y: note.y || 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -82,7 +85,9 @@ export default function DraggableNote({ note, onUpdate, onDelete, onColorChange 
       >
         <div className="flex items-center gap-2">
           <FaStickyNote className="w-4 h-4 text-gray-600" />
-          <span className="text-xs font-medium text-gray-700">Ghi chú</span>
+          <span className="text-xs font-medium text-gray-700">
+            {t("draggableNote.title", language)}
+          </span>
         </div>
         <button
           onClick={() => onDelete(note.id)}
@@ -100,7 +105,7 @@ export default function DraggableNote({ note, onUpdate, onDelete, onColorChange 
           onChange={(e) => onUpdate(note.id, { ...note, content: e.target.value })}
           className="w-full bg-transparent text-sm resize-none focus:outline-none text-gray-800"
           rows={6}
-          placeholder="Viết ghi chú..."
+          placeholder={t("draggableNote.placeholder", language)}
           onMouseDown={(e) => e.stopPropagation()}
         />
 

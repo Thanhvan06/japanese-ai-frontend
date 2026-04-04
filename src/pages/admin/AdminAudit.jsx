@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 export default function AdminAudit() {
+  const { language } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -68,7 +71,7 @@ export default function AdminAudit() {
   };
 
   return (
-    <AdminLayout title="Nhật ký hành động Admin">
+    <AdminLayout title={t("adminAudit.pageTitle", language)}>
       <div className="space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -86,7 +89,7 @@ export default function AdminAudit() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Admin ID
+                {t("adminAudit.filters.adminIdLabel", language)}
               </label>
               <input
                 type="number"
@@ -97,12 +100,12 @@ export default function AdminAudit() {
                   setFilterAdminId(e.target.value);
                   setPage(1);
                 }}
-                placeholder="Ví dụ: 1"
+                placeholder={t("adminAudit.filters.adminIdPlaceholder", language)}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                User mục tiêu ID
+                {t("adminAudit.filters.targetUserIdLabel", language)}
               </label>
               <input
                 type="number"
@@ -113,12 +116,12 @@ export default function AdminAudit() {
                   setFilterTargetId(e.target.value);
                   setPage(1);
                 }}
-                placeholder="Ví dụ: 5"
+                placeholder={t("adminAudit.filters.targetUserIdPlaceholder", language)}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hành động
+                {t("adminAudit.filters.actionLabel", language)}
               </label>
               <select
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -128,7 +131,7 @@ export default function AdminAudit() {
                   setPage(1);
                 }}
               >
-                <option value="">Tất cả</option>
+                <option value="">{t("adminAudit.filters.all", language)}</option>
                 {actions
                   .filter((a) => a)
                   .map((a) => (
@@ -138,13 +141,13 @@ export default function AdminAudit() {
                   ))}
               </select>
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2 justify-start sm:justify-end w-full">
               <button
                 type="button"
                 onClick={handleResetFilters}
                 className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
               >
-                Xóa lọc
+                {t("adminAudit.resetFilter", language)}
               </button>
             </div>
           </div>
@@ -159,19 +162,19 @@ export default function AdminAudit() {
                     ID
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    Thời gian
+                    {t("adminAudit.table.time", language)}
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    Admin
+                    {t("adminAudit.table.admin", language)}
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    User mục tiêu
+                    {t("adminAudit.table.targetUser", language)}
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    Hành động
+                    {t("adminAudit.table.action", language)}
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    Chi tiết
+                    {t("adminAudit.table.details", language)}
                   </th>
                 </tr>
               </thead>
@@ -182,7 +185,7 @@ export default function AdminAudit() {
                       colSpan={6}
                       className="px-4 py-8 text-center text-gray-500"
                     >
-                      Đang tải...
+                      {t("adminAudit.table.loading", language)}
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
@@ -191,7 +194,7 @@ export default function AdminAudit() {
                       colSpan={6}
                       className="px-4 py-8 text-center text-gray-500"
                     >
-                      Không có bản ghi nào
+                      {t("adminAudit.table.empty", language)}
                     </td>
                   </tr>
                 ) : (
@@ -254,8 +257,11 @@ export default function AdminAudit() {
           {!loading && total > limit && (
             <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-700">
               <div>
-                Hiển thị {(page - 1) * limit + 1} -{" "}
-                {Math.min(page * limit, total)} trong tổng số {total} bản ghi
+                {t("adminAudit.pagination.showing", language, {
+                  start: (page - 1) * limit + 1,
+                  end: Math.min(page * limit, total),
+                  total,
+                })}
               </div>
               <div className="flex gap-2">
                 <button
@@ -264,7 +270,7 @@ export default function AdminAudit() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className="px-3 py-1.5 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >
-                  Trước
+                  {t("adminAudit.pagination.prev", language)}
                 </button>
                 <button
                   type="button"
@@ -272,7 +278,7 @@ export default function AdminAudit() {
                   onClick={() => setPage((p) => p + 1)}
                   className="px-3 py-1.5 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >
-                  Sau
+                  {t("adminAudit.pagination.next", language)}
                 </button>
               </div>
             </div>

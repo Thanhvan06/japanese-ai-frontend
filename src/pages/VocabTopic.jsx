@@ -6,10 +6,13 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import VocabCard from "../components/VocabCard";
 import CreateFlashcardFromVocab from "../components/CreateFlashcardFromVocab";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 const API_BASE = "http://localhost:4000";
 
 export default function VocabTopic() {
+  const { language } = useLanguage();
   const { topicId } = useParams();
   const navigate = useNavigate();
 
@@ -43,20 +46,20 @@ export default function VocabTopic() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <Header />
-        <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
+        <main className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <button
                 onClick={() => navigate(-1)}
                 className="text-sm text-slate-500 hover:text-slate-700"
               >
-                ← Quay lại
+                ← {t("vocabTopic.backButton", language)}
               </button>
 
               <h1 className="mt-2 text-2xl font-bold text-slate-800">
-                {topic ? topic.topic_name : "Chủ đề từ vựng"}
+                {topic ? topic.topic_name : t("vocabTopic.defaultTitle", language)}
               </h1>
 
               {topic && topic.topic_description && (
@@ -70,12 +73,14 @@ export default function VocabTopic() {
               onClick={() => setShowFlashcardModal(true)}
               className="rounded-full bg-[#77BEF0] hover:bg-[#4aa6e0] text-white px-5 py-2 text-sm font-semibold shadow-sm"
             >
-              Học cùng flashcard
+              {t("vocabTopic.studyWithFlashcardButton", language)}
             </button>
           </div>
 
-          <div className="flex items-center gap-4 mb-6">
-            <span className="text-sm text-slate-500">Cấp độ:</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
+            <span className="text-sm text-slate-500">
+              {t("vocabTopic.levelLabel", language)}
+            </span>
             <select
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(e.target.value)}
@@ -96,11 +101,15 @@ export default function VocabTopic() {
 
           <div className="p-6 bg-white border rounded-2xl border-slate-200">
             {loading ? (
-              <p className="text-sm text-slate-500">Đang tải từ vựng...</p>
+              <p className="text-sm text-slate-500">
+                {t("vocabTopic.loading", language)}
+              </p>
             ) : vocab.length === 0 ? (
-              <p className="text-sm text-slate-500">Chưa có từ vựng nào trong chủ đề này.</p>
+              <p className="text-sm text-slate-500">
+                {t("vocabTopic.empty", language)}
+              </p>
             ) : (
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {vocab.map((item) => (
                   <VocabCard
                     key={item.vocab_id}

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../lib/api";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 export default function AdminManagers() {
+  const { language } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,7 +20,7 @@ export default function AdminManagers() {
       const admins = allUsers.filter((u) => u.role === "admin");
       setItems(admins);
     } catch (err) {
-      setError(err.message || "Không thể tải danh sách admin");
+      setError(err.message || t("adminManagers.errors.loadAdmins", language));
     } finally {
       setLoading(false);
     }
@@ -35,20 +38,22 @@ export default function AdminManagers() {
       });
       await fetchAdmins();
     } catch (err) {
-      setError(err.message || "Không thể hủy quyền admin");
+      setError(err.message || t("adminManagers.errors.demoteAdmin", language));
     } finally {
       setActionLoading(false);
     }
   };
 
   const getRoleDisplay = (u) => {
-    if (u.adminRole === "super_admin") return "Super Admin";
-    if (u.adminRole === "content_manager") return "Admin nội dung";
-    return "Admin";
+    if (u.adminRole === "super_admin")
+      return t("adminManagers.roles.superAdmin", language);
+    if (u.adminRole === "content_manager")
+      return t("adminManagers.roles.contentManager", language);
+    return t("adminManagers.roles.admin", language);
   };
 
   return (
-    <AdminLayout title="Quản lý Admin">
+    <AdminLayout title={t("adminManagers.pageTitle", language)}>
       <div className="space-y-4">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -63,18 +68,17 @@ export default function AdminManagers() {
         )}
 
         <p className="text-sm text-gray-600">
-          Danh sách các tài khoản admin hiện tại. Chỉ Super Admin mới có thể hủy
-          quyền admin của tài khoản khác.
+          {t("adminManagers.description", language)}
         </p>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
           {loading ? (
             <div className="p-6 text-center text-gray-500 text-sm">
-              Đang tải...
+              {t("adminManagers.loading", language)}
             </div>
           ) : items.length === 0 ? (
             <div className="p-6 text-center text-gray-500 text-sm">
-              Chưa có admin nào.
+              {t("adminManagers.empty", language)}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -85,16 +89,16 @@ export default function AdminManagers() {
                       ID
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                      Tên
+                      {t("adminManagers.table.name", language)}
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-gray-700">
                       Email
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                      Vai trò admin
+                      {t("adminManagers.table.adminRole", language)}
                     </th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                      Thao tác
+                      {t("adminManagers.table.actions", language)}
                     </th>
                   </tr>
                 </thead>
@@ -116,7 +120,7 @@ export default function AdminManagers() {
                           onClick={() => handleDemote(u.user_id)}
                           className="px-3 py-1.5 text-xs rounded-lg border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Hủy quyền Admin
+                          {t("adminManagers.actions.demoteAdmin", language)}
                         </button>
                       </td>
                     </tr>

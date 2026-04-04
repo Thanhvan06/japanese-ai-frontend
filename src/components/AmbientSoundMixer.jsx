@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FaVolumeUp, FaPause, FaCloudRain, FaKeyboard, FaWater, FaFire, FaCoffee, FaExclamationTriangle } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 // WORKAROUND: Google Drive có thể block direct audio streaming
 // Giải pháp tốt nhất: Upload lên GitHub hoặc Cloudinary
@@ -8,38 +10,34 @@ import { FaVolumeUp, FaPause, FaCloudRain, FaKeyboard, FaWater, FaFire, FaCoffee
 const AMBIENT_SOUNDS = [
   { 
     id: "rain", 
-    name: "Mưa", 
     icon: FaCloudRain,
     url: "https://files.catbox.moe/k21t10.mp3" 
     
   },
   { 
     id: "keyboard", 
-    name: "Bàn phím", 
     icon: FaKeyboard,
     url: "https://files.catbox.moe/dc7ta8.mp3"
   },
   { 
     id: "ocean", 
-    name: "Sóng biển", 
     icon: FaWater,
     url: "https://files.catbox.moe/l8k7xh.mp3"
   },
   { 
     id: "fire", 
-    name: "Lửa trại", 
     icon: FaFire,
     url: "https://files.catbox.moe/d5u5fj.mp3"
   },
   { 
     id: "cafe", 
-    name: "Quán cà phê", 
     icon: FaCoffee,
     url: "https://files.catbox.moe/kzztlk.mp3"
   },
 ];
 
 export default function AmbientSoundMixer({ panelColor = "#50B0FA" }) {
+  const { language } = useLanguage();
   // Mặc định tất cả âm thanh là OFF và volume = 0
   const [sounds, setSounds] = useState(
     AMBIENT_SOUNDS.map((sound) => ({
@@ -237,19 +235,20 @@ export default function AmbientSoundMixer({ panelColor = "#50B0FA" }) {
         <div className="mb-4 p-3 bg-yellow-500 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg flex items-start gap-2">
           <FaExclamationTriangle className="w-4 h-4 text-yellow-300 flex-shrink-0 mt-0.5" />
           <div className="text-xs text-yellow-100">
-            <strong>Lưu ý:</strong> Âm thanh chưa được cấu hình. Vui lòng upload audio files lên hosting công khai (Google Drive, GitHub, Dropbox) và thêm URL vào code.
+            <strong>{t("ambientSoundMixer.noticeLabel", language)}</strong>{" "}
+            {t("ambientSoundMixer.noticeText", language)}
           </div>
         </div>
       )}
       
       <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold">🔊 Âm thanh nền</h4>
+        <h4 className="font-semibold">🔊 {t("ambientSoundMixer.title", language)}</h4>
         {playingCount > 0 && (
           <button
             onClick={stopAll}
             className="text-xs px-2 py-1 bg-white/10 bg-opacity-20 rounded hover:bg-opacity-30 transition-colors"
           >
-            Dừng tất cả ({playingCount})
+            {t("ambientSoundMixer.stopAll", language, { count: playingCount })}
           </button>
         )}
       </div>
@@ -271,7 +270,9 @@ export default function AmbientSoundMixer({ panelColor = "#50B0FA" }) {
                       ? { backgroundColor: `${panelColor}80` }
                       : {}
                   }
-                  aria-label={`Toggle ${sound.name}`}
+                  aria-label={t("ambientSoundMixer.toggleAriaLabel", language, {
+                    sound: t(`ambientSoundMixer.sounds.${sound.id}`, language),
+                  })}
                 >
                   {sound.isPlaying ? (
                     <FaPause className="w-4 h-4 text-white" />
@@ -283,9 +284,13 @@ export default function AmbientSoundMixer({ panelColor = "#50B0FA" }) {
                   )}
                 </button>
                 <div>
-                  <div className="text-sm font-medium">{sound.name}</div>
+                  <div className="text-sm font-medium">
+                    {t(`ambientSoundMixer.sounds.${sound.id}`, language)}
+                  </div>
                   <div className="text-xs text-white text-opacity-60">
-                    {sound.isPlaying ? "Đang phát" : "Tạm dừng"}
+                    {sound.isPlaying
+                      ? t("ambientSoundMixer.status.playing", language)
+                      : t("ambientSoundMixer.status.paused", language)}
                   </div>
                 </div>
               </div>
@@ -313,7 +318,7 @@ export default function AmbientSoundMixer({ panelColor = "#50B0FA" }) {
       </div>
 
       <div className="mt-4 text-xs text-white text-opacity-50 text-center">
-        💡 Tip: Kéo thanh âm lượng để tự động phát âm thanh
+        💡 {t("ambientSoundMixer.tip", language)}
       </div>
     </div>
   );

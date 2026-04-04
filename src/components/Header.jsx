@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
+import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { api } from "../lib/api";
 import styles from "../styles/Header.module.css";
 import { useLanguage } from "../context/LanguageContext";
@@ -12,9 +12,14 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { language, toggleLanguage } = useLanguage();
+  // Treat tablet like mobile for header search UX.
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 1024px)").matches;
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState(null);
   const [studyOpen, setStudyOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   // 🔍 Search state
   const [searchText, setSearchText] = useState("");
@@ -23,6 +28,7 @@ const Header = () => {
   const dropdownRef = useRef(null);
   const studyRef = useRef(null);
   const langRef = useRef(null);
+  const mobileSearchWrapperRef = useRef(null);
 
   const [studyInfo, setStudyInfo] = useState(null);
   const [studyLoading, setStudyLoading] = useState(false);
@@ -41,7 +47,7 @@ const Header = () => {
         console.log("[Study] Initial progress", data);
         setStudyInfo(data);
       } catch (e) {
-        setStudyError(e.message || "Không tải được tiến độ học");
+        setStudyError(e.message || t("header.studyLoadError", language));
       } finally {
         setStudyLoading(false);
       }
@@ -200,8 +206,33 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!mobileSearchOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (
+        mobileSearchWrapperRef.current &&
+        !mobileSearchWrapperRef.current.contains(e.target)
+      ) {
+        setMobileSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mobileSearchOpen]);
+
   return (
-    <header className={styles.header} style={{ position: "relative" }}>
+    <header
+      className={`${styles.header} ${
+        mobileSearchOpen ? styles.headerOverlay : ""
+      }`}
+      style={{ position: "relative" }}
+    >
       {/* LEFT: Logo */}
       <div className={styles.leftSection}>
         <div
@@ -213,14 +244,15 @@ const Header = () => {
         </div>
       </div>
 
-      {!location.pathname.startsWith("/admin") && (
+      {!location.pathname.startsWith("/admin") && !isMobile && (
         <div
           className={styles.searchContainer}
           style={{
             position: "absolute",
             left: "50%",
-            transform: "translateX(-50%)",
-            width: "min(520px, 50vw)", 
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(520px, 50vw)",
             display: "flex",
             justifyContent: "center",
             pointerEvents: "auto",
@@ -241,6 +273,38 @@ const Header = () => {
 
       {/* RIGHT */}
       <div className={styles.rightSection}>
+        {!location.pathname.startsWith("/admin") && isMobile && (
+          <div
+            ref={mobileSearchWrapperRef}
+            className={styles.mobileSearchWrapper}
+          >
+            <button
+              type="button"
+              className={styles.mobileSearchToggle}
+              onClick={() => setMobileSearchOpen((v) => !v)}
+              aria-label="Open search"
+              title="Search"
+            >
+              <FaSearch />
+            </button>
+
+            {mobileSearchOpen && (
+              <div className={styles.mobileSearchOverlay}>
+                <form onSubmit={handleSearchSubmit}>
+                  <input
+                    type="text"
+                    placeholder={t("header.searchPlaceholder", language)}
+                    className={styles.search}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    style={{ width: "100%" }}
+                  />
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Study progress circle */}
         <div
           className={styles.studyBadgeWrapper}
@@ -310,7 +374,11 @@ const Header = () => {
           <button
             className={styles.flagBtn}
             onClick={handleToggleContentLanguage}
-            title={language === "vi" ? "Switch to English" : "Chuyển sang Tiếng Việt"}
+            title={
+              language === "vi"
+                ? t("header.switchToEnglish", language)
+                : t("header.switchToVietnamese", language)
+            }
           >
             <img
               src={language === "en" ? "/flags/uk.png" : "/flags/vietnam.png"}

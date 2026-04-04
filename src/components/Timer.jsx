@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function Timer({ onComplete, isActive = true }) {
+  const { language } = useLanguage();
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
@@ -27,7 +30,7 @@ export default function Timer({ onComplete, isActive = true }) {
 
   return (
     <div className="flex items-center gap-2 text-lg font-semibold text-[#4aa6e0]">
-      <span>Thời gian:</span>
+      <span>{t("timer.label", language)}</span>
       <span>{formatTime(seconds)}</span>
     </div>
   );

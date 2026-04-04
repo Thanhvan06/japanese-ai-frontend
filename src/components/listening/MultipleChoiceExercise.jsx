@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { FaPlay, FaPause, FaRedo, FaVolumeUp } from "react-icons/fa";
 import { api } from "../../lib/api.js";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -20,6 +22,7 @@ export default function MultipleChoiceExercise({
   onProgressUpdate,
   onAnswerSubmit,
 }) {
+  const { language } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [showAnswer, setShowAnswer] = useState(false);
@@ -32,7 +35,9 @@ export default function MultipleChoiceExercise({
   if (!exercise) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Đang tải bài tập...</p>
+        <p className="text-gray-600">
+          {t("listening.multipleChoiceExercise.loading", language)}
+        </p>
       </div>
     );
   }
@@ -67,7 +72,7 @@ export default function MultipleChoiceExercise({
 
   const handlePlayPause = () => {
     if (!exercise?.audioUrl) {
-      alert("Không có audio cho bài tập này.");
+      alert(t("listening.multipleChoiceExercise.noAudio", language));
       return;
     }
 
@@ -85,7 +90,7 @@ export default function MultipleChoiceExercise({
         }
       });
       audioRef.current.addEventListener("error", () => {
-        alert("Không thể phát audio. Vui lòng kiểm tra đường dẫn audio.");
+        alert(t("listening.multipleChoiceExercise.audioPathError", language));
         setIsPlaying(false);
         setAudioProgress(0);
       });
@@ -97,7 +102,7 @@ export default function MultipleChoiceExercise({
     } else {
       audioRef.current.play().catch((error) => {
         console.error("Error playing audio:", error);
-        alert("Không thể phát audio.");
+        alert(t("listening.multipleChoiceExercise.playAudioError", language));
         setIsPlaying(false);
       });
       setIsPlaying(true);
@@ -126,8 +131,10 @@ export default function MultipleChoiceExercise({
     setIsCorrect(correct);
     setSubmitFeedback(
       correct
-        ? "Chính xác!"
-        : `Sai. Đáp án đúng: ${exercise.correctAnswer}`
+        ? t("listening.multipleChoiceExercise.feedbackCorrect", language)
+        : t("listening.multipleChoiceExercise.feedbackWrong", language, {
+            answer: exercise.correctAnswer,
+          })
     );
     setShowAnswer(true);
 
@@ -167,14 +174,16 @@ export default function MultipleChoiceExercise({
             onClick={handleReplay}
             disabled={!exercise?.audioUrl}
             className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Nghe lại"
+            title={t("listening.multipleChoiceExercise.replayTitle", language)}
           >
             <FaRedo />
           </button>
           <div className="flex items-center flex-1">
             <FaVolumeUp className="text-gray-500" />
             <span className="text-gray-600 ml-2">
-              {isPlaying ? "Đang phát..." : "Nhấn để phát audio"}
+              {isPlaying
+                ? t("listening.multipleChoiceExercise.playing", language)
+                : t("listening.multipleChoiceExercise.tapToPlay", language)}
             </span>
           </div>
         </div>
@@ -187,17 +196,22 @@ export default function MultipleChoiceExercise({
       </div>
 
       <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-[#4aa6e0] mb-3">Câu hỏi:</h3>
+        <h3 className="text-lg font-semibold text-[#4aa6e0] mb-3">
+          {t("listening.multipleChoiceExercise.questionLabel", language)}
+        </h3>
         <div className="text-xl text-[#2e3856] leading-relaxed">
-{exercise.question || "会話を聞いて、正しい答えを選んでください。"}
+          {exercise.question ||
+            t("listening.multipleChoiceExercise.defaultQuestion", language)}
         </div>
       </div>
 
       <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-[#4aa6e0] mb-4">Chọn đáp án:</h3>
+        <h3 className="text-lg font-semibold text-[#4aa6e0] mb-4">
+          {t("listening.multipleChoiceExercise.chooseAnswerLabel", language)}
+        </h3>
         {options.length === 0 ? (
           <p className="text-gray-500 text-center py-4">
-            Không có đáp án cho bài tập này.
+            {t("listening.multipleChoiceExercise.noOptions", language)}
           </p>
         ) : (
           <div className="flex flex-col gap-3">
@@ -221,9 +235,7 @@ export default function MultipleChoiceExercise({
       {submitFeedback && (
         <div
           className={`rounded-lg px-4 py-3 text-center font-medium ${
-            submitFeedback.startsWith("Chính xác")
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+            isCorrect ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
           }`}
         >
           {submitFeedback}
@@ -232,21 +244,29 @@ export default function MultipleChoiceExercise({
 
       {showAnswer && (
         <div className="bg-blue-50 border-2 border-[#4aa6e0] rounded-xl p-6">
-          <h4 className="text-lg font-semibold text-[#4aa6e0] mb-4">Đáp án:</h4>
+          <h4 className="text-lg font-semibold text-[#4aa6e0] mb-4">
+            {t("listening.multipleChoiceExercise.answerSectionTitle", language)}
+          </h4>
           {exercise.transcript && (
             <div className="mb-3 leading-relaxed text-[#2e3856]">
-              <strong className="text-[#4aa6e0] mr-2">Transcript:</strong>{" "}
+              <strong className="text-[#4aa6e0] mr-2">
+                {t("listening.multipleChoiceExercise.transcriptLabel", language)}
+              </strong>{" "}
 {exercise.transcript}
             </div>
           )}
           {exercise.translation && (
             <p className="mb-3 leading-relaxed text-[#2e3856]">
-              <strong className="text-[#4aa6e0] mr-2">Dịch:</strong>{" "}
+              <strong className="text-[#4aa6e0] mr-2">
+                {t("listening.multipleChoiceExercise.translationLabel", language)}
+              </strong>{" "}
               {exercise.translation}
             </p>
           )}
           <p className="leading-relaxed text-[#2e3856]">
-            <strong className="text-[#4aa6e0] mr-2">Đáp án đúng:</strong>{" "}
+            <strong className="text-[#4aa6e0] mr-2">
+              {t("listening.multipleChoiceExercise.correctAnswerLabel", language)}
+            </strong>{" "}
             {exercise.correctAnswer}
           </p>
         </div>
@@ -258,7 +278,7 @@ export default function MultipleChoiceExercise({
             onClick={onPrevious}
             className="px-6 py-3 rounded-lg text-base font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
           >
-            ← Bài trước
+            ← {t("listening.multipleChoiceExercise.prevButton", language)}
           </button>
         )}
         <button
@@ -270,14 +290,16 @@ export default function MultipleChoiceExercise({
               : "bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] hover:-translate-y-0.5 hover:shadow-lg"
           }`}
         >
-          {showAnswer ? "Đã trả lời" : "Nộp bài"}
+          {showAnswer
+            ? t("listening.multipleChoiceExercise.answeredButton", language)
+            : t("listening.multipleChoiceExercise.submitButton", language)}
         </button>
         {showAnswer && canGoNext && (
           <button
             onClick={onNext}
             className="px-8 py-3 rounded-lg text-base font-semibold bg-green-500 text-white hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-lg transition-colors"
           >
-            Bài tiếp theo →
+            {t("listening.multipleChoiceExercise.nextButton", language)} →
           </button>
         )}
       </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { FaPlay, FaPause, FaRedo, FaVolumeUp } from "react-icons/fa";
 import { api } from "../../lib/api.js";
+import { useLanguage } from "../../context/LanguageContext";
+import { t } from "../../i18n/translations";
 
 export default function DictationExercise({
   exercise,
@@ -11,6 +13,7 @@ export default function DictationExercise({
   onProgressUpdate,
   onAnswerSubmit,
 }) {
+  const { language } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [showResult, setShowResult] = useState(false);
@@ -21,7 +24,9 @@ export default function DictationExercise({
   if (!exercise) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Đang tải bài tập...</p>
+        <p className="text-gray-600">
+          {t("listening.dictationExercise.loading", language)}
+        </p>
       </div>
     );
   }
@@ -50,7 +55,7 @@ export default function DictationExercise({
 
   const handlePlayPause = () => {
     if (!exercise?.audioUrl) {
-      alert("Không có audio cho bài tập này.");
+      alert(t("listening.dictationExercise.noAudio", language));
       return;
     }
 
@@ -68,7 +73,7 @@ export default function DictationExercise({
         }
       });
       audioRef.current.addEventListener("error", () => {
-        alert("Không thể phát audio. Vui lòng kiểm tra đường dẫn audio.");
+        alert(t("listening.dictationExercise.audioPathError", language));
         setIsPlaying(false);
         setAudioProgress(0);
       });
@@ -80,7 +85,7 @@ export default function DictationExercise({
     } else {
       audioRef.current.play().catch((error) => {
         console.error("Error playing audio:", error);
-        alert("Không thể phát audio.");
+        alert(t("listening.dictationExercise.playAudioError", language));
         setIsPlaying(false);
       });
       setIsPlaying(true);
@@ -105,7 +110,7 @@ export default function DictationExercise({
 
   const handleSubmitAnswer = async () => {
     if (!userAnswer.trim()) {
-      alert("Vui lòng nhập nội dung bạn nghe được.");
+      alert(t("listening.dictationExercise.inputRequired", language));
       return;
     }
 
@@ -135,7 +140,7 @@ export default function DictationExercise({
       }
     } catch (error) {
       console.error("Error checking dictation:", error);
-      alert("Không thể kiểm tra đáp án. Vui lòng thử lại.");
+      alert(t("listening.dictationExercise.checkAnswerError", language));
     }
   };
 
@@ -205,14 +210,16 @@ export default function DictationExercise({
             onClick={handleReplay}
             disabled={!exercise?.audioUrl}
             className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Nghe lại"
+            title={t("listening.dictationExercise.replayTitle", language)}
           >
             <FaRedo />
           </button>
           <div className="flex items-center flex-1">
             <FaVolumeUp className="text-gray-500" />
             <span className="text-gray-600 ml-2">
-              {isPlaying ? "Đang phát..." : "Nhấn để phát audio"}
+              {isPlaying
+                ? t("listening.dictationExercise.playing", language)
+                : t("listening.dictationExercise.tapToPlay", language)}
             </span>
           </div>
         </div>
@@ -231,7 +238,7 @@ export default function DictationExercise({
         <textarea
           value={userAnswer}
           onChange={(e) => setUserAnswer(e.target.value)}
-          placeholder="Nhập nội dung bạn nghe được..."
+          placeholder={t("listening.dictationExercise.inputPlaceholder", language)}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#4aa6e0] resize-none"
           rows="6"
           disabled={showResult}
@@ -249,31 +256,49 @@ export default function DictationExercise({
           >
             {result.isCorrect ? (
               <div>
-                <div className="text-xl font-bold mb-1">Chính xác!</div>
-                <div>Độ chính xác: {result.accuracy}%</div>
+                <div className="text-xl font-bold mb-1">
+                  {t("listening.dictationExercise.correctTitle", language)}
+                </div>
+                <div>
+                  {t("listening.dictationExercise.accuracyLabel", language, {
+                    accuracy: result.accuracy,
+                  })}
+                </div>
               </div>
             ) : (
               <div>
-                <div className="text-xl font-bold mb-1">Chưa chính xác</div>
-                <div>Độ chính xác: {result.accuracy}%</div>
+                <div className="text-xl font-bold mb-1">
+                  {t("listening.dictationExercise.incorrectTitle", language)}
+                </div>
+                <div>
+                  {t("listening.dictationExercise.accuracyLabel", language, {
+                    accuracy: result.accuracy,
+                  })}
+                </div>
               </div>
             )}
           </div>
 
           <div className="bg-blue-50 border-2 border-[#4aa6e0] rounded-xl p-6">
             <h4 className="text-lg font-semibold text-[#4aa6e0] mb-4">
-              Đáp án của bạn:
+              {t("listening.dictationExercise.yourAnswerTitle", language)}
             </h4>
             <p className="mb-4 leading-relaxed text-[#2e3856]">
               {renderHighlightedText()}
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              <span className="text-green-600">Xanh</span> = Đúng,{" "}
-              <span className="text-red-600">Đỏ</span> = Sai
+              <span className="text-green-600">
+                {t("listening.dictationExercise.colorGreen", language)}
+              </span>{" "}
+              = {t("listening.dictationExercise.colorCorrect", language)},{" "}
+              <span className="text-red-600">
+                {t("listening.dictationExercise.colorRed", language)}
+              </span>{" "}
+              = {t("listening.dictationExercise.colorWrong", language)}
             </p>
 
             <h4 className="text-lg font-semibold text-[#4aa6e0] mb-2 mt-6">
-              Đáp án đúng:
+              {t("listening.dictationExercise.correctAnswerTitle", language)}
             </h4>
             <div className="mb-3 leading-relaxed text-[#2e3856]">
 {result.correctAnswer}
@@ -281,7 +306,9 @@ export default function DictationExercise({
 
             {exercise.translation && (
               <p className="leading-relaxed text-[#2e3856]">
-                <strong className="text-[#4aa6e0] mr-2">Dịch:</strong>{" "}
+                <strong className="text-[#4aa6e0] mr-2">
+                  {t("listening.dictationExercise.translationLabel", language)}
+                </strong>{" "}
                 {exercise.translation}
               </p>
             )}
@@ -295,7 +322,7 @@ export default function DictationExercise({
             onClick={onPrevious}
             className="px-6 py-3 rounded-lg text-base font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
           >
-            ← Bài trước
+            ← {t("listening.dictationExercise.prevButton", language)}
           </button>
         )}
         <button
@@ -307,14 +334,16 @@ export default function DictationExercise({
               : "bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] hover:-translate-y-0.5 hover:shadow-lg"
           }`}
         >
-          {showResult ? "Đã nộp bài" : "Nộp bài"}
+          {showResult
+            ? t("listening.dictationExercise.submittedButton", language)
+            : t("listening.dictationExercise.submitButton", language)}
         </button>
         {showResult && canGoNext && (
           <button
             onClick={onNext}
             className="px-8 py-3 rounded-lg text-base font-semibold bg-green-500 text-white hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-lg transition-colors"
           >
-            Bài tiếp theo →
+            {t("listening.dictationExercise.nextButton", language)} →
           </button>
         )}
       </div>

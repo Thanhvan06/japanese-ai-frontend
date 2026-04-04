@@ -54,7 +54,7 @@ const SignUp = () => {
     <CloudBackground>
       <form
         onSubmit={handleSubmit}
-        className="z-10 bg-white/90 p-8 rounded-xl shadow-xl flex flex-col gap-4 w-[320px] text-center animate-fadeIn"
+        className="z-10 bg-white/90 p-6 sm:p-8 rounded-xl shadow-xl flex flex-col gap-4 w-full max-w-[320px] mx-4 text-center animate-fadeIn"
       >
         <h2 className="text-2xl font-bold text-gray-800">Sign Up</h2>
 

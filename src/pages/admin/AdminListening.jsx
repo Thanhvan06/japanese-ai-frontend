@@ -348,7 +348,7 @@ export default function AdminListening() {
   return (
     <AdminLayout title="Quản lý luyện nghe">
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <label className="text-sm text-gray-700">
             Cấp độ JLPT:
           </label>
@@ -385,9 +385,9 @@ export default function AdminListening() {
           <div className="text-red-600 text-sm">{error}</div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
               <h2 className="font-semibold text-gray-800">
                 Danh sách bộ bài nghe
               </h2>
@@ -401,7 +401,7 @@ export default function AdminListening() {
               </button>
             </div>
             <div className="overflow-x-auto rounded-lg shadow-sm bg-white p-2">
-              <table className="min-w-[850px] text-sm">
+              <table className="min-w-[760px] text-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 py-3 text-left">Tên bộ</th>
@@ -495,12 +495,12 @@ export default function AdminListening() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
               <h2 className="font-semibold text-gray-800">
                 Câu hỏi trong bộ
               </h2>
               {selectedSetId && (
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <span className="text-xs text-gray-500">
                     Đã chọn set #{selectedSetId}
                   </span>
@@ -516,7 +516,7 @@ export default function AdminListening() {
               )}
             </div>
             <div className="overflow-x-auto rounded-lg shadow-sm bg-white p-2">
-              <table className="min-w-[980px] text-sm">
+              <table className="min-w-[860px] text-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 py-3 text-left">Câu hỏi</th>

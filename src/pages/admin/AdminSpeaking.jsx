@@ -158,8 +158,8 @@ export default function AdminSpeaking() {
   return (
     <AdminLayout title="Quản lý luyện nói">
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <label className="text-sm text-gray-700">
               Cấp độ JLPT:
             </label>
@@ -181,7 +181,7 @@ export default function AdminSpeaking() {
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="px-3 py-2 border rounded-md text-sm"
+              className="px-3 py-2 border rounded-md text-sm w-full sm:w-auto"
               placeholder="Nhập chủ đề (tùy chọn)"
             />
           </div>
@@ -208,7 +208,7 @@ export default function AdminSpeaking() {
           <div className="text-red-600 text-sm">{error}</div>
         )}
 
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
           <h2 className="font-semibold text-gray-800">
             Danh sách câu luyện nói
           </h2>
@@ -223,7 +223,7 @@ export default function AdminSpeaking() {
         </div>
 
         <div className="rounded-lg shadow-sm bg-white p-2 overflow-x-auto">
-          <table className="min-w-[1100px] text-sm">
+          <table className="min-w-[980px] text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-3 text-left">Câu JP</th>

@@ -40,11 +40,11 @@ export default function VocabLevel() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <Header />
 
-        <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
+        <main className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <h1 className="text-2xl font-bold text-[#4aa6e0]">
               {t("vocabLevel.title", language, { level })}
             </h1>
@@ -60,7 +60,7 @@ export default function VocabLevel() {
           {error && <p className="text-red-500">{error}</p>}
 
           {!loading && !error && (
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {vocabList.map((item) => (
                 <VocabCard
                   key={item.vocab_id}

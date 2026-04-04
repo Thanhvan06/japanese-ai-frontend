@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
 
 export default function TestTimer({ totalSeconds, onTimeout, isActive }) {
+  const { language } = useLanguage();
   const [seconds, setSeconds] = useState(totalSeconds);
   const [isRunning, setIsRunning] = useState(isActive);
 
@@ -78,7 +81,7 @@ export default function TestTimer({ totalSeconds, onTimeout, isActive }) {
         </div>
       </div>
       <span className={`text-sm font-medium ${isLowTime ? "text-red-500" : "text-slate-600"}`}>
-        {isLowTime && "Thời gian sắp hết!"}
+        {isLowTime && t("testTimer.lowTimeWarning", language)}
       </span>
     </div>
   );
