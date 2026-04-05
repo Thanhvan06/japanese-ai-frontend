@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { FaStar, FaRegStar } from "react-icons/fa";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import {
   getSpeakingPhrases,
   practiceSpeaking,
   getSpeakingStats,
+  getSpeakingProgress,
   generatePhraseAudio,
 } from "../services/speakingService.js";
 import { buildTranscriptDiffSegments } from "../utils/speakingTranscriptDiff.js";
@@ -67,6 +69,37 @@ const getTimeAgo = (date, language) => {
   return "Just now";
 };
 
+const SPEAKING_STARRED_KEY = "speaking_starred_phrases_v1";
+
+function loadStarredIdsForLevel(level) {
+  try {
+    const raw = localStorage.getItem(SPEAKING_STARRED_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    const arr = all[level];
+    return Array.isArray(arr) ? arr.map(Number) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistStarredIds(level, ids) {
+  try {
+    const raw = localStorage.getItem(SPEAKING_STARRED_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    all[level] = ids;
+    localStorage.setItem(SPEAKING_STARRED_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+}
+
+function orderPhrasesByStarred(list, starredIds) {
+  const set = new Set(starredIds);
+  const star = list.filter((p) => set.has(p.phrase_id));
+  const rest = list.filter((p) => !set.has(p.phrase_id));
+  return [...star, ...rest];
+}
+
 const JLPT_LEVELS = [
   { level: "N5", name: "N5 - Sơ cấp", description: "Cơ bản nhất, phù hợp cho người mới bắt đầu", color: "from-green-400 to-green-600" },
   { level: "N4", name: "N4 - Sơ cấp", description: "Nền tảng giao tiếp hàng ngày", color: "from-blue-400 to-blue-600" },
@@ -86,6 +119,9 @@ export default function Speaking() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
+  const [progressByPhrase, setProgressByPhrase] = useState({});
+  const [starredIds, setStarredIds] = useState([]);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [generatingAudio, setGeneratingAudio] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
 
@@ -93,6 +129,25 @@ export default function Speaking() {
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
   const audioRef = useRef(null);
+
+  const orderedPhrases = useMemo(
+    () => orderPhrasesByStarred(phrases, starredIds),
+    [phrases, starredIds]
+  );
+
+  const displayPhrases = useMemo(() => {
+    if (!showStarredOnly) {
+      return orderedPhrases;
+    }
+    return orderedPhrases.filter((p) => starredIds.includes(p.phrase_id));
+  }, [orderedPhrases, showStarredOnly, starredIds]);
+
+  const phraseNavIndex = useMemo(() => {
+    if (!selected || displayPhrases.length === 0) {
+      return -1;
+    }
+    return displayPhrases.findIndex((p) => p.phrase_id === selected.phrase_id);
+  }, [selected, displayPhrases]);
 
   // Fetch stats on mount
   useEffect(() => {
@@ -109,17 +164,59 @@ export default function Speaking() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selected?.phrase_id) {
+      return;
+    }
+    const el = document.getElementById(`speaking-phrase-${selected.phrase_id}`);
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selected?.phrase_id, displayPhrases.length]);
+
+  useEffect(() => {
+    if (!showStarredOnly || !selectedLevel) {
+      return;
+    }
+    if (displayPhrases.length === 0) {
+      setSelected(null);
+      setResult(null);
+      return;
+    }
+    const stillIn = displayPhrases.some(
+      (p) => p.phrase_id === selected?.phrase_id
+    );
+    if (!stillIn) {
+      setSelected(displayPhrases[0]);
+      setResult(null);
+      setError(null);
+    }
+  }, [showStarredOnly, displayPhrases, selectedLevel, selected?.phrase_id]);
+
+  const loadPhraseProgress = async (level) => {
+    try {
+      const res = await getSpeakingProgress(level);
+      setProgressByPhrase(res?.byPhrase || {});
+    } catch {
+      setProgressByPhrase({});
+    }
+  };
+
   const loadPhrases = async (level) => {
     try {
       setLoading(true);
       setError(null);
       const data = await getSpeakingPhrases({ level });
-      setPhrases(data.phrases || []);
-      if (data.phrases && data.phrases.length > 0) {
-        setSelected(data.phrases[0]);
+      const list = data.phrases || [];
+      setPhrases(list);
+      const starred = loadStarredIdsForLevel(level);
+      setStarredIds(starred);
+      const ordered = orderPhrasesByStarred(list, starred);
+      if (ordered.length > 0) {
+        setSelected(ordered[0]);
       } else {
         setSelected(null);
       }
+      setShowStarredOnly(false);
+      await loadPhraseProgress(level);
     } catch (err) {
       setError(err.message || t("speaking.errors.loadPhrases", language));
       console.error("Error loading phrases:", err);
@@ -139,6 +236,42 @@ export default function Speaking() {
     setSelectedLevel(null);
     setPhrases([]);
     setSelected(null);
+    setResult(null);
+    setError(null);
+    setProgressByPhrase({});
+    setStarredIds([]);
+    setShowStarredOnly(false);
+  };
+
+  const togglePhraseStar = (phraseId, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setStarredIds((prev) => {
+      const next = prev.includes(phraseId)
+        ? prev.filter((id) => id !== phraseId)
+        : [...prev, phraseId];
+      if (selectedLevel) {
+        persistStarredIds(selectedLevel, next);
+      }
+      return next;
+    });
+  };
+
+  const goToAdjacentPhrase = (delta) => {
+    if (displayPhrases.length === 0) {
+      return;
+    }
+    let idx = phraseNavIndex;
+    if (idx < 0) {
+      idx = 0;
+    }
+    const next = idx + delta;
+    if (next < 0 || next >= displayPhrases.length) {
+      return;
+    }
+    setSelected(displayPhrases[next]);
     setResult(null);
     setError(null);
   };
@@ -215,9 +348,11 @@ export default function Speaking() {
 
       const data = await practiceSpeaking(audioFile, selected.phrase_id);
       setResult(data);
-      
-      // Reload stats if available
+
       await loadStats();
+      if (selectedLevel) {
+        await loadPhraseProgress(selectedLevel);
+      }
     } catch (err) {
       setError(err.message || t("speaking.errors.processAudio", language));
       console.error("Error practicing:", err);
@@ -313,49 +448,77 @@ export default function Speaking() {
         <Header />
         <main className="p-6 md:p-8">
           <div className="max-w-6xl mx-auto space-y-8">
-            {/* Hero */}
-            <div className="rounded-2xl p-6 md:p-8 bg-gradient-to-r from-[#77BEF0] via-[#6fc6ff] to-[#9fdcff] text-white shadow-lg">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <div className="text-sm font-semibold uppercase tracking-wide opacity-80">
-                    {t("speaking.title", language)}
+            {!selectedLevel ? (
+              <div className="rounded-2xl p-6 md:p-8 bg-gradient-to-r from-[#77BEF0] via-[#6fc6ff] to-[#9fdcff] text-white shadow-lg">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-semibold uppercase tracking-wide opacity-80">
+                      {t("speaking.title", language)}
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-bold mt-2">
+                      {t("speaking.heroHeading", language)}
+                    </h1>
+                    <p className="mt-3 text-white/90 max-w-2xl">
+                      {t("speaking.heroSubtitle", language)}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
+                        Pitch accent
+                      </span>
+                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
+                        Slow & Clear
+                      </span>
+                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
+                        Shadowing
+                      </span>
+                    </div>
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-bold mt-2">
-                    {t("speaking.heroHeading", language)}
-                  </h1>
-                  <p className="mt-3 text-white/90 max-w-2xl">
-                    {t("speaking.heroSubtitle", language)}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
-                      Pitch accent
-                    </span>
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
-                      Slow & Clear
-                    </span>
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/20">
-                      Shadowing
-                    </span>
-                  </div>
-                </div>
-                <div className="bg-white/15 border border-white/25 rounded-2xl px-6 py-4 shadow-md">
-                  <div className="text-sm opacity-90">
-                    {t("speaking.todayLabel", language)}
-                  </div>
-                  <div className="text-3xl font-bold">
-                    {stats?.todayAttempts ?? 0}{" "}
-                    {t("speaking.attemptsUnit", language)}
-                  </div>
-                  <div className="mt-2 text-sm opacity-80">
-                    {stats?.averageScore
-                      ? `${t("speaking.avgScoreLabelPrefix", language)} ${Math.round(
-                          stats.averageScore
-                        )}%`
-                      : t("speaking.avgScoreDefault", language)}
+                  <div className="bg-white/15 border border-white/25 rounded-2xl px-6 py-4 shadow-md">
+                    <div className="text-sm opacity-90">
+                      {t("speaking.todayLabel", language)}
+                    </div>
+                    <div className="text-3xl font-bold">
+                      {stats?.todayAttempts ?? 0}{" "}
+                      {t("speaking.attemptsUnit", language)}
+                    </div>
+                    <div className="mt-2 text-sm opacity-80">
+                      {stats?.averageScore
+                        ? `${t("speaking.avgScoreLabelPrefix", language)} ${Math.round(
+                            stats.averageScore
+                          )}%`
+                        : t("speaking.avgScoreDefault", language)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-xl px-4 py-3 md:px-6 bg-gradient-to-r from-[#77BEF0] via-[#6fc6ff] to-[#9fdcff] text-white shadow-md flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold uppercase tracking-wide opacity-90">
+                    {t("speaking.title", language)}
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-white/25 text-sm font-bold">
+                    {selectedLevel}
+                  </span>
+                  <span className="text-sm opacity-90 hidden sm:inline">
+                    {t("speaking.practiceModeHint", language)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <span>
+                    {t("speaking.todayLabel", language)}:{" "}
+                    <strong>{stats?.todayAttempts ?? 0}</strong>{" "}
+                    {t("speaking.attemptsUnit", language)}
+                  </span>
+                  {stats?.averageScore ? (
+                    <span className="opacity-90">
+                      {t("speaking.avgScoreLabelPrefix", language)}{" "}
+                      <strong>{Math.round(stats.averageScore)}%</strong>
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            )}
 
             {/* Error message */}
             {error && (
@@ -435,6 +598,29 @@ export default function Speaking() {
                         </div>
                       )}
                     </div>
+                    {phrases.length > 0 && (
+                      <div className="text-xs text-[#0F6DB0] font-medium">
+                        {t("speaking.levelProgressSummary", language, {
+                          done: phrases.filter(
+                            (p) => progressByPhrase[p.phrase_id]?.attempted
+                          ).length,
+                          total: phrases.length,
+                        })}
+                      </div>
+                    )}
+                    {phrases.length > 0 && (
+                      <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-[#77BEF0] focus:ring-[#77BEF0]"
+                          checked={showStarredOnly}
+                          onChange={(e) =>
+                            setShowStarredOnly(e.target.checked)
+                          }
+                        />
+                        <span>{t("speaking.starredOnlyLabel", language)}</span>
+                      </label>
+                    )}
                 {loading ? (
                   <div className="text-center py-8 text-gray-500">
                     {t("speaking.phrasesLoading", language)}
@@ -448,23 +634,72 @@ export default function Speaking() {
                       })}
                     </div>
                   </div>
+                ) : displayPhrases.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500 text-sm border border-dashed border-gray-200 rounded-xl">
+                    {t("speaking.starredOnlyEmpty", language)}
+                  </div>
                 ) : (
-                  phrases.map((p) => (
-                    <button
+                  <div
+                    className="max-h-[min(58vh,26rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-[#E8F4FD] bg-white/95 p-2 space-y-2 shadow-inner [scrollbar-gutter:stable]"
+                  >
+                    {displayPhrases.map((p) => {
+                    const prog = progressByPhrase[p.phrase_id];
+                    const isStarred = starredIds.includes(p.phrase_id);
+                    return (
+                    <div
                       key={p.phrase_id}
-                      onClick={() => {
-                        setSelected(p);
-                        setResult(null);
-                        setError(null);
-                      }}
-                      className={`w-full text-left p-4 rounded-xl border transition shadow-sm ${
+                      id={`speaking-phrase-${p.phrase_id}`}
+                      className={`flex gap-2 rounded-xl border transition shadow-sm ${
                         selected?.phrase_id === p.phrase_id
-                          ? "border-[#77BEF0] bg-white"
+                          ? "border-[#77BEF0] bg-[#f5fbff]"
                           : "border-gray-200 bg-white hover:border-[#A6D8FF]"
                       }`}
                     >
-                      <div className="text-sm text-[#77BEF0] font-semibold">
-                        {p.topic || t("speaking.noTopic", language)}
+                      <button
+                        type="button"
+                        onClick={(e) => togglePhraseStar(p.phrase_id, e)}
+                        className="shrink-0 self-start mt-3 ml-2 p-2 rounded-lg text-amber-500 hover:bg-amber-50 transition"
+                        title={t("speaking.starToggleTitle", language)}
+                        aria-label={t("speaking.starToggleTitle", language)}
+                      >
+                        {isStarred ? (
+                          <FaStar className="w-4 h-4" />
+                        ) : (
+                          <FaRegStar className="w-4 h-4" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelected(p);
+                          setResult(null);
+                          setError(null);
+                        }}
+                        className="flex-1 min-w-0 text-left p-3 pr-4"
+                      >
+                      <div className="flex flex-wrap items-center gap-2 justify-between">
+                        <div className="text-sm text-[#77BEF0] font-semibold">
+                          {p.topic || t("speaking.noTopic", language)}
+                        </div>
+                        {prog?.attempted && (
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                            {prog.passed && (
+                              <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-semibold">
+                                {t("speaking.phrasePassed", language)}
+                              </span>
+                            )}
+                            <span className="text-gray-600">
+                              {t("speaking.phraseBestScore", language, {
+                                score: Math.round(prog.bestScore ?? 0),
+                              })}
+                            </span>
+                            <span className="text-gray-400">
+                              {t("speaking.phraseAttempts", language, {
+                                count: prog.attemptCount ?? 0,
+                              })}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="text-lg font-bold text-gray-800 mt-1">
                         {p.jp}
@@ -473,8 +708,11 @@ export default function Speaking() {
                         {p.romaji}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">{p.vi}</div>
-                    </button>
-                  ))
+                      </button>
+                    </div>
+                    );
+                  })}
+                  </div>
                 )}
                   </div>
 
@@ -482,6 +720,53 @@ export default function Speaking() {
                   <div className="lg:col-span-2 space-y-4">
                 {selected ? (
                   <div className="bg-white rounded-2xl border border-[#E8F4FD] shadow-md p-6 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => goToAdjacentPhrase(-1)}
+                          disabled={
+                            phraseNavIndex <= 0 || displayPhrases.length === 0
+                          }
+                          className="px-3 py-2 rounded-lg text-sm font-semibold bg-[#E8F4FD] text-[#0F6DB0] hover:bg-[#d4ecfc] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                          {t("speaking.prevPhraseButton", language)}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => goToAdjacentPhrase(1)}
+                          disabled={
+                            phraseNavIndex < 0 ||
+                            phraseNavIndex >= displayPhrases.length - 1
+                          }
+                          className="px-3 py-2 rounded-lg text-sm font-semibold bg-[#E8F4FD] text-[#0F6DB0] hover:bg-[#d4ecfc] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                          {t("speaking.nextPhraseButton", language)}
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">
+                        {displayPhrases.length > 0 && phraseNavIndex >= 0
+                          ? t("speaking.phrasePosition", language, {
+                              current: phraseNavIndex + 1,
+                              total: displayPhrases.length,
+                            })
+                          : "—"}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) =>
+                          togglePhraseStar(selected.phrase_id, e)
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 transition"
+                      >
+                        {starredIds.includes(selected.phrase_id) ? (
+                          <FaStar className="w-4 h-4" />
+                        ) : (
+                          <FaRegStar className="w-4 h-4" />
+                        )}
+                        {t("speaking.markReviewLabel", language)}
+                      </button>
+                    </div>
                     {/* Score display */}
                     {result && (
                       <div

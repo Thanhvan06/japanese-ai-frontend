@@ -1,19 +1,45 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { FaBook } from "react-icons/fa";
 import { api, apiErrorHint } from "../lib/api.js";
 import ReadingComprehensionExercise from "../components/reading/ReadingComprehensionExercise";
 import FillInTheBlankExercise from "../components/reading/FillInTheBlankExercise";
+import { useLanguage } from "../context/LanguageContext";
+import { t } from "../i18n/translations";
+import {
+  takeRandomSubset,
+  formatCountdown,
+} from "../utils/practiceSession.js";
 
 const LEVELS = ["N5", "N4", "N3", "N2", "N1"];
-const EXERCISE_TYPES = [
-  { value: "reading_comprehension", label: "Đọc hiểu", description: "Đọc đoạn văn và trả lời câu hỏi", icon: "📖" },
-  { value: "fill_in_the_blank", label: "Điền từ", description: "Điền từ phù hợp vào chỗ trống", icon: "✏️" },
-];
+const QUESTION_COUNT_OPTIONS = ["all", 5, 10, 15, 20];
+const TIME_LIMIT_MINUTES = [0, 5, 10, 15, 20, 30];
 
 export default function Reading() {
-  const [step, setStep] = useState("level"); // "level" | "exerciseType" | "exercise"
+  const { language } = useLanguage();
+  const exerciseTypes = useMemo(
+    () => [
+      {
+        value: "reading_comprehension",
+        label: t("reading.types.reading_comprehension.label", language),
+        description: t(
+          "reading.types.reading_comprehension.description",
+          language
+        ),
+        icon: "📖",
+      },
+      {
+        value: "fill_in_the_blank",
+        label: t("reading.types.fill_in_the_blank.label", language),
+        description: t("reading.types.fill_in_the_blank.description", language),
+        icon: "✏️",
+      },
+    ],
+    [language]
+  );
+
+  const [step, setStep] = useState("level");
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedExerciseType, setSelectedExerciseType] = useState(null);
   const [exercises, setExercises] = useState([]);
@@ -21,41 +47,71 @@ export default function Reading() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [progressByItem, setProgressByItem] = useState({});
-  const [scores, setScores] = useState({}); // Track scores: { exerciseId: true/false }
+  const [scores, setScores] = useState({});
   const [showSummary, setShowSummary] = useState(false);
+  const [questionLimit, setQuestionLimit] = useState("all");
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(0);
+  const [sessionId, setSessionId] = useState(0);
+  const [secondsRemaining, setSecondsRemaining] = useState(null);
+  const [endedByTimer, setEndedByTimer] = useState(false);
 
   useEffect(() => {
     if (selectedLevel && selectedExerciseType) {
       loadExercises();
     }
-  }, [selectedLevel, selectedExerciseType]);
+  }, [selectedLevel, selectedExerciseType, questionLimit]);
 
   useEffect(() => {
-    if (exercises.length > 0 && currentExerciseIndex >= 0 && currentExerciseIndex < exercises.length) {
+    if (step !== "exercise" || showSummary || exercises.length === 0) {
+      return undefined;
+    }
+    if (!timeLimitMinutes || timeLimitMinutes <= 0) {
+      setSecondsRemaining(null);
+      return undefined;
+    }
+    let sec = timeLimitMinutes * 60;
+    setSecondsRemaining(sec);
+    const id = setInterval(() => {
+      sec -= 1;
+      setSecondsRemaining(sec);
+      if (sec <= 0) {
+        clearInterval(id);
+        setEndedByTimer(true);
+        setShowSummary(true);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [sessionId, exercises.length, timeLimitMinutes, step, showSummary]);
+
+  useEffect(() => {
+    if (
+      exercises.length > 0 &&
+      currentExerciseIndex >= 0 &&
+      currentExerciseIndex < exercises.length
+    ) {
       loadExerciseDetail(exercises[currentExerciseIndex].id);
     }
   }, [currentExerciseIndex, exercises]);
 
   const loadExercises = async () => {
-    if (!selectedLevel || !selectedExerciseType) return;
-    
+    if (!selectedLevel || !selectedExerciseType) {
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await api(
         `/api/reading?level=${selectedLevel}&exerciseType=${selectedExerciseType}`
       );
-      setExercises(response.exercises ?? []);
-
-      try {
-        const progressRes = await api(`/api/reading/progress?level=${selectedLevel}`);
-        setProgressByItem(progressRes.byItem ?? {});
-      } catch {
-        setProgressByItem({});
-      }
+      const raw = response.exercises ?? [];
+      const limit =
+        questionLimit === "all" ? "all" : Number(questionLimit);
+      setExercises(takeRandomSubset(raw, limit));
     } catch (error) {
       console.error("Error loading exercises:", error);
-      alert(`Không thể tải danh sách bài tập.\n\n${apiErrorHint(error)}`);
+      alert(
+        `${t("reading.loadListError", language)}\n\n${apiErrorHint(error)}`
+      );
       setExercises([]);
     } finally {
       setLoading(false);
@@ -63,15 +119,19 @@ export default function Reading() {
   };
 
   const loadExerciseDetail = async (exerciseId) => {
-    if (!exerciseId) return;
-    
+    if (!exerciseId) {
+      return;
+    }
+
     setLoadingDetail(true);
     try {
       const detail = await api(`/api/reading/${exerciseId}`);
       setCurrentExercise(detail);
     } catch (error) {
       console.error("Error loading exercise detail:", error);
-      alert(`Không thể tải chi tiết bài tập.\n\n${apiErrorHint(error)}`);
+      alert(
+        `${t("reading.loadDetailError", language)}\n\n${apiErrorHint(error)}`
+      );
       setCurrentExercise(null);
     } finally {
       setLoadingDetail(false);
@@ -89,6 +149,8 @@ export default function Reading() {
     setCurrentExerciseIndex(0);
     setScores({});
     setShowSummary(false);
+    setEndedByTimer(false);
+    setSessionId((s) => s + 1);
   };
 
   const handleBackToLevel = () => {
@@ -106,6 +168,8 @@ export default function Reading() {
     setCurrentExerciseIndex(0);
     setScores({});
     setShowSummary(false);
+    setSecondsRemaining(null);
+    setEndedByTimer(false);
   };
 
   const handleRetryExercise = () => {
@@ -113,6 +177,8 @@ export default function Reading() {
     setCurrentExerciseIndex(0);
     setCurrentExercise(null);
     setShowSummary(false);
+    setEndedByTimer(false);
+    setSessionId((s) => s + 1);
   };
 
   const handleAnswerSubmit = (exerciseId, isCorrect) => {
@@ -127,7 +193,7 @@ export default function Reading() {
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setCurrentExercise(null);
     } else {
-      // Hoàn thành tất cả bài tập, hiển thị summary
+      setEndedByTimer(false);
       setShowSummary(true);
     }
   };
@@ -139,16 +205,6 @@ export default function Reading() {
     }
   };
 
-  const refetchProgress = async () => {
-    if (!selectedLevel) return;
-    try {
-      const progressRes = await api(`/api/reading/progress?level=${selectedLevel}`);
-      setProgressByItem(progressRes.byItem ?? {});
-    } catch {
-      // ignore
-    }
-  };
-
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
@@ -157,7 +213,9 @@ export default function Reading() {
         <main className="p-6">
           <div className="flex items-center gap-4 mb-8">
             <FaBook className="text-3xl text-[#4aa6e0]" />
-            <h1 className="text-2xl font-bold text-[#4aa6e0]">Luyện đọc</h1>
+            <h1 className="text-2xl font-bold text-[#4aa6e0]">
+              {t("reading.title", language)}
+            </h1>
           </div>
 
           {step === "level" && (
@@ -165,10 +223,10 @@ export default function Reading() {
               <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl border-2 border-[#4aa6e0]/20 p-10">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-[#4aa6e0] mb-3">
-                    Chọn cấp độ JLPT
+                    {t("reading.levelSelectTitle", language)}
                   </h2>
                   <p className="text-gray-600">
-                    Chọn cấp độ phù hợp với trình độ của bạn
+                    {t("reading.levelSelectSubtitle", language)}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -183,7 +241,7 @@ export default function Reading() {
                           {level}
                         </span>
                         <span className="text-xs text-gray-500 group-hover:text-[#4aa6e0] transition-colors">
-                          Cấp độ {level}
+                          {t("reading.levelCardLabel", language, { level })}
                         </span>
                       </div>
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -202,21 +260,81 @@ export default function Reading() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                   <div>
                     <h2 className="text-3xl font-bold text-[#4aa6e0] mb-2">
-                      Chọn loại bài tập
+                      {t("reading.exerciseTypeTitle", language)}
                     </h2>
                     <p className="text-gray-600">
-                      Cấp độ: <span className="font-semibold text-[#4aa6e0]">{selectedLevel}</span>
+                      {t("reading.exerciseTypeLevelPrefix", language)}{" "}
+                      <span className="font-semibold text-[#4aa6e0]">
+                        {selectedLevel}
+                      </span>
                     </p>
                   </div>
                   <button
                     onClick={handleBackToLevel}
                     className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
                   >
-                    ← Quay lại
+                    ← {t("reading.backToLevel", language)}
                   </button>
                 </div>
+                <div className="mb-8 p-6 rounded-2xl bg-white border-2 border-[#4aa6e0]/20 shadow-sm space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {t("reading.sessionConfigHint", language)}
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="reading-question-count"
+                        className="block text-sm font-semibold text-gray-700 mb-1.5"
+                      >
+                        {t("reading.sessionQuestionCountLabel", language)}
+                      </label>
+                      <select
+                        id="reading-question-count"
+                        value={questionLimit}
+                        onChange={(e) => setQuestionLimit(e.target.value)}
+                        className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-gray-800 focus:border-[#4aa6e0] focus:outline-none"
+                      >
+                        {QUESTION_COUNT_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt === "all"
+                              ? t("reading.sessionQuestionAll", language)
+                              : t("reading.sessionQuestionN", language, {
+                                  count: opt,
+                                })}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="reading-time-limit"
+                        className="block text-sm font-semibold text-gray-700 mb-1.5"
+                      >
+                        {t("reading.sessionTimeLimitLabel", language)}
+                      </label>
+                      <select
+                        id="reading-time-limit"
+                        value={timeLimitMinutes}
+                        onChange={(e) =>
+                          setTimeLimitMinutes(Number(e.target.value))
+                        }
+                        className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-gray-800 focus:border-[#4aa6e0] focus:outline-none"
+                      >
+                        {TIME_LIMIT_MINUTES.map((m) => (
+                          <option key={m} value={m}>
+                            {m === 0
+                              ? t("reading.sessionTimeUnlimited", language)
+                              : t("reading.sessionTimeMinutes", language, {
+                                  count: m,
+                                })}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {EXERCISE_TYPES.map((type) => (
+                  {exerciseTypes.map((type) => (
                     <button
                       key={type.value}
                       onClick={() => handleExerciseTypeSelect(type.value)}
@@ -250,26 +368,33 @@ export default function Reading() {
                   <div className="mb-8">
                     <div className="text-7xl mb-4 animate-bounce">🎉</div>
                     <h2 className="text-3xl font-bold text-[#4aa6e0] mb-3">
-                      Chúc mừng bạn đã hoàn thành bài tập!
+                      {t("reading.summaryTitle", language)}
                     </h2>
                     <p className="text-gray-600">
-                      Bạn đã hoàn thành tất cả các câu hỏi
+                      {endedByTimer
+                        ? t("reading.summaryTimeUpSubtitle", language)
+                        : t("reading.summarySubtitle", language)}
                     </p>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-[#4aa6e0]/10 to-blue-100 rounded-2xl p-8 mb-8 border-2 border-[#4aa6e0]/30">
-                    <p className="text-gray-700 mb-3 font-semibold text-lg">Số câu đúng</p>
+                    <p className="text-gray-700 mb-3 font-semibold text-lg">
+                      {t("reading.correctCountLabel", language)}
+                    </p>
                     <p className="text-5xl font-bold text-[#4aa6e0] mb-2">
-                      {Object.values(scores).filter(Boolean).length}/{exercises.length}
+                      {Object.values(scores).filter(Boolean).length}/
+                      {exercises.length}
                     </p>
                     <div className="inline-block bg-[#4aa6e0] text-white px-6 py-2 rounded-full mt-3">
                       <p className="text-lg font-semibold">
                         {exercises.length > 0
                           ? Math.round(
-                              (Object.values(scores).filter(Boolean).length / exercises.length) * 100
+                              (Object.values(scores).filter(Boolean).length /
+                                exercises.length) *
+                                100
                             )
                           : 0}
-                        % đúng
+                        {t("reading.correctPercentSuffix", language)}
                       </p>
                     </div>
                   </div>
@@ -279,35 +404,39 @@ export default function Reading() {
                       onClick={handleRetryExercise}
                       className="px-8 py-4 rounded-xl font-semibold bg-[#4aa6e0] text-white hover:bg-[#3a8bc0] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-lg"
                     >
-                      🔄 Làm lại một lần nữa
+                      {t("reading.retryButton", language)}
                     </button>
                     <button
                       onClick={handleBackToExerciseType}
                       className="px-8 py-4 rounded-xl font-semibold bg-white border-2 border-[#4aa6e0]/30 text-[#4aa6e0] hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-lg"
                     >
-                      ← Quay lại
+                      ← {t("reading.backToExerciseType", language)}
                     </button>
                   </div>
                 </div>
               ) : loading ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">Đang tải bài tập...</p>
+                  <p className="text-gray-600">
+                    {t("reading.loadingExercises", language)}
+                  </p>
                 </div>
               ) : exercises.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600 mb-4">
-                    Chưa có bài tập nào cho loại này.
+                    {t("reading.noExercisesForType", language)}
                   </p>
                   <button
                     onClick={handleBackToExerciseType}
                     className="px-6 py-3 bg-[#4aa6e0] text-white rounded-lg hover:bg-[#3a8bc0] transition-colors"
                   >
-                    Chọn loại khác
+                    {t("reading.chooseOtherType", language)}
                   </button>
                 </div>
               ) : loadingDetail ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">Đang tải chi tiết bài tập...</p>
+                  <p className="text-gray-600">
+                    {t("reading.loadingExerciseDetail", language)}
+                  </p>
                 </div>
               ) : currentExercise ? (
                 <div>
@@ -315,18 +444,45 @@ export default function Reading() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <h2 className="text-2xl font-bold text-[#4aa6e0] mb-1">
-                          Bài tập {currentExerciseIndex + 1}/{exercises.length}
+                          {t("reading.exerciseHeader", language, {
+                            current: currentExerciseIndex + 1,
+                            total: exercises.length,
+                          })}
                         </h2>
                         <p className="text-sm text-gray-600">
-                          <span className="font-semibold text-[#4aa6e0]">{selectedLevel}</span> - {EXERCISE_TYPES.find(t => t.value === selectedExerciseType)?.label}
+                          <span className="font-semibold text-[#4aa6e0]">
+                            {selectedLevel}
+                          </span>{" "}
+                          -{" "}
+                          {
+                            exerciseTypes.find(
+                              (x) => x.value === selectedExerciseType
+                            )?.label
+                          }
                         </p>
                       </div>
-                      <button
-                        onClick={handleBackToExerciseType}
-                        className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
-                      >
-                        ← Quay lại
-                      </button>
+                      <div className="flex flex-wrap items-center gap-3 justify-end">
+                        {timeLimitMinutes > 0 &&
+                          secondsRemaining != null &&
+                          !showSummary && (
+                            <div
+                              className={`px-4 py-2 rounded-xl text-sm font-bold border-2 ${
+                                secondsRemaining <= 60
+                                  ? "bg-red-50 border-red-300 text-red-700"
+                                  : "bg-white border-[#4aa6e0]/40 text-[#4aa6e0]"
+                              }`}
+                            >
+                              {t("reading.timerRemainingLabel", language)}{" "}
+                              {formatCountdown(secondsRemaining)}
+                            </div>
+                          )}
+                        <button
+                          onClick={handleBackToExerciseType}
+                          className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
+                        >
+                          ← {t("reading.backToExerciseType", language)}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -337,7 +493,6 @@ export default function Reading() {
                       onPrevious={handlePreviousExercise}
                       canGoPrevious={currentExerciseIndex > 0}
                       canGoNext={currentExerciseIndex < exercises.length - 1}
-                      onProgressUpdate={refetchProgress}
                       onAnswerSubmit={handleAnswerSubmit}
                     />
                   )}
@@ -349,7 +504,6 @@ export default function Reading() {
                       onPrevious={handlePreviousExercise}
                       canGoPrevious={currentExerciseIndex > 0}
                       canGoNext={currentExerciseIndex < exercises.length - 1}
-                      onProgressUpdate={refetchProgress}
                       onAnswerSubmit={handleAnswerSubmit}
                     />
                   )}
@@ -362,4 +516,3 @@ export default function Reading() {
     </div>
   );
 }
-

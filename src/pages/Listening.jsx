@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { FaHeadphones } from "react-icons/fa";
 import { api } from "../lib/api.js";
+import {
+  takeRandomSubset,
+  formatCountdown,
+} from "../utils/practiceSession.js";
 import MultipleChoiceExercise from "../components/listening/MultipleChoiceExercise";
 import DictationExercise from "../components/listening/DictationExercise";
 import SentenceOrderingExercise from "../components/listening/SentenceOrderingExercise";
@@ -10,6 +14,8 @@ import { useLanguage } from "../context/LanguageContext";
 import { t } from "../i18n/translations";
 
 const LEVELS = ["N5", "N4", "N3", "N2", "N1"];
+const QUESTION_COUNT_OPTIONS = ["all", 5, 10, 15, 20];
+const TIME_LIMIT_MINUTES = [0, 5, 10, 15, 20, 30];
 
 export default function Listening() {
   const { language } = useLanguage();
@@ -51,12 +57,39 @@ export default function Listening() {
   const [progressByItem, setProgressByItem] = useState({});
   const [scores, setScores] = useState({}); // Track scores: { exerciseId: true/false }
   const [showSummary, setShowSummary] = useState(false);
+  const [questionLimit, setQuestionLimit] = useState("all"); // "all" | "5" | "10" | ...
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(0);
+  const [sessionId, setSessionId] = useState(0);
+  const [secondsRemaining, setSecondsRemaining] = useState(null);
+  const [endedByTimer, setEndedByTimer] = useState(false);
 
   useEffect(() => {
     if (selectedLevel && selectedExerciseType) {
       loadExercises();
     }
-  }, [selectedLevel, selectedExerciseType]);
+  }, [selectedLevel, selectedExerciseType, questionLimit]);
+
+  useEffect(() => {
+    if (step !== "exercise" || showSummary || exercises.length === 0) {
+      return undefined;
+    }
+    if (!timeLimitMinutes || timeLimitMinutes <= 0) {
+      setSecondsRemaining(null);
+      return undefined;
+    }
+    let sec = timeLimitMinutes * 60;
+    setSecondsRemaining(sec);
+    const id = setInterval(() => {
+      sec -= 1;
+      setSecondsRemaining(sec);
+      if (sec <= 0) {
+        clearInterval(id);
+        setEndedByTimer(true);
+        setShowSummary(true);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [sessionId, exercises.length, timeLimitMinutes, step, showSummary]);
 
   useEffect(() => {
     if (exercises.length > 0 && currentExerciseIndex >= 0 && currentExerciseIndex < exercises.length) {
@@ -72,7 +105,10 @@ export default function Listening() {
       const response = await api(
         `/api/listening?level=${selectedLevel}&exerciseType=${selectedExerciseType}`
       );
-      setExercises(response.exercises || []);
+      const raw = response.exercises || [];
+      const limit =
+        questionLimit === "all" ? "all" : Number(questionLimit);
+      setExercises(takeRandomSubset(raw, limit));
 
       try {
         const progressRes = await api(
@@ -118,6 +154,8 @@ export default function Listening() {
     setCurrentExerciseIndex(0);
     setScores({});
     setShowSummary(false);
+    setEndedByTimer(false);
+    setSessionId((s) => s + 1);
   };
 
   const handleBackToLevel = () => {
@@ -135,6 +173,8 @@ export default function Listening() {
     setCurrentExerciseIndex(0);
     setScores({});
     setShowSummary(false);
+    setSecondsRemaining(null);
+    setEndedByTimer(false);
   };
 
   const handleRetryExercise = () => {
@@ -142,6 +182,8 @@ export default function Listening() {
     setCurrentExerciseIndex(0);
     setCurrentExercise(null);
     setShowSummary(false);
+    setEndedByTimer(false);
+    setSessionId((s) => s + 1);
   };
 
   const handleAnswerSubmit = (exerciseId, isCorrect) => {
@@ -156,7 +198,7 @@ export default function Listening() {
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setCurrentExercise(null);
     } else {
-      // Hoàn thành tất cả bài tập, hiển thị summary
+      setEndedByTimer(false);
       setShowSummary(true);
     }
   };
@@ -251,6 +293,63 @@ export default function Listening() {
                     ← {t("listening.backToLevel", language)}
                   </button>
                 </div>
+                <div className="mb-8 p-6 rounded-2xl bg-white border-2 border-[#4aa6e0]/20 shadow-sm space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {t("listening.sessionConfigHint", language)}
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="listening-question-count"
+                        className="block text-sm font-semibold text-gray-700 mb-1.5"
+                      >
+                        {t("listening.sessionQuestionCountLabel", language)}
+                      </label>
+                      <select
+                        id="listening-question-count"
+                        value={questionLimit}
+                        onChange={(e) => setQuestionLimit(e.target.value)}
+                        className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-gray-800 focus:border-[#4aa6e0] focus:outline-none"
+                      >
+                        {QUESTION_COUNT_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt === "all"
+                              ? t("listening.sessionQuestionAll", language)
+                              : t("listening.sessionQuestionN", language, {
+                                  count: opt,
+                                })}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="listening-time-limit"
+                        className="block text-sm font-semibold text-gray-700 mb-1.5"
+                      >
+                        {t("listening.sessionTimeLimitLabel", language)}
+                      </label>
+                      <select
+                        id="listening-time-limit"
+                        value={timeLimitMinutes}
+                        onChange={(e) =>
+                          setTimeLimitMinutes(Number(e.target.value))
+                        }
+                        className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-gray-800 focus:border-[#4aa6e0] focus:outline-none"
+                      >
+                        {TIME_LIMIT_MINUTES.map((m) => (
+                          <option key={m} value={m}>
+                            {m === 0
+                              ? t("listening.sessionTimeUnlimited", language)
+                              : t("listening.sessionTimeMinutes", language, {
+                                  count: m,
+                                })}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {EXERCISE_TYPES.map((type) => (
                     <button
@@ -289,7 +388,9 @@ export default function Listening() {
                       {t("listening.summaryTitle", language)}
                     </h2>
                     <p className="text-gray-600">
-                      {t("listening.summarySubtitle", language)}
+                      {endedByTimer
+                        ? t("listening.summaryTimeUpSubtitle", language)
+                        : t("listening.summarySubtitle", language)}
                     </p>
                   </div>
                   
@@ -359,15 +460,39 @@ export default function Listening() {
                           })}
                         </h2>
                         <p className="text-sm text-gray-600">
-                          <span className="font-semibold text-[#4aa6e0]">{selectedLevel}</span> - {EXERCISE_TYPES.find(t => t.value === selectedExerciseType)?.label}
+                          <span className="font-semibold text-[#4aa6e0]">
+                            {selectedLevel}
+                          </span>{" "}
+                          -{" "}
+                          {
+                            EXERCISE_TYPES.find(
+                              (x) => x.value === selectedExerciseType
+                            )?.label
+                          }
                         </p>
                       </div>
-                      <button
-                        onClick={handleBackToExerciseType}
-                        className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
-                      >
-                        ← {t("listening.backToExerciseType", language)}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-3 justify-end">
+                        {timeLimitMinutes > 0 &&
+                          secondsRemaining != null &&
+                          !showSummary && (
+                            <div
+                              className={`px-4 py-2 rounded-xl text-sm font-bold border-2 ${
+                                secondsRemaining <= 60
+                                  ? "bg-red-50 border-red-300 text-red-700"
+                                  : "bg-white border-[#4aa6e0]/40 text-[#4aa6e0]"
+                              }`}
+                            >
+                              {t("listening.timerRemainingLabel", language)}{" "}
+                              {formatCountdown(secondsRemaining)}
+                            </div>
+                          )}
+                        <button
+                          onClick={handleBackToExerciseType}
+                          className="w-full sm:w-auto px-5 py-2.5 bg-white border-2 border-[#4aa6e0]/30 rounded-xl hover:bg-[#4aa6e0] hover:text-white hover:border-[#4aa6e0] transition-all duration-300 text-sm font-semibold text-[#4aa6e0]"
+                        >
+                          ← {t("listening.backToExerciseType", language)}
+                        </button>
+                      </div>
                     </div>
                   </div>
 

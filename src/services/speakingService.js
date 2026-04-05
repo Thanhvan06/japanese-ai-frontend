@@ -69,6 +69,17 @@ export async function getSpeakingStats() {
 }
 
 /**
+ * Per-phrase progress for a JLPT level (empty if not logged in).
+ * @param {string} level - e.g. N5
+ * @returns {Promise<{ byPhrase: Record<number, object> }>}
+ */
+export async function getSpeakingProgress(level) {
+  const params = new URLSearchParams();
+  params.append("level", level);
+  return api(`/api/speaking/progress?${params.toString()}`);
+}
+
+/**
  * Generate audio for a speaking phrase
  * @param {number} phraseId - Phrase ID
  * @returns {Promise<{audioUrl: string}>}
